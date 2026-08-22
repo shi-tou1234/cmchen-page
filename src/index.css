@@ -288,7 +288,25 @@ button {
   color: var(--text-dim);
   text-transform: uppercase;
   opacity: 0;
-  animation: fade-up 0.9s var(--ease-out) 0.15s forwards;
+}
+
+body.site-revealed .hero-eyebrow {
+  animation: eyebrow-in 1.1s var(--ease-out) 0.15s forwards;
+}
+
+@keyframes eyebrow-in {
+  from {
+    letter-spacing: 0.5em;
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+  to {
+    letter-spacing: 0.28em;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 
 .hero-eyebrow::before {
@@ -302,6 +320,7 @@ button {
   position: relative;
   overflow: hidden;
   margin: 26px 0 22px;
+  perspective: 900px;
 }
 
 .hero-title {
@@ -313,18 +332,22 @@ button {
 
 .hero-char {
   display: inline-block;
-  transform: translateY(112%);
+  transform: translateY(112%) rotateX(-55deg);
+  transform-origin: 50% 100%;
+}
+
+body.site-revealed .hero-char {
   animation: char-in 0.95s var(--ease-out) forwards;
   animation-delay: var(--d);
 }
 
 @keyframes char-in {
   0% {
-    transform: translateY(112%);
+    transform: translateY(112%) rotateX(-55deg);
     filter: blur(12px);
   }
   100% {
-    transform: translateY(0);
+    transform: translateY(0) rotateX(0deg);
     filter: blur(0);
   }
 }
@@ -334,6 +357,9 @@ button {
   inset: 0;
   pointer-events: none;
   opacity: 0;
+}
+
+body.site-revealed .hero-title-shine {
   animation: shine-fade 1s ease 1.5s forwards;
 }
 
@@ -378,6 +404,9 @@ button {
   font-weight: 600;
   margin: 22px 0 16px;
   opacity: 0;
+}
+
+body.site-revealed .hero-roles {
   animation: fade-up 0.9s var(--ease-out) 0.7s forwards;
 }
 
@@ -415,7 +444,10 @@ button {
   font-size: clamp(15px, 1.6vw, 18px);
   color: var(--text-dim);
   opacity: 0;
-  animation: fade-up 0.9s var(--ease-out) 0.75s forwards;
+}
+
+body.site-revealed .hero-sub {
+  animation: fade-up 0.9s var(--ease-out) 0.78s forwards;
 }
 
 .hero-actions {
@@ -423,8 +455,18 @@ button {
   flex-wrap: wrap;
   gap: 14px;
   margin-top: 40px;
+}
+
+.hero-actions > * {
   opacity: 0;
+}
+
+body.site-revealed .hero-actions > *:nth-child(1) {
   animation: fade-up 0.9s var(--ease-out) 0.95s forwards;
+}
+
+body.site-revealed .hero-actions > *:nth-child(2) {
+  animation: fade-up 0.9s var(--ease-out) 1.1s forwards;
 }
 
 .btn {
@@ -482,6 +524,9 @@ button {
   letter-spacing: 0.2em;
   color: var(--text-faint);
   opacity: 0;
+}
+
+body.site-revealed .hero-scroll {
   animation: fade-up 1s var(--ease-out) 1.4s forwards;
 }
 
@@ -1517,6 +1562,78 @@ button {
 
 .contact-btn.is-copied {
   box-shadow: 0 0 0 1px rgba(127, 212, 212, 0.6), 0 0 24px rgba(127, 212, 212, 0.25);
+}
+
+/* ---------- preloader 开场 ---------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: #050507;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  pointer-events: none;
+  animation: preloader-fade 0.5s ease 0.72s forwards;
+}
+
+.preloader-logo {
+  font-size: clamp(30px, 4.5vw, 44px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  animation: fade-up 0.7s var(--ease-out) 0.1s forwards;
+}
+
+.preloader-logo span {
+  color: var(--text-faint);
+}
+
+.preloader-bar {
+  width: min(240px, 55vw);
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.preloader-bar i {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #9db8ff, #7fd4d4);
+  animation: preloader-fill 0.85s var(--ease-out) 0.05s forwards;
+}
+
+@keyframes preloader-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes preloader-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader {
+    display: none;
+  }
+
+  .hero-roles,
+  .hero-actions > * {
+    opacity: 1;
+  }
+
+  body.site-revealed [class*="hero-"] {
+    animation-delay: 0s !important;
+  }
 }
 
 /* ---------- admin 后台 ---------- */

@@ -11,6 +11,7 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import CursorGlow from './components/CursorGlow'
 import NebulaBackground from './components/NebulaBackground'
+import Preloader from './components/Preloader'
 import Toast from './components/Toast'
 
 const AdminApp = lazy(() => import('./admin/AdminApp'))
@@ -42,6 +43,7 @@ export default function App() {
 
   return (
     <>
+      <Preloader />
       <NebulaBackground />
       <CursorGlow />
       <Nav />

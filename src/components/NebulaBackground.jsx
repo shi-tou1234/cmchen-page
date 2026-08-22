@@ -12,8 +12,10 @@ precision highp float;
 uniform vec2 u_res;
 uniform float u_time;
 uniform vec2 u_mouse;
+uniform vec2 u_mtrail;
 uniform float u_par;
 uniform float u_star;
+uniform float u_scroll;
 
 #define TAU 6.28318530718
 
@@ -62,6 +64,11 @@ float ridge(vec2 p) {
   return v;
 }
 
+// 廉价幕帘噪声：三次价值噪声叠加，专供极光缎带
+float curtain(vec2 p) {
+  return vnoise(p) * 0.5 + vnoise(p * 2.3 + 5.0) * 0.3 + vnoise(p * 4.7 + 11.0) * 0.2;
+}
+
 // 真实感点源星：高斯 PSF、陡峭星等分布、轻微大气闪烁；无十字光臂
 float starField(vec2 uv, float scale, float density, float baseSize, float t, vec2 seed) {
   vec2 g = uv * scale + seed;
@@ -87,8 +94,7 @@ float starField(vec2 uv, float scale, float density, float baseSize, float t, ve
 }
 
 // 真实流星：高速细线，头部小亮斑，尾迹指数衰减并短暂余迹
-vec3 meteor(vec2 uv, float t, float offset) {
-  float period = 17.0;
+vec3 meteor(vec2 uv, float t, float offset, float period) {
   float id = floor((t + offset) / period);
   float lt = fract((t + offset) / period);
 
@@ -131,22 +137,50 @@ vec3 meteor(vec2 uv, float t, float offset) {
   return col;
 }
 
+// 极光缎带：上半屏悬挂的三条垂直光幕，波前由幕帘噪声驱动，色相随时间漂移
+vec3 aurora(vec2 uv, float T) {
+  float t = T * 0.06;
+  vec3 col = vec3(0.0);
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float y0 = 0.50 + 0.22 * fi;
+    float wave = curtain(vec2(uv.x * (1.15 + fi * 0.4) + fi * 9.7 + t * (2.0 + fi), t * (1.5 + fi * 0.7)));
+    float band = uv.y - y0 + (wave - 0.5) * (0.65 - fi * 0.08);
+    float d = exp(-band * band / (0.028 + 0.02 * fi));
+    vec3 c = mix(vec3(0.10, 0.95, 0.55), vec3(0.30, 0.55, 1.00), 0.5 + 0.5 * sin(T * 0.10 + fi * 2.1));
+    c = mix(c, vec3(0.80, 0.35, 1.00), 0.5 + 0.5 * sin(T * 0.07 + fi * 1.7 + 1.2));
+    float up = 1.0 - smoothstep(y0 + 0.15, y0 + 0.75, uv.y);
+    float down = smoothstep(y0 - 0.75, y0 - 0.20, uv.y);
+    float mask = up * down;
+    col += c * d * 0.14 * mask;
+    col += c * pow(d, 3.0) * 0.30 * mask * (0.55 + 0.45 * wave);
+  }
+  return col;
+}
+
 vec3 aces(vec3 x) {
   return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
 }
 
 void main() {
-  vec2 uv = (gl_FragCoord.xy * 2.0 - u_res) / min(u_res.x, u_res.y);
+  vec2 uv0 = (gl_FragCoord.xy * 2.0 - u_res) / min(u_res.x, u_res.y);
   float T = u_time;
   float t = T * 0.05;
 
+  // 滚动驱动的镜头推进：向下滚动时背景缓缓放大逼近
+  vec2 uv = uv0 * mix(1.0, 1.10, u_scroll);
+
   vec2 m = (u_mouse * 2.0 - u_res) / min(u_res.x, u_res.y);
   m = clamp(m, vec2(-1.6), vec2(1.6)) * u_par * u_star;
+  vec2 mt = (u_mtrail * 2.0 - u_res) / min(u_res.x, u_res.y);
+  mt = clamp(mt, vec2(-1.8), vec2(1.8)) * u_par * u_star;
 
+  // 星层滚动视差：页面下滑时各层以不同速度位移，强化纵深
+  float away = 1.0 - u_star;
   vec2 pN = uv + m * 0.015 + vec2(t * 0.020, -t * 0.012);
-  vec2 pS1 = uv + m * 0.030 + vec2(t * 0.030, -t * 0.018);
-  vec2 pS2 = uv + m * 0.048 + vec2(t * 0.042, -t * 0.026);
-  vec2 pS3 = uv + m * 0.070 + vec2(t * 0.058, -t * 0.036);
+  vec2 pS1 = uv + m * 0.030 + vec2(t * 0.030, -t * 0.018 + away * 0.10);
+  vec2 pS2 = uv + m * 0.048 + vec2(t * 0.042, -t * 0.026 + away * 0.26);
+  vec2 pS3 = uv + m * 0.070 + vec2(t * 0.058, -t * 0.036 + away * 0.48);
 
   vec2 q = vec2(
     fbm(pN * 1.6 + vec2(0.0, t)),
@@ -177,6 +211,14 @@ void main() {
 
   col *= mix(1.0, 0.62, smoothstep(0.45, 0.85, f) * 0.6);
 
+  // 标题后的体积光晕：径向光被云噪声调制，呼吸明灭
+  float dc = length(uv0 - vec2(0.0, 0.18));
+  float godray = exp(-dc * 1.35) * (0.72 + 0.28 * f);
+  col += vec3(0.30, 0.42, 0.90) * godray * 0.085 * u_par;
+
+  // 极光缎带
+  col += aurora(uv, T) * u_par;
+
   vec3 tintCold = vec3(0.85, 0.91, 1.0);
   vec3 tintWarm = vec3(1.0, 0.88, 0.70);
 
@@ -191,12 +233,20 @@ void main() {
   float l3 = starField(pS3, 48.0, 0.38, 0.0042, T * 1.3, vec2(77.1, 51.9));
   col += tintCold * l3 * u_star;
 
-  col += meteor(uv, T, 0.0) * u_star;
-  col += meteor(uv, T, 8.5) * u_star;
+  // 四条流星流：错峰周期，偶发重叠形成流星群
+  col += meteor(uv, T, 0.0, 17.0) * u_star;
+  col += meteor(uv, T, 8.5, 17.0) * u_star;
+  col += meteor(uv, T, 3.7, 11.0) * u_star;
+  col += meteor(uv, T, 12.1, 23.0) * u_star;
 
+  // 鼠标主光晕 + 青色慢速拖尾光晕
   col += vec3(0.25, 0.42, 0.75) * exp(-dot(uv - m, uv - m) * 4.5) * 0.10 * u_par * u_star;
+  col += vec3(0.16, 0.70, 0.66) * exp(-dot(uv - mt, uv - mt) * 6.5) * 0.055 * u_par * u_star;
 
   col = aces(col * 1.25);
+
+  // 滚动驱动色调偏移：越往下越偏紫罗兰
+  col *= mix(vec3(1.0), vec3(0.92, 0.82, 1.12), u_scroll * 0.35);
 
   float vig = smoothstep(1.9, 0.45, length(uv));
   col *= mix(0.42, 1.0, vig);
@@ -257,8 +307,10 @@ export default function NebulaBackground() {
     const uRes = gl.getUniformLocation(program, 'u_res')
     const uTime = gl.getUniformLocation(program, 'u_time')
     const uMouse = gl.getUniformLocation(program, 'u_mouse')
+    const uMtrail = gl.getUniformLocation(program, 'u_mtrail')
     const uPar = gl.getUniformLocation(program, 'u_par')
     const uStar = gl.getUniformLocation(program, 'u_star')
+    const uScroll = gl.getUniformLocation(program, 'u_scroll')
 
     let dpr = 1
     const resize = () => {
@@ -270,6 +322,7 @@ export default function NebulaBackground() {
     }
 
     const mouse = { tx: -2000, ty: -2000, x: -2000, y: -2000 }
+    const trail = { x: -2000, y: -2000 }
     const onMove = (e) => {
       const rect = canvas.getBoundingClientRect()
       mouse.tx = (e.clientX - rect.left) * dpr
@@ -290,27 +343,37 @@ export default function NebulaBackground() {
     }
     let parTarget = 1
     let starTarget = 1
+    let scrollTarget = 0
     const onScroll = () => {
       const y = window.scrollY
       parTarget = Math.max(0, Math.min(1, 1 - y / parLimit))
       starTarget = Math.max(0, Math.min(1, 1 - y / starLimit))
+      const vh = window.innerHeight || 1
+      const max = Math.max(document.documentElement.scrollHeight - vh, 1)
+      scrollTarget = Math.max(0, Math.min(1, y / max))
     }
 
     let raf = 0
     let active = true
     let par = 1
     let star = 1
+    let scroll = 0
     const t0 = performance.now()
 
     const frame = () => {
       mouse.x += (mouse.tx - mouse.x) * 0.06
       mouse.y += (mouse.ty - mouse.y) * 0.06
+      trail.x += (mouse.tx - trail.x) * 0.022
+      trail.y += (mouse.ty - trail.y) * 0.022
       par += (parTarget - par) * 0.08
       star += (starTarget - star) * 0.09
+      scroll += (scrollTarget - scroll) * 0.06
       gl.uniform1f(uTime, (performance.now() - t0) / 1000)
       gl.uniform2f(uMouse, mouse.x, mouse.y)
+      gl.uniform2f(uMtrail, trail.x, trail.y)
       gl.uniform1f(uPar, par)
       gl.uniform1f(uStar, star)
+      gl.uniform1f(uScroll, scroll)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       raf = active && !document.hidden ? requestAnimationFrame(frame) : 0
     }
@@ -346,8 +409,10 @@ export default function NebulaBackground() {
     if (reduced) {
       gl.uniform1f(uTime, 25.0)
       gl.uniform2f(uMouse, -2000, -2000)
+      gl.uniform2f(uMtrail, -2000, -2000)
       gl.uniform1f(uPar, parTarget)
       gl.uniform1f(uStar, starTarget)
+      gl.uniform1f(uScroll, scrollTarget)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     } else {
       wake()
