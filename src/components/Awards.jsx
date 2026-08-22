@@ -41,9 +41,6 @@ export default function Awards() {
                   <i>{a.level}</i>
                   {a.result}
                 </span>
-                <span className="award-arrow" aria-hidden="true">
-                  →
-                </span>
               </div>
             </Reveal>
           ))}

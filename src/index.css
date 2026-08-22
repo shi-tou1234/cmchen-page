@@ -1312,7 +1312,7 @@ button {
 .award-list { border-top: 1px solid var(--border-strong); }
 .award-row {
   display: grid;
-  grid-template-columns: 110px 1fr auto 44px;
+  grid-template-columns: 110px 1fr auto;
   align-items: center;
   gap: 26px;
   padding: 30px 10px;
@@ -1354,12 +1354,6 @@ button {
   letter-spacing: 0.1em;
   opacity: 0.7;
 }
-.award-arrow {
-  font-size: 24px;
-  font-weight: 300;
-  color: var(--text-faint);
-  text-align: right;
-}
 .award-more {
   margin-top: 36px;
   font-size: 14px;
@@ -1372,7 +1366,6 @@ button {
     gap: 14px;
     padding: 20px 6px;
   }
-  .award-arrow { display: none; }
 }
 /* ---------- contact section ---------- */
 .contact {
