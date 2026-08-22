@@ -1,6 +1,7 @@
 import Reveal from './Reveal'
 import Arrow from './Arrow'
 import TiltCard from './TiltCard'
+import SplitText from './SplitText'
 
 const PROJECTS = [
   {
@@ -52,10 +53,13 @@ export default function Projects() {
         <Reveal>
           <div className="section-head">
             <div>
+              <div className="sec-no">03</div>
               <p className="eyebrow">Projects</p>
-              <h2 className="section-title">精选项目</h2>
-              <p className="section-desc">一些我做过并引以为豪的东西。</p>
+              <h2 className="section-title">
+                <SplitText text="精选项目" />
+              </h2>
             </div>
+            <span className="sec-rule" aria-hidden="true" />
             <a
               className="view-all"
               href="https://github.com/shi-tou1234?tab=repositories"
@@ -71,7 +75,7 @@ export default function Projects() {
         </Reveal>
         <div className="projects-grid">
           {PROJECTS.map((p, i) => (
-            <Reveal key={p.index} delay={(i % 2) * 90}>
+            <Reveal key={p.index} delay={i * 110} variant={i % 2 ? 'right' : 'left'}>
               <TiltCard>
                 <a
                   className="project-card"

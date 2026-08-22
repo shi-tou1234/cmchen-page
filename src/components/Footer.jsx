@@ -1,7 +1,10 @@
+import Reveal from './Reveal'
+
 export default function Footer() {
   return (
-    <footer className="footer" id="contact">
-      <div className="container footer-inner">
+    <footer className="footer">
+      <Reveal>
+        <div className="container footer-inner">
         <p className="footer-copy">© 2026 cmchen · 用 React 构建</p>
         <div className="footer-links">
           <a
@@ -27,7 +30,8 @@ export default function Footer() {
             回到顶部
           </a>
         </div>
-      </div>
+        </div>
+      </Reveal>
     </footer>
   )
 }

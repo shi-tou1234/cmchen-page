@@ -20,6 +20,12 @@ export default function Nav() {
           cmchen<span className="logo-dot">.</span>
         </a>
         <nav className="nav-links" aria-label="主导航">
+          <a className="nav-link" href="#about">
+            关于
+          </a>
+          <a className="nav-link" href="#awards">
+            竞赛
+          </a>
           <a className="nav-link" href="#projects">
             项目
           </a>
@@ -43,6 +49,12 @@ export default function Nav() {
         </button>
       </div>
       <div className={`mobile-menu${open ? ' open' : ''}`}>
+        <a href="#about" onClick={close}>
+          关于
+        </a>
+        <a href="#awards" onClick={close}>
+          竞赛
+        </a>
         <a href="#projects" onClick={close}>
           项目
         </a>

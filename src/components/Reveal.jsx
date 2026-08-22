@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function Reveal({ children, delay = 0 }) {
+export default function Reveal({ children, delay = 0, variant = 'up' }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
 
@@ -20,10 +20,12 @@ export default function Reveal({ children, delay = 0 }) {
     return () => io.disconnect()
   }, [])
 
+  const variantCls = variant !== 'up' ? ` reveal--${variant}` : ''
+
   return (
     <div
       ref={ref}
-      className={`reveal${visible ? ' is-visible' : ''}`}
+      className={`reveal${variantCls}${visible ? ' is-visible' : ''}`}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}

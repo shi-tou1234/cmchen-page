@@ -1,16 +1,48 @@
-# React + Vite
+﻿# cmchen-page
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+个人作品集网站 — 暗色主题，WebGL 星云背景，React + Vite 构建。
 
-Currently, two official plugins are available:
+**在线访问**: [cmchen-page](https://shi-tou1234.github.io/cmchen-page/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 技术栈
 
-## React Compiler
+- React 19 + Vite 8
+- WebGL 片段着色器（星云 + 星空 + 流星）
+- 纯 CSS 动画（Scroll Reveal / 字符上升 / 打字机 / 数字滚动）
+- oxlint 代码检查
+- GitHub Actions 自动部署到 GitHub Pages
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 本地开发
 
-## Expanding the Oxlint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+浏览器打开 http://localhost:5173
+
+## 构建与部署
+
+```bash
+npm run build    # 输出到 dist/
+npm run preview  # 本地预览构建结果
+```
+
+推送到 `main` 分支后，GitHub Actions 自动构建并部署到 GitHub Pages。
+
+## 页面结构
+
+| 区块 | 说明 |
+|------|------|
+| Hero | WebGL 星云 + 星空 + 流星（仅首屏） |
+| Marquee | 技术栈滚动条 |
+| Stats | GitHub 开源项目数自动拉取 + 数字滚动 |
+| 关于 | 专业/学历信息，双栏布局 |
+| 竞赛 | 获奖记录 |
+| 项目 | 作品卡片，3D 倾斜交互 |
+| 博客 | 实时拉取最新文章 |
+| 联系 | 邮箱 + GitHub |
+
+## License
+
+MIT

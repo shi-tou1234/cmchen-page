@@ -12,152 +12,197 @@ precision highp float;
 uniform vec2 u_res;
 uniform float u_time;
 uniform vec2 u_mouse;
+uniform float u_par;
+uniform float u_star;
+
+#define TAU 6.28318530718
 
 float hash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
+  p = fract(p * vec2(234.34, 435.345));
+  p += dot(p, p + 34.23);
   return fract(p.x * p.y);
 }
 
-float noise(vec2 p) {
+float vnoise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
-    u.y
-  );
+  vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+mat2 rot(float a) {
+  float c = cos(a), s = sin(a);
+  return mat2(c, -s, s, c);
 }
 
 float fbm(vec2 p) {
   float v = 0.0;
-  float a = 0.5;
-  mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
+  float a = 0.55;
   for (int i = 0; i < 5; i++) {
-    v += a * noise(p);
-    p = m * p;
-    a *= 0.5;
+    v += a * vnoise(p);
+    p = rot(0.63) * p * 2.02 + vec2(11.3, 7.9);
+    a *= 0.53;
   }
   return v;
 }
 
-// 星星柔光核心：圆形光斑，亮度权重向小半径集中，带轻微闪烁
-float starCore(vec2 p, float size, float t, float ph) {
-  float d = length(p);
-  float s = smoothstep(size, 0.0, d);
-  s *= s;
-  float tw = 0.62 + 0.38 * sin(t * (0.8 + 1.6 * ph) + ph * 6.2831);
-  return s * (0.35 + 0.65 * tw);
+float ridge(vec2 p) {
+  float v = 0.0;
+  float a = 0.55;
+  for (int i = 0; i < 5; i++) {
+    float n = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
+    v += a * n * n;
+    p = rot(-0.47) * p * 2.13 + vec2(3.1, 17.7);
+    a *= 0.52;
+  }
+  return v;
 }
 
-// 亮星的十字衍射光：细长光臂，营造真实亮星观感
-float starSparkle(vec2 p, float size, float t, float ph) {
-  float sxx = exp(-p.x * p.x * size * 900.0);
-  float syy = exp(-p.y * p.y * size * 900.0);
-  float tw = 0.6 + 0.4 * sin(t * 1.1 + ph * 3.0);
-  return (sxx + syy) * tw * 0.5;
-}
-
-// 单层星野：少量亮星 + 大量暗星，柔和发光，带随机的暖/冷色温
-vec3 starLayer(vec2 uv, float scale, float density, float baseSize, float t, vec2 seed) {
+// 真实感点源星：高斯 PSF、陡峭星等分布、轻微大气闪烁；无十字光臂
+float starField(vec2 uv, float scale, float density, float baseSize, float t, vec2 seed) {
   vec2 g = uv * scale + seed;
   vec2 id = floor(g);
   vec2 f = fract(g) - 0.5;
   float h = hash(id);
-  if (h > density) return vec3(0.0);
+  if (h > density) return 0.0;
 
-  vec2 jit = (vec2(hash(id + 11.7), hash(id + 5.3)) - 0.5) * 0.72;
+  vec2 jit = (vec2(hash(id + 7.13), hash(id + 3.71)) - 0.5) * 0.82;
   vec2 p = f - jit;
-  float mag = pow(hash(id + 7.7), 2.4);
-  float size = baseSize * (0.35 + 2.4 * mag);
-  float ph = hash(id + 3.3);
-  float ph2 = hash(id + 8.9);
+  float mag = pow(hash(id + 9.41), 4.0);
+  float size = baseSize * (0.25 + 1.7 * mag);
+  float ph = hash(id + 1.17);
 
-  vec3 tint = mix(vec3(0.90, 0.95, 1.0), vec3(1.0, 0.90, 0.78), step(0.9, ph));
-  vec3 c = tint * (starCore(p, size, t, ph2) * (0.06 + 1.4 * mag));
-  if (mag > 0.6) {
-    c += tint * starSparkle(p, size, t, ph2) * (mag - 0.6) * 1.4;
-  }
-  return c;
+  float tw = 0.88 + 0.12 * sin(t * (0.3 + 1.2 * h) + ph * TAU);
+  tw *= 0.96 + 0.04 * sin(t * (1.1 + 1.9 * h) + ph * 7.0);
+
+  float d = length(p);
+  float s2 = size * size;
+  float glow = exp(-d * d / (s2 * 0.60));
+  float hot = exp(-d * d / (s2 * 0.10));
+  return (glow * 0.85 + hot * 0.65) * tw * (0.08 + 1.5 * mag);
 }
 
-// 流星：整体滑动柔和、头亮尾暗，数量克制不刺眼
+// 真实流星：高速细线，头部小亮斑，尾迹指数衰减并短暂余迹
 vec3 meteor(vec2 uv, float t, float offset) {
-  float period = 10.0;
+  float period = 17.0;
   float id = floor((t + offset) / period);
   float lt = fract((t + offset) / period);
-  float env = smoothstep(0.0, 0.10, lt) * (1.0 - smoothstep(0.45, 0.72, lt));
-  if (env <= 0.001) return vec3(0.0);
 
-  vec2 start = vec2(hash(vec2(id, 1.37)) * 3.4 - 1.7, 0.62 + hash(vec2(id, 2.91)) * 0.5);
-  vec2 dir = normalize(vec2(-(0.55 + hash(vec2(id, 3.11)) * 0.45), -(0.32 + hash(vec2(id, 4.7)) * 0.4)));
-  vec2 head = start + dir * lt * 2.3;
+  if (hash(vec2(id, 7.77)) > 0.55) return vec3(0.0);
 
-  vec2 pa = uv - head;
-  float proj = -dot(pa, dir);
-  float perp = length(pa + dir * max(proj, 0.0));
-  float along = max(proj, 0.0);
+  // 快速生命周期：约 0.75 个单位时间内划过
+  float life = smoothstep(0.03, 0.075, lt) * (1.0 - smoothstep(0.10, 0.155, lt));
+  if (life <= 0.001) return vec3(0.0);
 
-  vec3 c = vec3(0.85, 0.92, 1.0);
-  c *= 0.30 * exp(-perp * perp * 900.0) * exp(-along * 3.0) * env;
-  c += vec3(1.0, 0.98, 0.94) * exp(-dot(pa, pa) * 1400.0) * env * 0.55;
-  return c;
+  vec2 start = vec2(mix(1.45, -0.5, hash(vec2(id, 1.37))), mix(1.15, 0.50, hash(vec2(id, 2.91))));
+  float ang = mix(-2.95, -2.20, hash(vec2(id, 3.11)));
+  vec2 dir = vec2(cos(ang), sin(ang));
+  float speed = mix(26.0, 38.0, hash(vec2(id, 4.7)));
+  vec2 head = start + dir * lt * speed;
+
+  // 尾迹：头后方一段渐隐细线
+  float trailLen = 0.42 + 0.30 * hash(vec2(id, 5.5));
+  vec2 ta = head - dir * trailLen;
+  vec2 pa = uv - ta;
+  vec2 ba = dir * trailLen;
+  float hp = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+  float ds = length(pa - ba * hp);
+
+  float w = mix(0.0055, 0.0028, hp);
+  float body = exp(-ds * ds / (w * w)) * pow(hp, 1.35);
+
+  vec3 headCol = vec3(1.0, 0.99, 0.97);
+  vec3 tailCol = vec3(0.58, 0.74, 1.0);
+  vec3 col = mix(tailCol, headCol, hp) * body * life * 1.6;
+
+  float dh = length(uv - head);
+  col += headCol * exp(-dh * dh / 0.00022) * life * 0.55;
+
+  // 余迹：整段轨迹上残留微光快速消散
+  float trainEnv = smoothstep(0.08, 0.20, lt) * (1.0 - smoothstep(0.16, 0.34, lt));
+  if (trainEnv > 0.001) {
+    float train = exp(-ds * ds / (w * w * 4.0)) * hp * trainEnv;
+    col += tailCol * train * 0.18;
+  }
+  return col;
+}
+
+vec3 aces(vec3 x) {
+  return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
 }
 
 void main() {
   vec2 uv = (gl_FragCoord.xy * 2.0 - u_res) / min(u_res.x, u_res.y);
-  float t = u_time * 0.04;
+  float T = u_time;
+  float t = T * 0.05;
+
+  vec2 m = (u_mouse * 2.0 - u_res) / min(u_res.x, u_res.y);
+  m = clamp(m, vec2(-1.6), vec2(1.6)) * u_par * u_star;
+
+  vec2 pN = uv + m * 0.015 + vec2(t * 0.020, -t * 0.012);
+  vec2 pS1 = uv + m * 0.030 + vec2(t * 0.030, -t * 0.018);
+  vec2 pS2 = uv + m * 0.048 + vec2(t * 0.042, -t * 0.026);
+  vec2 pS3 = uv + m * 0.070 + vec2(t * 0.058, -t * 0.036);
 
   vec2 q = vec2(
-    fbm(uv * 1.9 + vec2(0.0, t)),
-    fbm(uv * 1.9 + vec2(5.2, 1.3) - t * 0.7)
+    fbm(pN * 1.6 + vec2(0.0, t)),
+    fbm(pN * 1.6 + vec2(5.2, 1.3) - t * 0.7)
   );
   vec2 r = vec2(
-    fbm(uv * 1.9 + 2.6 * q + vec2(1.7, 9.2) + t * 0.5),
-    fbm(uv * 1.9 + 2.6 * q + vec2(8.3, 2.8) - t * 0.35)
+    fbm(pN * 1.6 + q * 2.2 + vec2(1.7, 9.2) + t * 0.4),
+    fbm(pN * 1.6 + q * 2.2 + vec2(8.3, 2.8) - t * 0.3)
   );
-  float f = fbm(uv * 1.9 + 2.4 * r);
+  float f = fbm(pN * 1.6 + r * 2.0);
 
-  float ridge = 1.0 - abs(2.0 * f - 1.0);
-  ridge = pow(clamp(ridge, 0.0, 1.0), 7.0);
+  float fil = ridge(pN * 2.1 + r * 1.5 + q * 0.8);
+  fil = pow(clamp(fil * 0.72, 0.0, 1.0), 3.0);
 
-  float wash = smoothstep(0.30, 0.95, f);
+  float wash = smoothstep(0.32, 0.92, f);
+  float breathe = 0.80 + 0.20 * sin(T * 0.18);
 
-  // 朝上渐亮，让整页背景在滚动时自然过渡，不与正文抢戏
-  float topGlow = smoothstep(0.5, -0.9, uv.y) * 0.4;
-  float breathe = 0.82 + 0.18 * sin(u_time * 0.22);
+  vec3 col = vec3(0.014, 0.016, 0.026);
+  col += vec3(0.012, 0.020, 0.040) * smoothstep(-1.2, 1.0, uv.y);
 
-  vec3 col = vec3(0.020, 0.022, 0.030);
-  col += vec3(0.045, 0.075, 0.135) * wash * (0.45 + 0.35 * topGlow);
-  col += vec3(0.110, 0.185, 0.330) * ridge * (0.28 + 0.55 * q.y) * breathe * (0.82 + 0.28 * topGlow);
-  col += vec3(0.170, 0.105, 0.270) * pow(clamp(q.x, 0.0, 1.0), 3.0) * 0.20;
-  col += vec3(0.050, 0.135, 0.145) * pow(clamp(r.y, 0.0, 1.0), 3.0) * 0.26;
+  col += mix(vec3(0.020, 0.035, 0.075), vec3(0.055, 0.105, 0.190), wash) * (0.55 + 0.35 * breathe);
+  col += vec3(0.070, 0.240, 0.290) * fil * breathe * (0.55 + 0.45 * q.y);
 
-  // 光标附近柔和光晕，制造跟随感
-  vec2 m = (u_mouse * 2.0 - u_res) / min(u_res.x, u_res.y);
-  vec2 par = clamp(m, vec2(-1.5), vec2(1.5));
+  float coreHot = wash * smoothstep(0.55, 1.05, fil * 1.6);
+  col += vec3(0.180, 0.420, 0.520) * coreHot * breathe;
 
-  // 星野：三层不同疏密/大小的星星，按视差轻微偏移制造纵深
-  vec3 stars = vec3(0.0);
-  stars += starLayer(uv + par * 0.010, 14.0, 0.40, 0.011, u_time * 2.0, vec2(0.0));
-  stars += starLayer(uv + par * 0.022 + vec2(31.7, 19.3), 30.0, 0.36, 0.007, u_time * 2.0, vec2(73.1, 12.9));
-  stars += starLayer(uv + par * 0.038 + vec2(77.1, 51.9), 56.0, 0.30, 0.004, u_time * 2.0, vec2(11.3, 47.7));
-  col += stars;
+  col += vec3(0.230, 0.150, 0.075) * pow(clamp(r.x, 0.0, 1.0), 3.5) * wash * 0.35;
 
-  // 流星：两条错峰出现，克制且柔和
-  vec3 met = vec3(0.0);
-  met += meteor(uv, u_time, 0.0);
-  met += meteor(uv, u_time, 5.0);
-  col += met;
+  col *= mix(1.0, 0.62, smoothstep(0.45, 0.85, f) * 0.6);
 
-  col += vec3(0.30, 0.46, 0.80) * exp(-dot(uv - m, uv - m) * 5.0) * 0.10;
+  vec3 tintCold = vec3(0.85, 0.91, 1.0);
+  vec3 tintWarm = vec3(1.0, 0.88, 0.70);
 
-  // 暗角
-  col *= mix(0.5, 1.0, smoothstep(1.85, 0.35, length(uv)));
+  float l1 = starField(pS1, 12.0, 0.52, 0.0105, T * 0.9, vec2(3.1, 7.7));
+  vec3 s1 = mix(tintCold, tintWarm, step(0.94, hash(floor((pS1) * 12.0 + vec2(3.1, 7.7)) + 1.17))) * l1;
+  col += s1 * u_star;
 
-  float g = hash(gl_FragCoord.xy + fract(u_time) * 61.7);
-  col += (g - 0.5) * 0.012;
+  float l2 = starField(pS2, 24.0, 0.46, 0.0068, T * 1.1, vec2(41.3, 9.2));
+  vec3 s2 = mix(tintCold, tintWarm, step(0.96, hash(floor((pS2) * 24.0 + vec2(41.3, 9.2)) + 1.17))) * l2;
+  col += s2 * u_star;
+
+  float l3 = starField(pS3, 48.0, 0.38, 0.0042, T * 1.3, vec2(77.1, 51.9));
+  col += tintCold * l3 * u_star;
+
+  col += meteor(uv, T, 0.0) * u_star;
+  col += meteor(uv, T, 8.5) * u_star;
+
+  col += vec3(0.25, 0.42, 0.75) * exp(-dot(uv - m, uv - m) * 4.5) * 0.10 * u_par * u_star;
+
+  col = aces(col * 1.25);
+
+  float vig = smoothstep(1.9, 0.45, length(uv));
+  col *= mix(0.42, 1.0, vig);
+
+  float g = hash(gl_FragCoord.xy + fract(T) * 61.7);
+  col += (g - 0.5) * 0.014;
 
   gl_FragColor = vec4(col, 1.0);
 }
@@ -212,6 +257,8 @@ export default function NebulaBackground() {
     const uRes = gl.getUniformLocation(program, 'u_res')
     const uTime = gl.getUniformLocation(program, 'u_time')
     const uMouse = gl.getUniformLocation(program, 'u_mouse')
+    const uPar = gl.getUniformLocation(program, 'u_par')
+    const uStar = gl.getUniformLocation(program, 'u_star')
 
     let dpr = 1
     const resize = () => {
@@ -233,15 +280,37 @@ export default function NebulaBackground() {
       mouse.ty = -2000
     }
 
+    let parLimit = 1
+    let starLimit = 1
+    const updateLimits = () => {
+      const vh = window.innerHeight || 1
+      const el = document.getElementById('projects')
+      parLimit = el ? Math.max(el.offsetTop - vh * 0.55, vh * 0.35) : vh * 0.9
+      starLimit = vh * 1.05
+    }
+    let parTarget = 1
+    let starTarget = 1
+    const onScroll = () => {
+      const y = window.scrollY
+      parTarget = Math.max(0, Math.min(1, 1 - y / parLimit))
+      starTarget = Math.max(0, Math.min(1, 1 - y / starLimit))
+    }
+
     let raf = 0
     let active = true
+    let par = 1
+    let star = 1
     const t0 = performance.now()
 
     const frame = () => {
       mouse.x += (mouse.tx - mouse.x) * 0.06
       mouse.y += (mouse.ty - mouse.y) * 0.06
+      par += (parTarget - par) * 0.08
+      star += (starTarget - star) * 0.09
       gl.uniform1f(uTime, (performance.now() - t0) / 1000)
       gl.uniform2f(uMouse, mouse.x, mouse.y)
+      gl.uniform1f(uPar, par)
+      gl.uniform1f(uStar, star)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       raf = active && !document.hidden ? requestAnimationFrame(frame) : 0
     }
@@ -260,19 +329,25 @@ export default function NebulaBackground() {
 
     const onResize = () => {
       resize()
+      updateLimits()
+      onScroll()
       wake()
     }
 
     resize()
+    updateLimits()
+    onScroll()
     window.addEventListener('resize', onResize)
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('mousemove', onMove)
     document.documentElement.addEventListener('mouseleave', onLeave)
     document.addEventListener('visibilitychange', wake)
 
     if (reduced) {
-      // 静态帧：星云取中间亮度，保持统一观感
       gl.uniform1f(uTime, 25.0)
       gl.uniform2f(uMouse, -2000, -2000)
+      gl.uniform1f(uPar, parTarget)
+      gl.uniform1f(uStar, starTarget)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     } else {
       wake()
@@ -282,6 +357,7 @@ export default function NebulaBackground() {
       cancelAnimationFrame(raf)
       io.disconnect()
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('mousemove', onMove)
       document.documentElement.removeEventListener('mouseleave', onLeave)
       document.removeEventListener('visibilitychange', wake)

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import Reveal from './Reveal'
 import Arrow from './Arrow'
+import SplitText from './SplitText'
+import Typewriter from './Typewriter'
 
 const BLOG_URL = 'https://shi-tou1234.github.io/cmchen-blog/'
 
@@ -51,10 +53,16 @@ export default function Blog() {
         <Reveal>
           <div className="section-head">
             <div>
+              <div className="sec-no">04</div>
               <p className="eyebrow">Blog</p>
-              <h2 className="section-title">最新文章</h2>
-              <p className="section-desc">记录学习、思考与生活片段。</p>
+              <h2 className="section-title">
+                <SplitText text="最新文章" />
+              </h2>
+              <p className="section-desc">
+                <Typewriter text="记录学习、思考与生活片段。" speed={85} />
+              </p>
             </div>
+            <span className="sec-rule" aria-hidden="true" />
             <a
               className="view-all"
               href={BLOG_URL}
