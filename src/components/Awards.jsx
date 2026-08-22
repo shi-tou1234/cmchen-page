@@ -1,15 +1,6 @@
 import Reveal from './Reveal'
 import SplitText from './SplitText'
-
-const AWARDS = [
-  {
-    year: '2026',
-    name: '第二十一届全国大学生智能汽车竞赛',
-    group: '浙江省赛区',
-    result: '三等奖',
-    level: '省级',
-  },
-]
+import awards from '../data/content/awards.json'
 
 export default function Awards() {
   return (
@@ -29,7 +20,7 @@ export default function Awards() {
         </Reveal>
 
         <div className="award-list">
-          {AWARDS.map((a, i) => (
+          {awards.items.map((a, i) => (
             <Reveal key={a.name} delay={i * 110} variant="up">
               <div className="award-row">
                 <span className="award-year">{a.year}</span>
@@ -45,7 +36,7 @@ export default function Awards() {
             </Reveal>
           ))}
           <Reveal delay={140}>
-            <div className="award-more">更多竞赛与项目，正在路上。</div>
+            <div className="award-more">{awards.footNote}</div>
           </Reveal>
         </div>
       </div>

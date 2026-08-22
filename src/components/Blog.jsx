@@ -3,12 +3,11 @@ import Reveal from './Reveal'
 import Arrow from './Arrow'
 import SplitText from './SplitText'
 import Typewriter from './Typewriter'
-
-const BLOG_URL = 'https://shi-tou1234.github.io/cmchen-blog/'
+import blog from '../data/content/blog.json'
 
 // 运行时抓取博客首页，解析最新的 4 篇（标题 / 分类 / 链接），保持实时
 async function fetchLatestPosts() {
-  const res = await fetch(BLOG_URL, { cache: 'no-store' })
+  const res = await fetch(blog.url, { cache: 'no-store' })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const html = await res.text()
   const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -23,10 +22,10 @@ async function fetchLatestPosts() {
         card.querySelector('a.post-card__stretched-link')?.getAttribute('href') ?? ''
       const href = raw.startsWith('http')
         ? raw
-        : new URL(raw, BLOG_URL).href
+        : new URL(raw, blog.url).href
       return { title, cat, href }
     })
-    .filter((p) => p.title && p.href && p.href !== BLOG_URL)
+    .filter((p) => p.title && p.href && p.href !== blog.url)
 }
 
 export default function Blog() {
@@ -59,17 +58,17 @@ export default function Blog() {
                 <SplitText text="最新文章" />
               </h2>
               <p className="section-desc">
-                <Typewriter text="记录学习、思考与生活片段。" speed={85} />
+                <Typewriter text={blog.typewriter} speed={85} />
               </p>
             </div>
             <span className="sec-rule" aria-hidden="true" />
             <a
               className="view-all"
-              href={BLOG_URL}
+              href={blog.url}
               target="_blank"
               rel="noreferrer"
             >
-              全部文章
+              {blog.viewAllLabel}
               <span className="arrow">
                 <Arrow />
               </span>
@@ -78,12 +77,10 @@ export default function Blog() {
         </Reveal>
         <div className="blog-list">
           {!posts && !error && (
-            <div className="post post--status">正在加载最新文章…</div>
+            <div className="post post--status">{blog.loadingText}</div>
           )}
           {error && (
-            <div className="post post--status">
-              暂时无法获取最新文章，可从右侧查看全部文章
-            </div>
+            <div className="post post--status">{blog.errorText}</div>
           )}
           {posts &&
             posts.map((post, i) => (

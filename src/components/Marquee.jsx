@@ -1,18 +1,7 @@
-const ITEMS = [
-  'Astro',
-  'TypeScript',
-  'Python',
-  'C/C++',
-  'Embedded',
-  'PCB Design',
-  '嘉立创 EDA',
-  'Node.js',
-  'Tailwind CSS',
-  'SolidWorks',
-]
+import marquee from '../data/content/marquee.json'
 
 export default function Marquee() {
-  const row = [...ITEMS, ...ITEMS]
+  const row = [...marquee.items, ...marquee.items]
   return (
     <div className="marquee" aria-hidden="true">
       <div className="marquee-track">

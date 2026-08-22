@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import site from '../data/content/site.json'
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
@@ -17,23 +18,17 @@ export default function Nav() {
     <header className={`nav${scrolled || open ? ' is-scrolled' : ''}`}>
       <div className="container nav-inner">
         <a href="#top" className="logo" onClick={close}>
-          cmchen<span className="logo-dot">.</span>
+          {site.logo}
+          <span className="logo-dot">.</span>
         </a>
         <nav className="nav-links" aria-label="主导航">
-          <a className="nav-link" href="#about">
-            关于
-          </a>
-          <a className="nav-link" href="#awards">
-            竞赛
-          </a>
-          <a className="nav-link" href="#projects">
-            项目
-          </a>
-          <a className="nav-link" href="#blog">
-            博客
-          </a>
-          <a className="nav-cta" href="#contact">
-            联系我
+          {site.navLinks.map((l) => (
+            <a key={l.href} className="nav-link" href={l.href}>
+              {l.label}
+            </a>
+          ))}
+          <a className="nav-cta" href={site.navCta.href}>
+            {site.navCta.label}
           </a>
         </nav>
         <button
@@ -49,20 +44,13 @@ export default function Nav() {
         </button>
       </div>
       <div className={`mobile-menu${open ? ' open' : ''}`}>
-        <a href="#about" onClick={close}>
-          关于
-        </a>
-        <a href="#awards" onClick={close}>
-          竞赛
-        </a>
-        <a href="#projects" onClick={close}>
-          项目
-        </a>
-        <a href="#blog" onClick={close}>
-          博客
-        </a>
-        <a href="#contact" onClick={close}>
-          联系我
+        {site.navLinks.map((l) => (
+          <a key={l.href} href={l.href} onClick={close}>
+            {l.label}
+          </a>
+        ))}
+        <a href={site.navCta.href} onClick={close}>
+          {site.navCta.label}
         </a>
       </div>
     </header>

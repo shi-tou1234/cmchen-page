@@ -1,0 +1,11 @@
+{
+  "logo": "cmchen",
+  "navLinks": [
+    { "label": "关于", "href": "#about" },
+    { "label": "竞赛", "href": "#awards" },
+    { "label": "项目", "href": "#projects" },
+    { "label": "博客", "href": "#blog" }
+  ],
+  "navCta": { "label": "联系我", "href": "#contact" },
+  "footerCopy": "© 2026 cmchen · 用 React 构建"
+}

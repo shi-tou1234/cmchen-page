@@ -2,11 +2,10 @@ import { useEffect, useRef } from 'react'
 import Arrow from './Arrow'
 import Magnetic from './Magnetic'
 import WordRotator from './WordRotator'
-
-const NAME = 'cmchen'
+import hero from '../data/content/hero.json'
 
 function Chars() {
-  return NAME.split('').map((ch, i) => (
+  return hero.name.split('').map((ch, i) => (
     <span
       key={i}
       className="hero-char"
@@ -47,9 +46,9 @@ export default function Hero() {
     <section className="hero" id="top">
       <div className="hero-glow g1" />
       <div className="container hero-content" ref={contentRef}>
-        <p className="hero-eyebrow">Portfolio · 2026</p>
+        <p className="hero-eyebrow">{hero.eyebrow}</p>
         <div className="hero-title-mask">
-          <h1 className="hero-title" aria-label={NAME}>
+          <h1 className="hero-title" aria-label={hero.name}>
             <Chars />
           </h1>
           <div className="hero-title-shine" aria-hidden="true">
@@ -57,29 +56,27 @@ export default function Hero() {
           </div>
         </div>
         <div className="hero-roles">
-          <WordRotator words={['电子信息学生', '硬件玩家', 'AI 协作开发者', '博客作者']} />
+          <WordRotator words={hero.roles} />
         </div>
-        <p className="hero-sub">
-          用代码与电路把想法变成现实 —— 这里收录我的项目、博客与思考。
-        </p>
+        <p className="hero-sub">{hero.subtitle}</p>
         <div className="hero-actions">
           <Magnetic>
-            <a href="#projects" className="btn btn-primary">
-              查看项目
+            <a href={hero.ctaPrimary.href} className="btn btn-primary">
+              {hero.ctaPrimary.label}
               <span className="arrow">
                 <Arrow />
               </span>
             </a>
           </Magnetic>
           <Magnetic>
-            <a href="#contact" className="btn btn-outline">
-              联系我
+            <a href={hero.ctaSecondary.href} className="btn btn-outline">
+              {hero.ctaSecondary.label}
             </a>
           </Magnetic>
         </div>
       </div>
       <div className="hero-scroll">
-        <span>SCROLL</span>
+        <span>{hero.scrollHint}</span>
         <span className="hero-scroll-line" />
       </div>
     </section>

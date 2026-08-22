@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Reveal from './Reveal'
 import githubData from '../data/github.json'
+import statsContent from '../data/content/stats.json'
 
 const GH_API = 'https://api.github.com'
 const GH_USER = 'shi-tou1234'
@@ -90,8 +91,12 @@ export default function StatsStrip() {
   const repos = useRepoCount()
   const stats = [
     { value: repos, pad: 2, suffix: '+', label: '开源项目' },
-    { value: 12, pad: 2, suffix: '+', label: '使用中的技术' },
-    { value: 2, pad: 1, suffix: '年', label: '持续写代码' },
+    ...statsContent.items.map((s) => ({
+      value: Number(s.value) || 0,
+      pad: Number(s.pad) || 1,
+      suffix: s.suffix,
+      label: s.label,
+    })),
   ]
 
   return (
