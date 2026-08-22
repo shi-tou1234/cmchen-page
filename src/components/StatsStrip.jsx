@@ -1,30 +1,57 @@
 import { useEffect, useRef, useState } from 'react'
 import Reveal from './Reveal'
+import githubData from '../data/github.json'
 
-const GITHUB_USER = 'shi-tou1234'
+const GH_API = 'https://api.github.com'
+const GH_USER = 'shi-tou1234'
+const CACHE_KEY = 'cmchen-page:repos'
+const CACHE_TTL = 60 * 60 * 1000
 
-function useGitHubRepoCount() {
-  const [count, setCount] = useState(null)
-  useEffect(() => {
-    fetch(`https://api.github.com/users/${GITHUB_USER}`)
-      .then((r) => r.json())
-      .then((d) => setCount(d.public_repos ?? 0))
-      .catch(() => setCount(0))
-  }, [])
-  return count
+function readCache() {
+  try {
+    const { repos, at } = JSON.parse(localStorage.getItem(CACHE_KEY) || '')
+    if (Number.isFinite(repos) && repos > 0 && Date.now() - at < CACHE_TTL) return repos
+  } catch {
+    /* 缓存不可用就直接请求 */
+  }
+  return null
 }
 
-const STATS_BUILTIN = [
-  { value: 12, pad: 2, suffix: '+', label: '使用中的技术' },
-  { value: 2, pad: 1, suffix: '年', label: '持续写代码' },
-]
+// 先显示构建时快照，再运行时拉最新值；失败保持原数字不闪错
+function useRepoCount() {
+  const [repos, setRepos] = useState(() => readCache() ?? githubData.repos)
+
+  useEffect(() => {
+    if (readCache() !== null) return
+    let cancelled = false
+    fetch(`${GH_API}/users/${GH_USER}`, {
+      headers: { Accept: 'application/vnd.github+json' },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const n = data && data.public_repos
+        if (cancelled || !Number.isFinite(n) || n <= 0) return
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ repos: n, at: Date.now() }))
+        } catch {
+          /* 隐私模式等写入失败可忽略 */
+        }
+        setRepos(n)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return repos
+}
 
 function CountUp({ value, pad, suffix }) {
   const ref = useRef(null)
   const [n, setN] = useState(0)
 
   useEffect(() => {
-    if (value === null) return
     const el = ref.current
     if (!el) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -53,17 +80,18 @@ function CountUp({ value, pad, suffix }) {
 
   return (
     <span className="stat-num" ref={ref}>
-      {value === null ? '--' : String(n).padStart(pad, '0')}
+      {String(n).padStart(pad, '0')}
       <em>{suffix}</em>
     </span>
   )
 }
 
 export default function StatsStrip() {
-  const repoCount = useGitHubRepoCount()
+  const repos = useRepoCount()
   const stats = [
-    { value: repoCount, pad: 2, suffix: '+', label: '开源项目' },
-    ...STATS_BUILTIN,
+    { value: repos, pad: 2, suffix: '+', label: '开源项目' },
+    { value: 12, pad: 2, suffix: '+', label: '使用中的技术' },
+    { value: 2, pad: 1, suffix: '年', label: '持续写代码' },
   ]
 
   return (
