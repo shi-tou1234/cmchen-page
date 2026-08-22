@@ -1317,12 +1317,6 @@ button {
   gap: 26px;
   padding: 30px 10px;
   border-bottom: 1px solid var(--border);
-  cursor: default;
-  transition: background 0.25s ease, padding-left 0.3s var(--ease-out);
-}
-.award-row:hover {
-  background: rgba(157,184,255,0.06);
-  padding-left: 24px;
 }
 .award-year {
   font-size: clamp(28px,3vw,38px);
@@ -1331,9 +1325,7 @@ button {
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  transition: color 0.25s ease;
 }
-.award-row:hover .award-year { color: #7fd4d4; }
 .award-main { display: flex; flex-direction: column; gap: 4px; }
 .award-name {
   font-size: clamp(17px,2vw,24px);
@@ -1341,8 +1333,7 @@ button {
   letter-spacing: -0.01em;
   color: var(--text);
 }
-.award-group { font-size: 13.5px; color: var(--text-dim); transition: color 0.25s ease; }
-.award-row:hover .award-group { color: var(--text-faint); }
+.award-group { font-size: 13.5px; color: var(--text-dim); }
 .award-badge {
   display: inline-flex;
   align-items: center;
@@ -1355,11 +1346,6 @@ button {
   background: rgba(127,212,212,0.08);
   border: 1px solid rgba(127,212,212,0.18);
   color: #7fd4d4;
-  transition: background 0.25s ease, color 0.25s ease;
-}
-.award-row:hover .award-badge {
-  background: rgba(127,212,212,0.14);
-  color: #a8f0e0;
 }
 .award-badge i {
   font-style: normal;
@@ -1373,11 +1359,6 @@ button {
   font-weight: 300;
   color: var(--text-faint);
   text-align: right;
-  transition: transform 0.3s var(--ease-out), color 0.25s ease;
-}
-.award-row:hover .award-arrow {
-  transform: translateX(6px);
-  color: var(--text);
 }
 .award-more {
   margin-top: 36px;
@@ -1495,4 +1476,52 @@ button {
   .contact { padding: 80px 0 72px; }
   .contact-title { margin-bottom: 28px; }
   .contact-btn, .contact-ghost { width: 100%; justify-content: center; }
+}
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  background: rgba(16, 16, 20, 0.92);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 14px;
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  animation: toast-in 0.35s var(--ease-out);
+  pointer-events: none;
+}
+
+.toast::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7fd4d4;
+  box-shadow: 0 0 10px rgba(127, 212, 212, 0.8);
+  flex: none;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.contact-btn.is-copied {
+  box-shadow: 0 0 0 1px rgba(127, 212, 212, 0.6), 0 0 24px rgba(127, 212, 212, 0.25);
 }

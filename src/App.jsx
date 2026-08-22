@@ -10,6 +10,7 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import CursorGlow from './components/CursorGlow'
 import NebulaBackground from './components/NebulaBackground'
+import Toast from './components/Toast'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
       </main>
       <Contact />
       <Footer />
+      <Toast />
     </>
   )
 }

@@ -1,7 +1,21 @@
+import { useState } from 'react'
 import Reveal from './Reveal'
 import Arrow from './Arrow'
+import { copyText } from '../lib/clipboard'
+import { showToast } from '../lib/toast'
+
+const EMAIL = '2425698138@qq.com'
 
 export default function Contact() {
+  const [copied, setCopied] = useState(false)
+
+  const onCopyEmail = async () => {
+    const ok = await copyText(EMAIL)
+    showToast(ok ? '邮箱已复制' : `复制失败：${EMAIL}`)
+    setCopied(ok)
+    if (ok) setTimeout(() => setCopied(false), 2200)
+  }
+
   return (
     <section className="contact" id="contact">
       <div className="contact-glow contact-glow-a" aria-hidden="true" />
@@ -19,15 +33,17 @@ export default function Contact() {
         </Reveal>
         <Reveal delay={180}>
           <div className="contact-actions">
-            <a
-              className="contact-btn"
-              href="mailto:2425698138@qq.com"
+            <button
+              type="button"
+              className={`contact-btn${copied ? ' is-copied' : ''}`}
+              onClick={onCopyEmail}
+              aria-label={`复制邮箱 ${EMAIL}`}
             >
-              2425698138@qq.com
+              {EMAIL}
               <span className="arrow">
                 <Arrow />
               </span>
-            </a>
+            </button>
             <a
               className="contact-ghost"
               href="https://github.com/shi-tou1234"

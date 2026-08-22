@@ -1,6 +1,13 @@
 import Reveal from './Reveal'
+import { copyText } from '../lib/clipboard'
+import { showToast } from '../lib/toast'
 
 export default function Footer() {
+  const onCopyEmail = async () => {
+    const ok = await copyText('2425698138@qq.com')
+    showToast(ok ? '邮箱已复制' : '复制失败：2425698138@qq.com')
+  }
+
   return (
     <footer className="footer">
       <Reveal>
@@ -15,9 +22,14 @@ export default function Footer() {
           >
             GitHub
           </a>
-          <a className="footer-link" href="mailto:2425698138@qq.com">
+          <button
+            type="button"
+            className="footer-link"
+            onClick={onCopyEmail}
+            aria-label="复制邮箱 2425698138@qq.com"
+          >
             邮箱
-          </a>
+          </button>
           <a
             className="footer-link"
             href="https://shi-tou1234.github.io/cmchen-blog/"

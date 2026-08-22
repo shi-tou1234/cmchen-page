@@ -31,7 +31,7 @@ export default function Awards() {
         <div className="award-list">
           {AWARDS.map((a, i) => (
             <Reveal key={a.name} delay={i * 110} variant="up">
-              <div className="award-row" tabIndex={0}>
+              <div className="award-row">
                 <span className="award-year">{a.year}</span>
                 <span className="award-main">
                   <span className="award-name">{a.name}</span>
