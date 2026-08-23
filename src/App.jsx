@@ -6,6 +6,7 @@ import StatsStrip from './components/StatsStrip'
 import About from './components/About'
 import Awards from './components/Awards'
 import Projects from './components/Projects'
+import Skills from './components/Skills'
 import Blog from './components/Blog'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
@@ -45,6 +46,12 @@ export default function App() {
     <>
       <Preloader />
       <NebulaBackground />
+      <div className="page-grid" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
       <CursorGlow />
       <Nav />
       <main>
@@ -53,6 +60,7 @@ export default function App() {
         <StatsStrip />
         <About />
         <Awards />
+        <Skills />
         <Projects />
         <Blog />
       </main>

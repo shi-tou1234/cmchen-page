@@ -3,6 +3,8 @@ import Arrow from './Arrow'
 import Magnetic from './Magnetic'
 import WordRotator from './WordRotator'
 import hero from '../data/content/hero.json'
+import about from '../data/content/about.json'
+import contact from '../data/content/contact.json'
 
 function Chars() {
   return hero.name.split('').map((ch, i) => (
@@ -42,11 +44,28 @@ export default function Hero() {
     }
   }, [])
 
+  // meta 行中段：取关于区的专业/学历事实，保持单一数据源
+  const facts = about.facts.map((f) => f.v).filter(Boolean).slice(0, 2).join(' · ')
+
   return (
     <section className="hero" id="top">
       <div className="hero-glow g1" />
+      <span className="hero-vertical" aria-hidden="true">
+        DEEP SPACE · PORTFOLIO · {hero.eyebrow}
+      </span>
       <div className="container hero-content" ref={contentRef}>
-        <p className="hero-eyebrow">{hero.eyebrow}</p>
+        <div className="hero-meta">
+          <span>{hero.eyebrow}</span>
+          {facts && <span className="hero-meta-mid">{facts}</span>}
+          <a
+            className="hero-meta-link"
+            href={contact.githubButton.href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            GITHUB ↗
+          </a>
+        </div>
         <div className="hero-title-mask">
           <h1 className="hero-title" aria-label={hero.name}>
             <Chars />

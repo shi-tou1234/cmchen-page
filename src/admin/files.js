@@ -2,6 +2,7 @@ import site from '../data/content/site.json'
 import hero from '../data/content/hero.json'
 import about from '../data/content/about.json'
 import awards from '../data/content/awards.json'
+import skills from '../data/content/skills.json'
 import projects from '../data/content/projects.json'
 import stats from '../data/content/stats.json'
 import contact from '../data/content/contact.json'
@@ -14,6 +15,7 @@ export const CONTENT_FILES = [
   { key: 'hero', label: '首页 Hero', path: 'src/data/content/hero.json', data: hero },
   { key: 'about', label: '关于', path: 'src/data/content/about.json', data: about },
   { key: 'awards', label: '竞赛', path: 'src/data/content/awards.json', data: awards },
+  { key: 'skills', label: '技能', path: 'src/data/content/skills.json', data: skills },
   { key: 'projects', label: '项目', path: 'src/data/content/projects.json', data: projects },
   { key: 'stats', label: '统计数字', path: 'src/data/content/stats.json', data: stats },
   { key: 'contact', label: '联系', path: 'src/data/content/contact.json', data: contact },

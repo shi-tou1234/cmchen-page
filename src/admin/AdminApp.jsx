@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ADMIN_SECURITY_PATH, CONTENT_FILES, initialDraft } from './files'
 import { readFile, testConnection, writeFile } from './github'
-import { loadSecurityConfig, makeSecurityConfig, verifyPassword } from './security'
+import { CONFIG_ERROR, loadSecurityConfig, makeSecurityConfig, verifyPassword } from './security'
 
 const ADMIN_OK = 'cmchen-page:admin-ok'
 const GH_TOKEN = 'cmchen-page:gh-token'
@@ -44,6 +44,13 @@ const SCHEMAS = {
     ], template: { year: '2026', name: '', group: '', result: '', level: '省级' } },
     { key: 'footNote', label: '底部说明', type: 'text' },
   ],
+  skills: [
+    { key: 'items', label: '技能条目', type: 'objList', itemFields: [
+      { key: 'name', label: '技能名称' },
+      { key: 'field', label: '领域 / 方向' },
+      { key: 'score', label: '熟练度（0-100）', type: 'number' },
+    ], template: { name: '', field: '', score: 70 } },
+  ],
   projects: [
     { key: 'title', label: '区块标题', type: 'text' },
     { key: 'viewAll', label: '「查看全部」链接', type: 'object', fields: linkFields },
@@ -55,8 +62,9 @@ const SCHEMAS = {
       { key: 'desc', label: '描述', type: 'textarea' },
       { key: 'tags', label: '技术标签', type: 'strList' },
       { key: 'theme', label: '配色', type: 'select', options: ['blue', 'teal', 'ice', 'ember'] },
+      { key: 'color', label: '右上角光斑颜色（十六进制，如 #2e4f9e）', type: 'color' },
       { key: 'link', label: '仓库/演示链接' },
-    ], template: { index: '05', title: '', kind: '', year: '2026', desc: '', tags: [], theme: 'blue', link: '' } },
+    ], template: { index: '05', title: '', kind: '', year: '2026', desc: '', tags: [], theme: 'blue', color: '#2e4f9e', link: '' } },
   ],
   stats: [
     { key: 'items', label: '统计项（首格「开源项目」由 GitHub 自动统计）', type: 'objList', itemFields: [
@@ -219,7 +227,7 @@ function ObjListEditor({ label, items, itemFields, template, onChange }) {
                 value={it[f.key]}
                 onChange={(v) => setItem(i, { ...it, [f.key]: v })}
                 textarea={f.type === 'textarea'}
-                type={f.type === 'number' ? 'number' : 'text'}
+                type={f.type === 'number' ? 'number' : f.type === 'color' ? 'color' : 'text'}
               />
             )
           })}
@@ -285,19 +293,25 @@ function SectionForm({ schema, data, onChange }) {
 }
 
 function LoginGate({ onUnlock }) {
-  const [cfg, setCfg] = useState(undefined) // undefined=加载中 null=未配置密码
+  // cfg: undefined=加载中；null=站点未配置密码；CONFIG_ERROR=配置加载失败（不放行）；对象=已配置
+  const [cfg, setCfg] = useState(undefined)
   const [pwd, setPwd] = useState('')
   const [err, setErr] = useState('')
 
   useEffect(() => {
     loadSecurityConfig().then((c) => {
       setCfg(c)
-      if (!c) onUnlock()
+      if (c === null) onUnlock()
     })
   }, [onUnlock])
 
   const submit = async (e) => {
     e.preventDefault()
+    if (cfg !== null && typeof cfg !== 'object') {
+      // 加载中或加载失败：一律不放行，避免 fail-open
+      setErr(cfg === CONFIG_ERROR ? '安全配置加载失败，请检查网络后刷新重试' : '安全配置加载中，请稍候')
+      return
+    }
     if (await verifyPassword(pwd, cfg)) {
       sessionStorage.setItem(ADMIN_OK, '1')
       onUnlock()
@@ -334,6 +348,12 @@ export default function AdminApp() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(ADMIN_OK) === '1')
   const [tab, setTab] = useState(CONTENT_FILES[1].key)
   const [draft, setDraft] = useState(initialDraft)
+  // 各分区已保存快照（JSON 字符串），用于「未保存更改」提醒
+  const [savedMap, setSavedMap] = useState(() => {
+    const m = {}
+    for (const f of CONTENT_FILES) m[f.key] = JSON.stringify(f.data)
+    return m
+  })
   const [gh, setGh] = useState(() => {
     const remember = localStorage.getItem(GH_REMEMBER) === '1'
     const token = remember ? localStorage.getItem(GH_TOKEN) : sessionStorage.getItem(GH_TOKEN)
@@ -350,9 +370,22 @@ export default function AdminApp() {
       setSecCfgLoaded(c !== null)
     })
     return () => {
-      document.title = 'cmchen'
+      document.title = 'cmchen · 个人主页'
     }
   }, [])
+
+  const dirty = CONTENT_FILES.some((f) => JSON.stringify(draft[f.key]) !== savedMap[f.key])
+
+  useEffect(() => {
+    const on = (e) => {
+      if (dirty) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', on)
+    return () => window.removeEventListener('beforeunload', on)
+  }, [dirty])
 
   const setGhField = (patch) => {
     setGh((prev) => {
@@ -404,6 +437,7 @@ export default function AdminApp() {
         gh.token,
         gh.branch
       )
+      setSavedMap((m) => ({ ...m, [key]: JSON.stringify(draft[key]) }))
       setStatus({
         ok: true,
         text: `已提交 ${file.path} 到 ${gh.branch} 分支，站点约 1-2 分钟后自动重建上线`,
@@ -414,18 +448,28 @@ export default function AdminApp() {
     run(async () => {
       if (!requireToken()) return
       const next = {}
+      const results = await Promise.all(
+        CONTENT_FILES.map(async (file) => {
+          try {
+            const { text } = await readFile(file.path, gh.token, gh.branch)
+            return [file.key, JSON.parse(text)]
+          } catch (e) {
+            if (e.status !== 404) throw e
+            return [file.key, null] // 新文件尚未提交过，保留当前
+          }
+        })
+      )
       let pulled = 0
-      for (const file of CONTENT_FILES) {
-        try {
-          const { text } = await readFile(file.path, gh.token, gh.branch)
-          next[file.key] = JSON.parse(text)
-          pulled += 1
-        } catch (e) {
-          if (e.status !== 404) throw e
-          next[file.key] = draft[file.key] // 新文件尚未提交过，保留当前
-        }
+      for (const [key, value] of results) {
+        next[key] = value ?? draft[key]
+        if (value) pulled += 1
       }
       setDraft((d) => ({ ...d, ...next }))
+      setSavedMap(() => {
+        const m = {}
+        for (const f of CONTENT_FILES) m[f.key] = JSON.stringify(next[f.key])
+        return m
+      })
       setStatus({ ok: true, text: `已从 GitHub 拉取 ${pulled} 个内容文件的最新版本` })
     })
 
@@ -473,6 +517,11 @@ export default function AdminApp() {
           cmchen 内容后台
           <small>改动提交到 GitHub 后站点自动重建</small>
         </div>
+        {dirty && (
+          <span className="admin-dirty" title="有编辑未保存，刷新或关闭页面会丢失">
+            ● 未保存
+          </span>
+        )}
         <span className="admin-top-spacer" />
         <a className="admin-link" href="#top">查看站点</a>
         <button
@@ -529,11 +578,18 @@ export default function AdminApp() {
             <div className="admin-card">
               <h3>{currentFile.label}</h3>
               <p className="admin-hint">编辑后点「保存并提交」，提交路径 {currentFile.path}</p>
-              <SectionForm
-                schema={SCHEMAS[tab]}
-                data={draft[tab]}
-                onChange={(v) => setSection(tab, v)}
-              />
+              {SCHEMAS[tab] ? (
+                <SectionForm
+                  schema={SCHEMAS[tab]}
+                  data={draft[tab]}
+                  onChange={(v) => setSection(tab, v)}
+                />
+              ) : (
+                <p className="admin-hint admin-hint--err">
+                  该分区缺少可视化表单定义（SCHEMAS 中没有 {tab}），请直接编辑仓库中的{' '}
+                  {currentFile.path}，或在 AdminApp 的 SCHEMAS 里补充后重新部署。
+                </p>
+              )}
               <div className="admin-toolbar">
                 <button
                   type="button"
@@ -561,6 +617,8 @@ export default function AdminApp() {
               <p className="admin-hint">
                 需要具有 repo 权限的 Personal Access Token（GitHub → Settings →
                 Developer settings → Tokens）。令牌只存在你自己的浏览器里。
+                建议使用 fine-grained token，只勾选本仓库的 Contents: Read and
+                write —— 这样即使泄露，影响面也只限这一个仓库的内容文件。
               </p>
               <div className="admin-field">
                 <label>访问令牌（PAT）</label>

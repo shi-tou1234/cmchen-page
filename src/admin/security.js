@@ -16,14 +16,22 @@ export function securityConfigUrl() {
   return `${import.meta.env.BASE_URL}admin-security.json`
 }
 
+// 加载失败哨兵：网络层失败（断网、被拦截、DNS）时 fail-closed，绝不放行
+export const CONFIG_ERROR = 'config-error'
+
 export async function loadSecurityConfig() {
+  let res
   try {
-    const res = await fetch(securityConfigUrl(), { cache: 'no-store' })
-    if (!res.ok) return null
+    res = await fetch(securityConfigUrl(), { cache: 'no-store' })
+  } catch {
+    return CONFIG_ERROR
+  }
+  if (!res.ok) return null // 明确拿不到文件（如 404）= 站点未配置密码
+  try {
     const cfg = await res.json()
     return cfg && cfg.hash && cfg.salt && cfg.iterations ? cfg : null
   } catch {
-    return null
+    return CONFIG_ERROR
   }
 }
 

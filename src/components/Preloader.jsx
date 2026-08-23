@@ -23,8 +23,29 @@ export default function Preloader() {
       return
     }
 
-    const timer = setTimeout(finish, 1150)
-    return () => clearTimeout(timer)
+    // 最短展示 900ms；字体就绪即放行，最多等 2.5s 兜底，慢网络下避免遮罩放行后内容跳变
+    const timers = []
+    const wait = (ms) =>
+      new Promise((resolve) => {
+        const t = setTimeout(resolve, ms)
+        timers.push(t)
+      })
+    let finished = false
+    const finishOnce = () => {
+      if (!finished) {
+        finished = true
+        finish()
+      }
+    }
+    Promise.all([
+      wait(900),
+      Promise.race([
+        document.fonts ? document.fonts.ready : Promise.resolve(),
+        wait(2500),
+      ]),
+    ]).then(finishOnce)
+
+    return () => timers.forEach(clearTimeout)
   }, [done])
 
   if (done) return null

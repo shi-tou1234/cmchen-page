@@ -1,0 +1,10 @@
+{
+  "items": [
+    { "name": "C / C++", "field": "嵌入式开发 · 系统编程", "score": 92 },
+    { "name": "Python", "field": "数据处理 · 深度学习", "score": 85 },
+    { "name": "STM32 / 嵌入式", "field": "裸机 · RTOS · 低功耗", "score": 88 },
+    { "name": "MATLAB / 信号处理", "field": "仿真 · 滤波 · 频谱分析", "score": 80 },
+    { "name": "PCB 设计", "field": "Altium Designer · 多层板", "score": 74 },
+    { "name": "机器学习", "field": "PyTorch · 软硬结合", "score": 68 }
+  ]
+}

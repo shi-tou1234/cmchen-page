@@ -17,11 +17,17 @@ export default function Contact() {
 
   return (
     <section className="contact" id="contact">
+      <span className="sec-ghost" aria-hidden="true">CONTACT</span>
       <div className="contact-glow contact-glow-a" aria-hidden="true" />
       <div className="contact-glow contact-glow-b" aria-hidden="true" />
       <div className="container contact-inner">
         <Reveal>
-          <p className="eyebrow contact-kicker">{contact.kicker}</p>
+          <div className="contact-kicker-row">
+            <p className="eyebrow contact-kicker" style={{ margin: 0 }}>
+              {contact.kicker}
+            </p>
+            <span className="line" aria-hidden="true" />
+          </div>
         </Reveal>
         <Reveal delay={90}>
           <h2 className="contact-title">

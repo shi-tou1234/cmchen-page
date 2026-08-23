@@ -5,6 +5,7 @@ import awards from '../data/content/awards.json'
 export default function Awards() {
   return (
     <section className="section" id="awards">
+      <span className="sec-ghost" aria-hidden="true">AWARDS</span>
       <div className="container">
         <Reveal>
           <div className="section-head">

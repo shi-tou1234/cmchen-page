@@ -1,10 +1,12 @@
 import Reveal from './Reveal'
 import SplitText from './SplitText'
 import about from '../data/content/about.json'
+import { sanitizeHtml } from '../lib/sanitize'
 
 export default function About() {
   return (
     <section className="section" id="about">
+      <span className="sec-ghost" aria-hidden="true">ABOUT</span>
       <div className="container">
         <Reveal>
           <div className="section-head">
@@ -24,21 +26,23 @@ export default function About() {
             <Reveal delay={90}>
               <p
                 className="about-big"
-                dangerouslySetInnerHTML={{ __html: about.intro }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(about.intro) }}
               />
             </Reveal>
           </div>
 
           <Reveal delay={180} variant="right">
-            <ul className="about-facts">
-              {about.facts.map((f) => (
-                <li key={f.k} className="fact-row">
-                  <b>{f.k}</b>
-                  <span>{f.v}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="about-note">{about.note}</p>
+            <div className="about-card">
+              <ul className="about-facts">
+                {about.facts.map((f) => (
+                  <li key={f.k} className="fact-row">
+                    <b>{f.k}</b>
+                    <span>{f.v}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="about-note">{about.note}</p>
+            </div>
           </Reveal>
         </div>
       </div>
