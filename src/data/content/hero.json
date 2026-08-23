@@ -1,9 +1,20 @@
 {
   "name": "cmchen",
   "eyebrow": "Portfolio · 2026",
-  "roles": ["电子信息学生", "硬件玩家", "AI 协作开发者", "博客作者"],
-  "subtitle": "用代码与电路把想法变成现实 —— 这里收录我的项目、博客与思考。",
-  "ctaPrimary": { "label": "查看项目", "href": "#projects" },
-  "ctaSecondary": { "label": "联系我", "href": "#contact" },
+  "roles": [
+    "电子信息学生",
+    "硬件玩家",
+    "AI 协作开发者",
+    "博客作者"
+  ],
+  "subtitle": "去期待那些还未发生的美好—— 这里收录我的项目、博客与思考。",
+  "ctaPrimary": {
+    "label": "查看项目",
+    "href": "#projects"
+  },
+  "ctaSecondary": {
+    "label": "联系我",
+    "href": "#contact"
+  },
   "scrollHint": "SCROLL"
 }
