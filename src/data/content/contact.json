@@ -1,8 +1,14 @@
 {
   "kicker": "Contact · 05",
-  "titleLines": ["有想法？", "让我们聊聊。"],
+  "titleLines": [
+    "有想法？",
+    "让我们聊聊"
+  ],
   "email": "2425698138@qq.com",
-  "githubButton": { "label": "GitHub", "href": "https://github.com/shi-tou1234" },
+  "githubButton": {
+    "label": "GitHub",
+    "href": "https://github.com/shi-tou1234"
+  },
   "metaLeft": "浙江 · 杭州",
-  "metaRight": "欢迎交流硬件 / Web / AI"
+  "metaRight": "欢迎交流硬件 / Web / AI/Agent"
 }
