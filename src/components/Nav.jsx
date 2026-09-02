@@ -7,6 +7,30 @@ export default function Nav() {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('')
   const progressRef = useRef(null)
+  const indRef = useRef(null)
+
+  // 活跃指示器：短发丝线滑到当前区块链接下方
+  useEffect(() => {
+    const ind = indRef.current
+    const linksEl = ind?.parentElement
+    if (!ind || !linksEl) return
+    const move = () => {
+      const link = linksEl.querySelector('.nav-link.is-active')
+      if (!link) {
+        ind.style.opacity = '0'
+        return
+      }
+      const w = 22
+      ind.style.opacity = '1'
+      ind.style.width = `${w}px`
+      ind.style.transform = `translateX(${link.offsetLeft + (link.offsetWidth - w) / 2}px)`
+    }
+    move()
+    window.addEventListener('resize', move)
+    // 字体加载完成会改变链接宽度，重测量一次
+    document.fonts?.ready.then(move).catch(() => {})
+    return () => window.removeEventListener('resize', move)
+  }, [active])
 
   useEffect(() => {
     const onScroll = () => {
@@ -66,6 +90,7 @@ export default function Nav() {
           <a className="nav-cta" href={site.navCta.href}>
             {site.navCta.label}
           </a>
+          <span className="nav-indicator" ref={indRef} aria-hidden="true" />
         </nav>
         <button
           type="button"

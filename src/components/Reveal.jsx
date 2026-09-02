@@ -7,6 +7,8 @@ export default function Reveal({ children, delay = 0, variant = 'up' }) {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    // clip-up 用 threshold: 0——clip-path 把视觉高度裁成 0，threshold 0.12 永远达不到
+    const threshold = variant === 'clip-up' ? 0 : 0.12
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -14,11 +16,11 @@ export default function Reveal({ children, delay = 0, variant = 'up' }) {
           io.disconnect()
         }
       },
-      { threshold: 0.12 }
+      { threshold }
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [])
+  }, [variant])
 
   const variantCls = variant !== 'up' ? ` reveal--${variant}` : ''
 

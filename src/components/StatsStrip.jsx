@@ -67,9 +67,11 @@ function CountUp({ value, pad, suffix }) {
         const dur = 1500
         const start = performance.now()
         const tick = (now) => {
-          const t = Math.min((now - start) / dur, 1)
-          setN(Math.round(value * (1 - Math.pow(1 - t, 3))))
-          if (t < 1) requestAnimationFrame(tick)
+          const raw = Math.min((now - start) / dur, 1)
+          // 弹簧曲线：前 85% 正常计数，最后 15% 超调 8% 再弹回（像机械翻牌器「嗒」的一下）
+          const p = raw < 0.85 ? raw / 0.85 : 1 + Math.sin(((raw - 0.85) / 0.15) * Math.PI) * 0.08
+          setN(Math.round(value * Math.min(p, 1.08)))
+          if (raw < 1) requestAnimationFrame(tick)
         }
         requestAnimationFrame(tick)
       },
@@ -90,7 +92,7 @@ function CountUp({ value, pad, suffix }) {
 export default function StatsStrip() {
   const repos = useRepoCount()
   const stats = [
-    { value: repos, pad: 2, suffix: '+', label: '开源项目' },
+    { value: repos, pad: 2, suffix: '+', label: '公开仓库' },
     ...statsContent.items.map((s) => ({
       value: Number(s.value) || 0,
       pad: Number(s.pad) || 1,

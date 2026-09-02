@@ -1,10 +1,30 @@
 import { useEffect, useState } from 'react'
 
-// 开场加载遮罩：掩盖 shader 编译卡顿，结束后给 body 加 site-revealed 触发 Hero 进场编排
+// 开场加载遮罩：4 阶段电影编排（逐字打出 → 发光脉冲 → 副标题 → 揭幕）
+// 同一会话刷新跳过（sessionStorage 记忆）；减少动效环境秒进
 let hasShownThisLoad = false
 
+const SEEN_KEY = 'cmchen-page:preloaded'
+const LOGO = 'cmchen'
+
+function seenThisSession() {
+  try {
+    return sessionStorage.getItem(SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markSeen() {
+  try {
+    sessionStorage.setItem(SEEN_KEY, '1')
+  } catch {
+    /* 隐私模式等写入失败可忽略 */
+  }
+}
+
 export default function Preloader() {
-  const [done, setDone] = useState(hasShownThisLoad)
+  const [done, setDone] = useState(hasShownThisLoad || seenThisSession())
 
   useEffect(() => {
     if (done) {
@@ -12,6 +32,7 @@ export default function Preloader() {
       return
     }
     hasShownThisLoad = true
+    markSeen()
 
     const finish = () => {
       document.body.classList.add('site-revealed')
@@ -23,7 +44,6 @@ export default function Preloader() {
       return
     }
 
-    // 最短展示 900ms；字体就绪即放行，最多等 2.5s 兜底，慢网络下避免遮罩放行后内容跳变
     const timers = []
     const wait = (ms) =>
       new Promise((resolve) => {
@@ -37,8 +57,10 @@ export default function Preloader() {
         finish()
       }
     }
+
+    // 2.2s 最短展示（编排全程），字体就绪即放行，最多 2.5s 兜底
     Promise.all([
-      wait(900),
+      wait(2200),
       Promise.race([
         document.fonts ? document.fonts.ready : Promise.resolve(),
         wait(2500),
@@ -53,11 +75,23 @@ export default function Preloader() {
   return (
     <div className="preloader" aria-hidden="true">
       <div className="preloader-logo">
-        cmchen<span>.</span>
+        {LOGO.split('').map((ch, i) => (
+          <span
+            key={i}
+            className="preloader-char"
+            style={{ '--d': `${i * 80}ms` }}
+          >
+            {ch}
+          </span>
+        ))}
+        <span
+          className="preloader-char preloader-dot"
+          style={{ '--d': `${LOGO.length * 80 + 40}ms` }}
+        >
+          .
+        </span>
       </div>
-      <div className="preloader-bar">
-        <i />
-      </div>
+      <div className="preloader-sub">FOLIO / 26</div>
     </div>
   )
 }

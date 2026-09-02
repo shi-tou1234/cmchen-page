@@ -1,45 +1,43 @@
 import Reveal from './Reveal'
-import SplitText from './SplitText'
 import awards from '../data/content/awards.json'
 
 export default function Awards() {
+  const a = awards.items[0]
+  if (!a) return null
+
   return (
-    <section className="section" id="awards">
+    <section className="section section--award" id="awards">
       <span className="sec-ghost" aria-hidden="true">AWARDS</span>
-      <div className="container">
+      {/* 年份巨型水印：居中、超大、低存在感，营造荣誉殿堂氛围 */}
+      <span className="award-year-bg" aria-hidden="true">
+        {a.year}
+      </span>
+      <div className="container award-honor">
         <Reveal>
-          <div className="section-head">
+          <div className="section-head award-head">
             <div>
               <div className="sec-no">02</div>
               <p className="eyebrow">Awards</p>
-              <h2 className="section-title">
-                <SplitText text="竞赛" />
-              </h2>
+              <h2 className="section-title">竞赛</h2>
             </div>
             <span className="sec-rule" aria-hidden="true" />
           </div>
         </Reveal>
 
-        <div className="award-list">
-          {awards.items.map((a, i) => (
-            <Reveal key={a.name} delay={i * 110} variant="up">
-              <div className="award-row">
-                <span className="award-year">{a.year}</span>
-                <span className="award-main">
-                  <span className="award-name">{a.name}</span>
-                  <span className="award-group">{a.group}</span>
-                </span>
-                <span className="award-badge">
-                  <i>{a.level}</i>
-                  {a.result}
-                </span>
-              </div>
-            </Reveal>
-          ))}
-          <Reveal delay={140}>
-            <div className="award-more">{awards.footNote}</div>
-          </Reveal>
-        </div>
+        <Reveal delay={120}>
+          <div className="award-card">
+            <p className="award-card-name">{a.name}</p>
+            <p className="award-card-group">{a.group}</p>
+            <span className="award-badge">
+              <i>{a.level}</i>
+              {a.result}
+            </span>
+          </div>
+        </Reveal>
+
+        <Reveal delay={220}>
+          <p className="award-more">{awards.footNote}</p>
+        </Reveal>
       </div>
     </section>
   )

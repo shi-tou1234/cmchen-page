@@ -40,7 +40,17 @@ async function fetchLatestPosts() {
       const href = raw.startsWith('http')
         ? raw
         : new URL(raw, blog.url).href
-      return { title, cat, href }
+      // 日期在卡片的 .post-card__meta 文本里（如「2026 年 6 月 24 日」），归一化为 2026-06-24
+      // 博客站无 <time> 元素；拿不到就留空（槽位照占，布局不挤乱）
+      const metaText = card.querySelector('.post-card__meta')?.textContent ?? ''
+      const cn = metaText.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/)
+      const iso = metaText.match(/\d{4}-\d{1,2}-\d{1,2}/)
+      const date = cn
+        ? `${cn[1]}-${cn[2].padStart(2, '0')}-${cn[3].padStart(2, '0')}`
+        : iso
+          ? iso[0]
+          : ''
+      return { title, cat, href, date }
     })
     .filter((p) => p.title && p.href && p.href !== blog.url)
 }
@@ -120,6 +130,7 @@ export default function Blog() {
                 >
                   <span className="post-idx">{`P—${String(i + 1).padStart(2, '0')}`}</span>
                   <span className="post-cat">{post.cat}</span>
+                  <span className="post-date">{post.date}</span>
                   <span className="post-title">{post.title}</span>
                   <span className="arrow">
                     <Arrow />
