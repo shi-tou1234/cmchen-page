@@ -3,17 +3,20 @@
     {
       "name": "C ",
       "field": "嵌入式开发 · 系统编程",
-      "score": 80
+      "score": 80,
+      "level": "熟练"
     },
     {
       "name": "硬件操作",
       "field": "焊接 · 仪器使用",
-      "score": 88
+      "score": 88,
+      "level": "主力"
     },
     {
       "name": "PCB 设计",
       "field": "嘉立创 · 多层板 ",
-      "score": 85
+      "score": 85,
+      "level": "熟练"
     }
   ]
 }

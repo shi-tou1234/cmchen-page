@@ -10,7 +10,7 @@ function Chars() {
   return hero.name.split('').map((ch, i) => (
     <span
       key={i}
-      className="hero-char"
+      className={`hero-char${i === 2 || i === 5 ? ' hero-char--outline' : ''}`}
       style={{ '--d': `${180 + i * 80}ms` }}
       aria-hidden="true"
     >
@@ -25,16 +25,26 @@ export default function Hero() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let raf = 0
+    const charList = contentRef.current
+      ? Array.from(contentRef.current.querySelectorAll('.hero-title .hero-char'))
+      : []
     const onScroll = () => {
       cancelAnimationFrame(raf)
       raf = requestAnimationFrame(() => {
         const el = contentRef.current
         if (!el) return
-        const y = window.scrollY
+        // 读平滑插值（App.jsx lerp 层驱动），而非原生 scrollY——所有动画共享"重量感"
+        const y = window.__smoothY ?? window.scrollY
         const vh = window.innerHeight
         if (y > vh) return
-        el.style.transform = `translateY(${y * 0.28}px)`
-        el.style.opacity = String(Math.max(0, 1 - y / (vh * 0.75)))
+        // 半屏内干净淡出，避免内容半透明悬停在星云上的中间态
+        const t = Math.min(1, y / (vh * 0.55))
+        el.style.transform = `translateY(${y * 0.22}px)`
+        el.style.opacity = String(Math.max(0, 1 - t))
+        // 逐字微差消隐：各字符按不同速率变淡，退场像「散开」而非整体变淡
+        charList.forEach((c, i) => {
+          c.style.opacity = String(Math.max(0, 1 - t * (0.8 + ((i * 7) % 5) * 0.18)))
+        })
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -51,7 +61,7 @@ export default function Hero() {
     <section className="hero" id="top">
       <div className="hero-glow g1" />
       <span className="hero-vertical" aria-hidden="true">
-        DEEP SPACE · PORTFOLIO · {hero.eyebrow}
+        DEEP SPACE · {hero.eyebrow}
       </span>
       <div className="container hero-content" ref={contentRef}>
         <div className="hero-meta">

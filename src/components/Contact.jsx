@@ -32,9 +32,8 @@ export default function Contact() {
         <Reveal delay={90}>
           <h2 className="contact-title">
             {contact.titleLines.map((line) => (
-              <span key={line}>
+              <span key={line} className="contact-line">
                 {line}
-                <br />
               </span>
             ))}
           </h2>

@@ -31,8 +31,92 @@ function useIsAdminRoute() {
   return isAdmin
 }
 
+// 色温映射：滚动经过不同区块时 accent 色相微妙偏移，整个 UI 跟着变
+const ACCENTS = {
+  about: { a: '#7fd4d4', a2: '#9db8ff' },
+  awards: { a: '#a88eff', a2: '#7fd4d4' },
+  skills: { a: '#7f9cff', a2: '#a88eff' },
+  projects: { a: '#9db8ff', a2: '#9db8ff' },
+  blog: { a: '#9db8ff', a2: '#7fd4d4' },
+  contact: { a: '#ffb07a', a2: '#ff8a8a' },
+}
+const ACCENT_DEFAULT = { a: '#9db8ff', a2: '#7fd4d4' }
+
 export default function App() {
   const isAdmin = useIsAdminRoute()
+
+  // 共享 scroll handler：平滑 lerp 层 + ghost 视差 + 色温切换
+  useEffect(() => {
+    if (isAdmin) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const ghosts = [...document.querySelectorAll('.sec-ghost')]
+    const sectionIds = ['about', 'awards', 'skills', 'projects', 'blog', 'contact']
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean)
+
+    // 色温：IntersectionObserver 判断当前区块中心是否在视口中线
+    let lastA = ''
+    const setAccent = (c) => {
+      const root = document.documentElement
+      root.style.setProperty('--accent', c.a)
+      root.style.setProperty('--accent-2', c.a2)
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && e.target.id !== lastA) {
+            lastA = e.target.id
+            setAccent(ACCENTS[e.target.id] || ACCENT_DEFAULT)
+          }
+        }
+      },
+      { rootMargin: '-50% 0px -50% 0px' }
+    )
+    sections.forEach((s) => observer.observe(s))
+
+    // 平滑滚动 lerp 层：所有滚动驱动效果共享同一个有"重量感"的插值源
+    // 原生 scroll 瞬时到位，currentY 每帧 lerp 追赶，组件读 window.__smoothY
+    let targetY = window.scrollY
+    let currentY = targetY
+    let raf = 0
+
+    // ghost 视差：每个 ghost 按各自 section 位置做相对漂移（±150px 限制，不会飞出区块）
+    const ghostData = ghosts.map((g) => {
+      const section = g.parentElement
+      const sectionTop = section
+        ? section.getBoundingClientRect().top + currentY
+        : 0
+      return { el: g, sectionTop }
+    })
+
+    const onScrollRaw = () => {
+      targetY = window.scrollY
+    }
+
+    const loop = () => {
+      currentY += (targetY - currentY) * 0.1
+      window.__smoothY = currentY
+      ghostData.forEach(({ el, sectionTop }) => {
+        const relative = currentY - sectionTop
+        const offset = Math.max(-150, Math.min(150, relative * -0.06))
+        el.style.transform = `translateY(${offset.toFixed(1)}px)`
+      })
+      raf = requestAnimationFrame(loop)
+    }
+
+    window.addEventListener('scroll', onScrollRaw, { passive: true })
+    raf = requestAnimationFrame(loop)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', onScrollRaw)
+      cancelAnimationFrame(raf)
+      setAccent(ACCENT_DEFAULT)
+      window.__smoothY = 0
+    }
+  }, [isAdmin])
 
   if (isAdmin) {
     return (

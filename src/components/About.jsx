@@ -34,8 +34,8 @@ export default function About() {
           <Reveal delay={180} variant="right">
             <div className="about-card">
               <ul className="about-facts">
-                {about.facts.map((f) => (
-                  <li key={f.k} className="fact-row">
+                {about.facts.map((f, i) => (
+                  <li key={f.k} className="fact-row" style={{ '--i': i }}>
                     <b>{f.k}</b>
                     <span>{f.v}</span>
                   </li>
