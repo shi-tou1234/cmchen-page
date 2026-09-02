@@ -1,6 +1,16 @@
 {
   "items": [
-    { "label": "使用中的技术", "value": 12, "suffix": "+", "pad": 2 },
-    { "label": "持续写代码", "value": 2, "suffix": "年", "pad": 1 }
+    {
+      "label": "使用中的技术",
+      "value": 12,
+      "suffix": "+",
+      "pad": 2
+    },
+    {
+      "label": "vibecoding时间",
+      "value": 2,
+      "suffix": "年",
+      "pad": 1
+    }
   ]
 }

@@ -1,10 +1,22 @@
 {
   "items": [
-    { "name": "C / C++", "field": "嵌入式开发 · 系统编程", "score": 92, "level": "主力" },
-    { "name": "Python", "field": "数据处理 · 深度学习", "score": 85, "level": "熟练" },
-    { "name": "STM32 / 嵌入式", "field": "裸机 · RTOS · 低功耗", "score": 88, "level": "主力" },
-    { "name": "MATLAB / 信号处理", "field": "仿真 · 滤波 · 频谱分析", "score": 80, "level": "熟练" },
-    { "name": "PCB 设计", "field": "Altium Designer · 多层板", "score": 74, "level": "熟练" },
-    { "name": "机器学习", "field": "PyTorch · 软硬结合", "score": 68, "level": "在学" }
+    {
+      "name": "C ",
+      "field": "嵌入式开发 · 系统编程",
+      "score": 80,
+      "level": "熟练"
+    },
+    {
+      "name": "硬件操作",
+      "field": "焊接 · 仪器使用",
+      "score": 88,
+      "level": "主力"
+    },
+    {
+      "name": "PCB 设计",
+      "field": "嘉立创 · 多层板 ",
+      "score": 85,
+      "level": "熟练"
+    }
   ]
 }
