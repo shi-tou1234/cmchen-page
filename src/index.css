@@ -1263,6 +1263,11 @@ body.site-revealed .hero-scroll {
   letter-spacing: 0.1em;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+
+.post:hover .post-idx {
+  color: var(--accent);
 }
 
 .post-cat {
@@ -1282,9 +1287,12 @@ body.site-revealed .hero-scroll {
   white-space: nowrap;
 }
 
+/* 大字标题：与 mono 小字构成大小对比（2026 趋势「contrast as communication」） */
 .post-title {
-  font-size: 18px;
-  font-weight: 500;
+  font-size: clamp(19px, 2.2vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
 .post .arrow {
@@ -1322,6 +1330,9 @@ body.site-revealed .hero-scroll {
     grid-column: 1 / -1;
     order: -1;
     margin-bottom: -10px;
+  }
+  .post-title {
+    font-size: 17px;
   }
 }
 
@@ -1615,6 +1626,10 @@ body.site-revealed .hero-scroll {
   border-bottom: 1px solid var(--border);
   padding: 20px 0;
   overflow: hidden;
+  /* 速度斜切：App lerp 层写 --scroll-vel（帧间平滑位移，clamp ±48），
+     快滚时整条字带倾斜如气流掠过，停手回正；水平边线在 skewX 下不变形 */
+  transform: skewX(calc(var(--scroll-vel, 0) * -0.25deg));
+  will-change: transform;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent,
@@ -1663,6 +1678,12 @@ body.site-revealed .hero-scroll {
 @keyframes marquee-scroll {
   to {
     transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    transform: none;
   }
 }
 
@@ -1785,6 +1806,14 @@ body.site-revealed .hero-scroll {
   font-weight: 600;
   letter-spacing: -0.01em;
 }
+/* 逐字点亮：暗态 0.16，滚动擦洗时 JS 逐字写 opacity；transition 把逐帧步进抹成连续波 */
+.about-big .aw {
+  opacity: 0.16;
+  transition: opacity 0.18s linear;
+}
+.about-big.aw-all .aw {
+  opacity: 1;
+}
 .about-big em {
   font-style: normal;
   /* 细条荧光笔：比整块高亮更接近手绘下划线，减少“误选中”观感 */
@@ -1822,7 +1851,7 @@ body.site-revealed .hero-scroll {
 @media (max-width: 720px) {
   .about-grid { grid-template-columns: 1fr; gap: 36px; }
 }
-/* ---------- awards 荣誉殿堂：居中大字 + 年份水印 + 发光 badge ---------- */
+/* ---------- awards 荣誉殿堂：年份水印 + 徽章（索引行陈列样式内嵌于组件） ---------- */
 .section--award {
   text-align: center;
 }
@@ -1860,25 +1889,6 @@ body.site-revealed .hero-scroll {
   width: 100%;
 }
 
-.award-card {
-  margin-top: 32px;
-  padding: 40px 0;
-}
-
-.award-card-name {
-  font-size: clamp(22px, 3.2vw, 40px);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  color: var(--text);
-}
-
-.award-card-group {
-  margin-top: 12px;
-  font-size: 15px;
-  color: var(--text-dim);
-}
-
 .award-badge {
   display: inline-flex;
   align-items: center;
@@ -1902,13 +1912,6 @@ body.site-revealed .hero-scroll {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   opacity: 0.65;
-}
-
-.award-more {
-  margin-top: 28px;
-  font-size: 14px;
-  color: var(--text-faint);
-  text-align: center;
 }
 /* ---------- contact section ---------- */
 .contact {

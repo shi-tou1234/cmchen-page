@@ -95,9 +95,21 @@ export default function App() {
       targetY = window.scrollY
     }
 
+    let velSm = 0
+    let velWritten = NaN
+
     const loop = () => {
+      const prevY = currentY
       currentY += (targetY - currentY) * 0.1
       window.__smoothY = currentY
+      // 速度信号：帧间平滑位移（lerp 本身已有重量感，再叠一层轻平滑防抖），
+      // clamp 后写给 CSS 变量供速度反应效果消费（跑马灯斜切）；值未变则不写样式
+      const rawVel = Math.max(-48, Math.min(48, currentY - prevY))
+      velSm += (rawVel - velSm) * 0.15
+      if (Math.abs(velSm - velWritten) > 0.1) {
+        document.documentElement.style.setProperty('--scroll-vel', velSm.toFixed(1))
+        velWritten = velSm
+      }
       ghostData.forEach(({ el, sectionTop }) => {
         const relative = currentY - sectionTop
         const offset = Math.max(-150, Math.min(150, relative * -0.06))
