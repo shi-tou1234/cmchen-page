@@ -24,38 +24,50 @@ function Chars() {
 
 export default function Hero() {
   const contentRef = useRef(null)
-  const tlRef = useRef(null)
-  const midRef = useRef(null)
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let raf = 0
     const root = contentRef.current
-    const charList = root ? Array.from(root.querySelectorAll('.hero-title .hero-char')) : []
-    const onScroll = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => {
-        if (!root) return
-        // 读平滑插值（App.jsx lerp 层驱动），而非原生 scrollY——所有动画共享"重量感"
-        const y = window.__smoothY ?? window.scrollY
-        const vh = window.innerHeight
-        if (y > vh) return
-        // 半屏内干净淡出，避免内容半透明悬停在星云上的中间态
-        const t = Math.min(1, y / (vh * 0.55))
-        root.style.opacity = String(Math.max(0, 1 - t))
-        // 双层差异化视差：退场时上下「拉开」
-        if (tlRef.current) tlRef.current.style.transform = `translateY(${(y * 0.14).toFixed(1)}px)`
-        if (midRef.current) midRef.current.style.transform = `translateY(${(y * 0.26).toFixed(1)}px)`
-        // 逐字微差消隐：各字符按不同速率变淡，退场像「散开」而非整体变淡
-        charList.forEach((c, i) => {
-          c.style.opacity = String(Math.max(0, 1 - t * (0.8 + ((i * 7) % 5) * 0.18)))
-        })
+    const sectionEl = root ? root.closest('.hero') : null
+    if (!root || !sectionEl) return
+    const charList = Array.from(root.querySelectorAll('.hero-title .hero-char'))
+
+    // 与 About 同款：IO 门控的连续 rAF 循环——lerp 是逐帧收敛的，
+    // 单次 scroll 事件只读到一个中间帧会把状态冻在错值上
+    let raf = 0
+    let active = false
+
+    const update = () => {
+      raf = 0
+      // 读平滑插值（App.jsx lerp 层驱动），而非原生 scrollY——所有动画共享"重量感"
+      const y = window.__smoothY ?? window.scrollY
+      const vh = window.innerHeight
+      // 跑道进度 p：滚轮在前两幕的「剧情进度条」（参考站 250lvh 跑道的移植）
+      const runway = Math.max(1, sectionEl.offsetHeight - vh)
+      const p = Math.min(1, Math.max(0, y / runway))
+      // 内容早退：标题在跑道前段就淡出（参考站同名节奏），整体轻微上移缩小
+      const fade = Math.min(1, Math.max(0, (p - 0.06) / 0.34))
+      root.style.opacity = String(Math.max(0, 1 - fade))
+      root.style.transform = `translateY(${(-p * 5).toFixed(2)}vh) scale(${(1 - p * 0.05).toFixed(4)})`
+      // 逐字微差消隐：各字符按不同速率变淡，退场像「散开」而非整体变淡
+      charList.forEach((c, i) => {
+        c.style.opacity = String(Math.max(0, 1 - fade * (0.8 + ((i * 7) % 5) * 0.18)))
       })
+      if (active) raf = requestAnimationFrame(update)
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        active = entry.isIntersecting
+        if (active && !raf) raf = requestAnimationFrame(update)
+      },
+      { rootMargin: '10% 0px 10% 0px' },
+    )
+    io.observe(sectionEl)
+
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(raf)
+      io.disconnect()
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [])
 
@@ -66,62 +78,67 @@ export default function Hero() {
 
   return (
     <section className="hero" id="top">
-      <div className="hero-glow g1" />
-      <div className="container hero-content" ref={contentRef}>
-        <div className="hero-word-tl" ref={tlRef}>
-          <div className="hero-title-mask">
-            <h1 className="hero-title" aria-label={hero.name}>
-              <Chars />
-            </h1>
-          </div>
-        </div>
-
-        <div className="hero-mid" ref={midRef}>
-          <div className="hero-midline">
-            <span>{hero.eyebrow}</span>
-            {facts && <span className="hero-mid-facts">{facts}</span>}
-            <a
-              className="hero-mid-link"
-              href={contact.githubButton.href}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {contact.githubButton.label} ↗
-            </a>
-          </div>
-          <div className="hero-roles">
-            <WordRotator words={hero.roles} />
-          </div>
-        </div>
-
-        <div className="hero-foot">
-          <div className="hero-foot-main">
-            <p className="hero-sub">{hero.subtitle}</p>
-            <div className="hero-cta">
-              <Magnetic>
-                <a href={hero.ctaPrimary.href} className="hero-cta-link">
-                  {hero.ctaPrimary.label}
-                  <span className="arrow">
-                    <Arrow />
-                  </span>
-                </a>
-              </Magnetic>
-              <Magnetic>
-                <a href={hero.ctaSecondary.href} className="hero-cta-link">
-                  {hero.ctaSecondary.label}
-                  <span className="arrow">
-                    <Arrow />
-                  </span>
-                </a>
-              </Magnetic>
+      {/* 参考站式滚动跑道：section 230svh，舞台 sticky 钉住 100svh——
+          滚轮在前两幕驱动星空/内容变化，而不是把页面推走 */}
+      <div className="hero-stage">
+        <div className="hero-glow g1" />
+        <div className="container hero-content" ref={contentRef}>
+          <div className="hero-word-tl">
+            <div className="hero-title-mask">
+              <h1 className="hero-title" aria-label={hero.name}>
+                <Chars />
+              </h1>
             </div>
           </div>
-          <span className="hero-copy">{brYear ? `© ${brYear}` : ''}</span>
+
+          <div className="hero-mid">
+            <div className="hero-midline">
+              <span>{hero.eyebrow}</span>
+              {facts && <span className="hero-mid-facts">{facts}</span>}
+              <a
+                className="hero-mid-link"
+                href={contact.githubButton.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {contact.githubButton.label} ↗
+              </a>
+            </div>
+            <div className="hero-roles">
+              <WordRotator words={hero.roles} />
+            </div>
+          </div>
+
+          <div className="hero-foot">
+            <div className="hero-foot-main">
+              <p className="hero-sub">{hero.subtitle}</p>
+              <div className="hero-cta">
+                <Magnetic>
+                  <a href={hero.ctaPrimary.href} className="hero-cta-link">
+                    {hero.ctaPrimary.label}
+                    <span className="arrow">
+                      <Arrow />
+                    </span>
+                  </a>
+                </Magnetic>
+                <Magnetic>
+                  <a href={hero.ctaSecondary.href} className="hero-cta-link">
+                    {hero.ctaSecondary.label}
+                    <span className="arrow">
+                      <Arrow />
+                    </span>
+                  </a>
+                </Magnetic>
+              </div>
+            </div>
+            <span className="hero-copy">{brYear ? `© ${brYear}` : ''}</span>
+          </div>
+
+          <div className="hero-scroll">
+            <span>{hero.scrollHint}</span>
+            <span className="hero-scroll-line" />
+          </div>
         </div>
-      </div>
-      <div className="hero-scroll">
-        <span>{hero.scrollHint}</span>
-        <span className="hero-scroll-line" />
       </div>
     </section>
   )

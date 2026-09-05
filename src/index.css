@@ -342,10 +342,14 @@ button {
 
 .hero {
   position: relative;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  /* 参考站式滚动跑道：高度给足 230svh，前两幕滚轮驱动动画而非推走页面 */
+  height: 230svh;
+}
+
+.hero-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
   overflow: hidden;
 }
 
@@ -390,7 +394,7 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100svh;
+  height: 100svh;
   padding-top: 112px;
   padding-bottom: 84px;
   gap: 26px;
@@ -1675,6 +1679,20 @@ body.site-revealed .hero-scroll {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  /* 减少动效：跑道退化为普通一屏 hero */
+  .hero {
+    height: auto;
+    min-height: 100svh;
+  }
+  .hero-stage {
+    position: static;
+    height: auto;
+    min-height: 100svh;
+  }
+  .hero-content {
+    height: auto;
+    min-height: 100svh;
   }
   .reveal {
     opacity: 1;

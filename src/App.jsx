@@ -94,16 +94,17 @@ export default function App() {
     })
 
     // 星空→墨黑的滚动过渡：前几幕星空全亮，随滚动平滑压暗到编辑式黑底。
-    // 读 lerp 值（currentY）驱动，过渡自带"重量感"；只在变化时写样式
+    // 读 lerp 值（currentY）驱动，过渡自带"重量感"；只在变化时写样式。
+    // 哨兵初值必须是有效数字——用 NaN 会让 Math.abs(x-NaN)>阈值 恒为 false，永不写入
     const bgCanvas = document.querySelector('.bg-canvas')
-    let bgOpWritten = NaN
+    let bgOpWritten = 1
 
     const onScrollRaw = () => {
       targetY = window.scrollY
     }
 
     let velSm = 0
-    let velWritten = NaN
+    let velWritten = 0
 
     const loop = () => {
       const prevY = currentY
@@ -118,11 +119,17 @@ export default function App() {
         velWritten = velSm
       }
       if (bgCanvas) {
+        // 参考站式滚轮响应：星空钉在原位缓慢下沉 + 放大潜入 + 压暗——
+        // 滚轮每滚一步天空都在动（位移/缩放/明度三重微变）。
+        // 缩放裕量按最大下沉量校准（vh*0.22/2 = 0.11vh ≥ 下沉 0.06vh），不露画布边缘
         const vh = window.innerHeight
-        const t = Math.min(1, currentY / (vh * 1.8))
-        const op = 1 - t * 0.55 // 1 → 0.45
+        const t = Math.min(1, currentY / (vh * 2.2))
+        const op = 1 - t * 0.55
+        const drift = t * vh * 0.06
+        const zoom = 1 + t * 0.22
         if (Math.abs(op - bgOpWritten) > 0.004) {
           bgCanvas.style.opacity = op.toFixed(3)
+          bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)})`
           bgOpWritten = op
         }
       }
