@@ -16,7 +16,7 @@ const STYLE = `
 .skill-row{display:grid;grid-template-columns:88px 1.1fr 1fr 180px 118px;align-items:center;gap:12px;
   padding:22px 10px;border-bottom:1px solid var(--border);
   translate:var(--pull,0) 0;
-  box-shadow:inset 2px 0 0 rgba(157,184,255,0);
+  box-shadow:inset 2px 0 0 rgba(227,217,198,0);
   transition:background .18s ease,color .18s ease,box-shadow .25s ease,padding-left .25s var(--ease-out)}
 .skill-row:hover{background:#f2f2f2;color:#0b0b0e;box-shadow:inset 3px 0 0 rgba(52,80,214,.9);padding-left:16px}
 .skill-idx{font-size:13px;font-weight:600;color:#5a78ff;letter-spacing:.08em;font-variant-numeric:tabular-nums}
@@ -27,7 +27,7 @@ const STYLE = `
 .skill-gauge{display:flex;align-items:center;gap:10px;min-width:0}
 .skill-rail{position:relative;flex:1;height:2px;background:rgba(255,255,255,.09);transition:background .18s ease}
 .skill-rail-fill{position:absolute;top:0;bottom:0;left:0;width:100%;transform-origin:left;
-  transform:scaleX(0);background:linear-gradient(90deg,rgba(157,184,255,.9),rgba(127,212,212,.9));
+  transform:scaleX(0);background:linear-gradient(90deg,rgba(227,217,198,.9),rgba(201,185,152,.9));
   transition:transform 1s var(--ease-out);transition-delay:calc(var(--i)*70ms + 150ms)}
 .reveal.is-visible .skill-rail-fill{transform:scaleX(calc(var(--score)/100))}
 .skill-row:hover .skill-rail{background:rgba(11,11,14,.14)}
@@ -36,9 +36,9 @@ const STYLE = `
   color:var(--text-dim);min-width:26px;text-align:right;transition:color .18s ease}
 .skill-row:hover .skill-score{color:rgba(11,11,14,.62)}
 .skill-level{justify-self:end;font-size:12px;font-weight:600;letter-spacing:.18em;
-  color:var(--accent);border:1px solid rgba(157,184,255,.38);border-radius:999px;padding:5px 14px 5px 16px;
+  color:var(--accent);border:1px solid rgba(227,217,198,.38);border-radius:999px;padding:5px 14px 5px 16px;
   transition:color .18s ease,border-color .18s ease}
-.skill-level.is-core{color:var(--accent-2);border-color:rgba(127,212,212,.45)}
+.skill-level.is-core{color:var(--accent-2);border-color:rgba(201,185,152,.45)}
 .skill-level.is-learning{color:var(--text-faint);border-color:var(--border-strong)}
 .skill-row:hover .skill-level{color:#3450d6;border-color:rgba(52,80,214,.55)}
 .skill-row:hover .skill-level.is-core{color:#0f6f66;border-color:rgba(15,111,102,.55)}

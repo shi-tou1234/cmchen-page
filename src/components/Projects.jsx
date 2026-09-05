@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import Reveal from './Reveal'
 import Arrow from './Arrow'
-import TiltCard from './TiltCard'
 import SplitText from './SplitText'
 import projects from '../data/content/projects.json'
 
@@ -56,125 +55,145 @@ function Glyph({ kind }) {
   )
 }
 
+// 中央垂直时间轴（编排参考 eladiodieste.com 的 Obra 年表）：
+// 中轴发丝线贯穿区块，菱形节点 sticky 驻留视口中心、被条目依次「穿过」；
+// 条目左右交错，滚动时越靠近视口中线越亮（读 App lerp 平滑值，与全站同源），
+// 悬停时其余条目退暗；封面进视口以 clip-path 自下而上揭开，大年份压在中轴上。
 export default function Projects() {
-  const spaceRef = useRef(null)
-  const stageRef = useRef(null)
-  const trackRef = useRef(null)
-  const barRef = useRef(null)
-  const idxRef = useRef(null)
+  const listRef = useRef(null)
 
-  // 横向画廊：sticky 钉住视口，滚动进度映射为轨道位移（原生滚动，不劫持滚轮）
-  // 移动端 / 减少动效：CSS 回退为纵向堆叠或原生横向滚动，这里直接不驱动
   useEffect(() => {
-    const space = spaceRef.current
-    const stage = stageRef.current
-    const track = trackRef.current
-    if (!space || !stage || !track) return undefined
-    const bar = barRef.current
-    const idx = idxRef.current
-    const desktop = window.matchMedia('(min-width: 861px)')
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let raf = 0
+    const root = listRef.current
+    if (!root) return undefined
+    const items = Array.from(root.querySelectorAll('.tl-item'))
+    if (!items.length) return undefined
 
-    const cards = trackRef.current ? [...track.children] : []
-
-    const apply = () => {
-      raf = 0
-      if (!desktop.matches || reduced.matches) {
-        track.style.transform = ''
-        cards.forEach((el) => {
-          el.style.setProperty('--focus-scale', 1)
-          el.style.setProperty('--focus-dim', 1)
-        })
-        return
-      }
-      const rect = space.getBoundingClientRect()
-      const total = space.offsetHeight - window.innerHeight
-      const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0
-      const max = Math.max(0, track.scrollWidth - stage.clientWidth)
-      const x = -p * max
-      track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`
-      if (bar) bar.style.transform = `scaleX(${0.08 + p * 0.92})`
-      // 焦点卡：越靠近视口中线越完整，远处的卡轻微缩小变暗，制造纵深感
-      const mid = stage.clientWidth / 2
-      cards.forEach((el) => {
-        const c = el.offsetLeft + el.offsetWidth / 2 + x
-        const d = Math.min(1, Math.abs(c - mid) / (stage.clientWidth * 0.62))
-        el.style.setProperty('--focus-scale', (1 - d * 0.09).toFixed(3))
-        el.style.setProperty('--focus-dim', (1 - d * 0.5).toFixed(3))
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      items.forEach((el) => {
+        el.style.opacity = '1'
+        el.classList.add('is-inview')
       })
-      if (idx) {
-        // 当前卡 = 中心离视口中线最近的那张
-        const viewCenter = -x + stage.clientWidth / 2
-        let best = 0
-        let bestD = Infinity
-        cards.forEach((el, i) => {
-          const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - viewCenter)
-          if (d < bestD) {
-            bestD = d
-            best = i
+      return undefined
+    }
+
+    // 条目在文档中的绝对位置：字体加载/窗口尺寸变化后重测（Nav/About 同款先例）
+    let docTops = []
+    let heights = []
+    const measure = () => {
+      docTops = items.map((el) => el.getBoundingClientRect().top + window.scrollY)
+      heights = items.map((el) => el.offsetHeight || 1)
+    }
+
+    // ① 滚动联动亮度：条目中心越近视口中线越亮
+    const last = new Array(items.length).fill(-1)
+    let raf = 0
+    let active = false
+
+    const update = () => {
+      raf = 0
+      const y = window.__smoothY ?? window.scrollY
+      const vh = window.innerHeight
+      const mid = y + vh / 2
+      items.forEach((el, i) => {
+        const d = Math.min(1, Math.abs(docTops[i] + heights[i] / 2 - mid) / (vh * 0.6))
+        const v = 1 - d * 0.75
+        if (Math.abs(v - last[i]) > 0.008) {
+          el.style.opacity = v.toFixed(3)
+          last[i] = v
+        }
+      })
+      if (active) raf = requestAnimationFrame(update)
+    }
+
+    // 仅当时间轴进入视口邻域时才驱动 rAF：接得住 lerp 尾巴，也省全局帧
+    const lightIO = new IntersectionObserver(
+      ([entry]) => {
+        active = entry.isIntersecting
+        if (active && !raf) raf = requestAnimationFrame(update)
+      },
+      { rootMargin: '20% 0px 20% 0px' },
+    )
+    lightIO.observe(root)
+
+    // ② 入场揭开：封面 clip 自下而上 + 年份升起（一次性）
+    const revealIO = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-inview')
+            revealIO.unobserve(e.target)
           }
         })
-        idx.textContent = String(best + 1).padStart(2, '0')
-      }
-    }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply)
-    }
+      },
+      { threshold: 0.22 },
+    )
+    items.forEach((el) => revealIO.observe(el))
 
-    apply()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    measure()
+    document.fonts?.ready.then(measure).catch(() => {})
+    window.addEventListener('resize', measure)
+
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      lightIO.disconnect()
+      revealIO.disconnect()
       if (raf) cancelAnimationFrame(raf)
+      window.removeEventListener('resize', measure)
     }
   }, [])
 
   return (
     <section className="section section--gallery" id="projects">
       <span className="sec-ghost" aria-hidden="true">WORKS</span>
-      <div className="gallery-space" ref={spaceRef}>
-        <div className="gallery-viewport">
-          <div className="container">
-            <Reveal>
-              <div className="section-head">
-                <div>
-                  <div className="sec-no">04</div>
-                  <p className="eyebrow">Projects</p>
-                  <h2 className="section-title">
-                    <SplitText text={projects.title} />
-                  </h2>
-                </div>
-                <span className="sec-rule" aria-hidden="true" />
-                <a
-                  className="view-all"
-                  href={projects.viewAll.href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {projects.viewAll.label}
-                  <span className="arrow">
-                    <Arrow />
-                  </span>
-                </a>
-              </div>
-            </Reveal>
+      <div className="container">
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <div className="sec-no">04</div>
+              <p className="eyebrow">Projects</p>
+              <h2 className="section-title">
+                <SplitText text={projects.title} />
+              </h2>
+            </div>
+            <span className="sec-rule" aria-hidden="true" />
+            <a
+              className="view-all"
+              href={projects.viewAll.href}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {projects.viewAll.label}
+              <span className="arrow">
+                <Arrow />
+              </span>
+            </a>
           </div>
-          <div className="gallery-stage" ref={stageRef}>
-            <div className="gallery-track" ref={trackRef}>
-              {projects.items.map((p, i) => (
-                <Reveal key={p.index} delay={i * 80} variant="up">
-                  <TiltCard>
-                    <a
-                      className="project-card"
-                      href={p.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={p.color ? { '--orb-color': p.color } : undefined}
-                    >
-                      <div className="project-thumb" data-theme={p.theme}>
+        </Reveal>
+
+        <div className="timeline" ref={listRef}>
+          <div className="tl-axis" aria-hidden="true">
+            <div className="tl-diamond-wrap">
+              <span className="tl-diamond" />
+            </div>
+          </div>
+          <ol className="tl-list">
+            {projects.items.map((p, i) => (
+              <li
+                className={`tl-item tl-item--${i % 2 === 0 ? 'l' : 'r'}`}
+                key={p.index}
+              >
+                <div className="tl-inner">
+                  <a
+                    className="tl-card"
+                    href={p.link}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <div className="tl-thumb-wrap">
+                      <div
+                        className="project-thumb"
+                        data-theme={p.theme}
+                        style={p.color ? { '--orb-color': p.color } : undefined}
+                      >
                         <span className="thumb-grid" aria-hidden="true" />
                         <span className="thumb-orb" aria-hidden="true" />
                         <Glyph kind={p.kind} />
@@ -184,42 +203,31 @@ export default function Projects() {
                           {p.index}
                         </span>
                       </div>
-                      <div className="project-body">
-                        <div className="project-meta">
-                          <span>{p.year}</span>
-                          <i />
-                          <span>{p.kind}</span>
-                        </div>
-                        <h3 className="project-title">{p.title}</h3>
-                        <p className="project-desc">{p.desc}</p>
-                        <div className="project-foot">
-                          <ul className="tags">
-                            {p.tags.map((t) => (
-                              <li key={t} className="tag">
-                                {t}
-                              </li>
-                            ))}
-                          </ul>
-                          <span className="project-go">
-                            <Arrow />
-                          </span>
-                        </div>
+                    </div>
+                    <div className="tl-text">
+                      <div className="project-meta">
+                        <span>{p.year}</span>
+                        <i />
+                        <span>{p.kind}</span>
                       </div>
-                    </a>
-                  </TiltCard>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-          <div className="container gallery-hud" aria-hidden="true">
-            <span className="gallery-count">
-              <b ref={idxRef}>01</b> / {String(projects.items.length).padStart(2, '0')}
-            </span>
-            <span className="gallery-progress">
-              <i ref={barRef} />
-            </span>
-            <span className="gallery-hint">SCROLL →</span>
-          </div>
+                      <h3 className="tl-title">{p.title}</h3>
+                      <p className="tl-desc">{p.desc}</p>
+                      <ul className="tags">
+                        {p.tags.map((t) => (
+                          <li key={t} className="tag">
+                            {t}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </a>
+                </div>
+                <span className="tl-year" aria-hidden="true">
+                  {p.year}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>

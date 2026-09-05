@@ -17,7 +17,7 @@ const STYLE = `
 .award-list.has-active .award-row:not(.is-active) .award-row-in{opacity:.32}
 @media (hover:hover){
   .award-row:hover .award-row-in{background:rgba(255,255,255,.03);
-    box-shadow:inset 3px 0 0 rgba(157,184,255,.75);padding-left:26px}
+    box-shadow:inset 3px 0 0 rgba(227,217,198,.75);padding-left:26px}
 }
 .award-row-idx{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:.1em;
   color:var(--text-faint);font-variant-numeric:tabular-nums;transition:color .3s ease}

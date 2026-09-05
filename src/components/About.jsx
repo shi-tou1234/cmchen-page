@@ -123,6 +123,23 @@ export default function About() {
           </div>
         </Reveal>
 
+        {/* 巨型事实标题：→ 专业 / 学历·状态 两行错位（文案取自 facts，单一数据源） */}
+        <Reveal delay={60}>
+          <div className="about-factmark">
+            <span className="fm-mask">
+              <span className="fm-line">→ {about.facts[0]?.v}</span>
+            </span>
+            <span className="fm-mask fm-mask--indent">
+              <span className="fm-line fm-line--dim">
+                {about.facts
+                  .slice(1)
+                  .map((f) => f.v)
+                  .join(' · ')}
+              </span>
+            </span>
+          </div>
+        </Reveal>
+
         <div className="about-grid">
           <div className="about-big-wrap">
             <Reveal delay={90}>

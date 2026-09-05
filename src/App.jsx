@@ -3,6 +3,7 @@ import Nav from './components/Nav'
 import Hero from './components/Hero'
 import Marquee from './components/Marquee'
 import StatsStrip from './components/StatsStrip'
+import RuleReveal from './components/RuleReveal'
 import About from './components/About'
 import Awards from './components/Awards'
 import Projects from './components/Projects'
@@ -31,16 +32,17 @@ function useIsAdminRoute() {
   return isAdmin
 }
 
-// 色温映射：滚动经过不同区块时 accent 色相微妙偏移，整个 UI 跟着变
+// 色温映射：滚动经过不同区块时 accent 色相微妙偏移。参考站无彩色装饰，
+// 旅程收窄为「暖奶油 → 暖沙 → 落日琥珀」的同族微差，保留机制不抢戏
 const ACCENTS = {
-  about: { a: '#7fd4d4', a2: '#9db8ff' },
-  awards: { a: '#a88eff', a2: '#7fd4d4' },
-  skills: { a: '#7f9cff', a2: '#a88eff' },
-  projects: { a: '#9db8ff', a2: '#9db8ff' },
-  blog: { a: '#9db8ff', a2: '#7fd4d4' },
-  contact: { a: '#ffb07a', a2: '#ff8a8a' },
+  about: { a: '#e6ddcb', a2: '#d4c6ab' },
+  awards: { a: '#e8dcc2', a2: '#cdb992' },
+  skills: { a: '#e3d9c6', a2: '#c9b998' },
+  projects: { a: '#e6dcc8', a2: '#c9b998' },
+  blog: { a: '#e3d9c6', a2: '#cdb992' },
+  contact: { a: '#e8c9a4', a2: '#dfa878' },
 }
-const ACCENT_DEFAULT = { a: '#9db8ff', a2: '#7fd4d4' }
+const ACCENT_DEFAULT = { a: '#e3d9c6', a2: '#c9b998' }
 
 export default function App() {
   const isAdmin = useIsAdminRoute()
@@ -152,12 +154,18 @@ export default function App() {
       <Nav />
       <main>
         <Hero />
+        <RuleReveal />
         <Marquee />
         <StatsStrip />
+        <RuleReveal />
         <About />
+        <RuleReveal />
         <Awards />
+        <RuleReveal />
         <Skills />
+        <RuleReveal />
         <Projects />
+        <RuleReveal />
         <Blog />
       </main>
       <Contact />

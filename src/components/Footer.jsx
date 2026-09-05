@@ -11,13 +11,22 @@ import { showToast } from '../lib/toast'
 const STYLE = `
 .footer-word{display:block;text-align:center;margin-top:58px;text-decoration:none;
   font-size:clamp(78px,16vw,240px);font-weight:800;line-height:.92;letter-spacing:-.045em;
-  color:var(--text);user-select:none;
-  transition:letter-spacing .5s var(--ease-out)}
+  user-select:none;
+  /* 星云渐变填充字母（参考站砖纹 wordmark 的等价物），缓慢流动 */
+  background:linear-gradient(110deg,var(--accent) 8%,#f2f2f2 38%,var(--accent-2) 62%,var(--accent) 92%);
+  background-size:230% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  transition:letter-spacing .5s var(--ease-out);
+  animation:word-sheen 9s ease-in-out infinite alternate}
 .footer-word:hover{letter-spacing:-.018em}
+@keyframes word-sheen{to{background-position:100% 0}}
 .footer-word-dot{color:var(--text-faint);transition:color .3s ease}
 .footer-word:hover .footer-word-dot{color:var(--accent-2)}
 .footer-top-hint{margin-top:16px;text-align:center;font-family:var(--font-mono);
   font-size:11px;letter-spacing:.32em;color:var(--text-faint)}
+@media (prefers-reduced-motion: reduce){
+  .footer-word{animation:none}
+}
 @media (max-width:760px){
   .footer-word{margin-top:42px}
 }

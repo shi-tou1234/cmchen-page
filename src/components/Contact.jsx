@@ -15,9 +15,9 @@ const STYLE = `
 .fin-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-2);opacity:.85;flex:none;
   animation:fin-pulse 2.4s ease-out infinite}
 @keyframes fin-pulse{
-  0%{box-shadow:0 0 0 0 rgba(127,212,212,.4)}
-  70%{box-shadow:0 0 0 10px rgba(127,212,212,0)}
-  100%{box-shadow:0 0 0 0 rgba(127,212,212,0)}
+  0%{box-shadow:0 0 0 0 rgba(201,185,152,.4)}
+  70%{box-shadow:0 0 0 10px rgba(201,185,152,0)}
+  100%{box-shadow:0 0 0 0 rgba(201,185,152,0)}
 }
 .fin-clock{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:.08em;color:var(--text)}
 .fin-band{display:block;width:100%;margin-top:clamp(56px,8vw,110px);padding:26px 0;
