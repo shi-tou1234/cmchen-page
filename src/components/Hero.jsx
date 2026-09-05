@@ -107,11 +107,11 @@ export default function Hero() {
             <div className="hero-roles">
               <WordRotator words={hero.roles} />
             </div>
+            {/* slogan 随角色词一组，挂在发丝线下方；底部只留按钮与落款 */}
+            <p className="hero-sub">{hero.subtitle}</p>
           </div>
 
           <div className="hero-foot">
-            <div className="hero-foot-main">
-              <p className="hero-sub">{hero.subtitle}</p>
             <div className="hero-cta">
               <Magnetic>
                 <a href={hero.ctaPrimary.href} className="btn btn-primary">
@@ -126,7 +126,6 @@ export default function Hero() {
                   {hero.ctaSecondary.label}
                 </a>
               </Magnetic>
-            </div>
             </div>
             <span className="hero-copy">{brYear ? `© ${brYear}` : ''}</span>
           </div>

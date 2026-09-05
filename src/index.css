@@ -552,8 +552,10 @@ body.site-revealed .hero-roles {
 }
 
 .hero-sub {
-  max-width: 560px;
-  font-size: clamp(15px, 1.6vw, 18px);
+  max-width: 520px;
+  margin-top: 16px;
+  font-size: clamp(14px, 1.35vw, 16px);
+  line-height: 1.75;
   color: var(--text-dim);
   opacity: 0;
 }
@@ -606,13 +608,9 @@ body.site-revealed .hero-midline {
 /* ---------- 底部落款行：副标题 + 文字 CTA + © ---------- */
 .hero-foot {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
-}
-
-.hero-foot-main {
-  max-width: 560px;
 }
 
 .hero-cta {

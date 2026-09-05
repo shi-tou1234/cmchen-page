@@ -71,9 +71,10 @@ export default function About() {
       raf = 0
       const y = window.__smoothY ?? window.scrollY
       const vh = window.innerHeight
-      // 段首到视口 88% 处开始，段尾到 42% 处点亮完毕
-      const start = docTop - vh * 0.88
-      const end = docTop + height - vh * 0.42
+      // 段首到视口 95% 处开始；段尾到 70% 处即点亮完毕——
+      // 段落还在视口下部时就全亮，不用滚到很上面（用户反馈）
+      const start = docTop - vh * 0.95
+      const end = docTop + height - vh * 0.7
       const prog = end > start ? Math.min(1, Math.max(0, (y - start) / (end - start))) : 1
       const lit = prog * units.length
       for (let i = 0; i < units.length; i++) {

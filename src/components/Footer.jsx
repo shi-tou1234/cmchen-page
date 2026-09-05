@@ -11,24 +11,28 @@ import { showToast } from '../lib/toast'
 const STYLE = `
 .footer-word{display:block;text-align:center;margin-top:58px;text-decoration:none;
   font-size:clamp(78px,16vw,240px);font-weight:800;line-height:.92;letter-spacing:-.045em;
-  user-select:none;
-  /* 星云渐变填充字母（参考站砖纹 wordmark 的等价物），缓慢流动 */
-  background:linear-gradient(110deg,var(--accent) 8%,#f2f2f2 38%,var(--accent-2) 62%,var(--accent) 92%);
-  background-size:230% 100%;
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  transition:letter-spacing .5s var(--ease-out);
-  animation:word-sheen 9s ease-in-out infinite alternate}
+  user-select:none;transition:letter-spacing .5s var(--ease-out)}
 .footer-word:hover{letter-spacing:-.018em}
-@keyframes word-sheen{to{background-position:100% 0}}
-/* 逐字琴键：悬停单个字母上跳并亮起实色 */
-.fw-ch{display:inline-block;transition:transform .45s var(--ease-out)}
-.fw-ch:hover{transform:translateY(-9%) rotate(-2.5deg)}
+/* 每个字母自带渐变裁剪：字母动、渐变跟着动，悬停不再「消失」；
+   --i 驱动色带连续偏移与整词波浪延迟 */
+.fw-ch{display:inline-block;
+  background:linear-gradient(110deg,var(--accent) 8%,#f2f2f2 38%,var(--accent-2) 62%,var(--accent) 92%);
+  background-size:260% 100%;
+  background-position-x:calc(-40% + var(--i)*16%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  transition:transform .5s var(--ease-out),filter .4s ease;
+  animation:word-sheen 9s ease-in-out infinite alternate}
+/* 整词悬停：从左到右的波浪抬升 */
+.footer-word:hover .fw-ch{transform:translateY(-12%);transition-delay:calc(var(--i)*32ms)}
+/* 单字悬停：更深的跳起 + 提亮 */
+.fw-ch:hover{transform:translateY(-20%) scale(1.04);filter:brightness(1.5);transition-delay:0ms}
+@keyframes word-sheen{to{background-position-x:calc(-40% + var(--i)*16% + 55%)}}
 .footer-word-dot{color:var(--text-faint);transition:color .3s ease}
 .footer-word:hover .footer-word-dot{color:var(--accent-2)}
 .footer-top-hint{margin-top:16px;text-align:center;font-family:var(--font-mono);
   font-size:11px;letter-spacing:.32em;color:var(--text-faint)}
 @media (prefers-reduced-motion: reduce){
-  .footer-word{animation:none}
+  .fw-ch{animation:none}
 }
 @media (max-width:760px){
   .footer-word{margin-top:42px}
@@ -80,9 +84,9 @@ export default function Footer() {
       </Reveal>
       <Reveal delay={90}>
         <a className="footer-word" href="#top" aria-label="回到顶部">
-          {/* 逐字 span：悬停哪个字母哪个字母跳起，像琴键 */}
+          {/* 逐字 span：自带渐变裁剪 + --i 序号（色带偏移/波浪延迟），悬停单字深跳 */}
           {site.logo.split('').map((ch, i) => (
-            <span className="fw-ch" key={i} aria-hidden="true">
+            <span className="fw-ch" key={i} style={{ '--i': i }} aria-hidden="true">
               {ch}
             </span>
           ))}
