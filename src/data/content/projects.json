@@ -10,7 +10,7 @@
       "desc": "cmchen-blog 的开源初始化模板：功能齐全、内容为空，克隆即可搭建博客。内置 GitHub 在线后台、数学公式、全文搜索与暗色主题。",
       "tags": ["Astro", "Tailwind CSS", "TypeScript"],
       "theme": "blue",
-      "color": "#6b5138",
+      "color": "#4666c8",
       "link": "https://github.com/shi-tou1234/cmchen-blog-starter"
     },
     {
@@ -21,7 +21,7 @@
       "desc": "个人 AI agent 技能集：风格写作、回合制教学、安全审计等七套开箱即用的技能包。",
       "tags": ["Markdown", "Python", "Skills"],
       "theme": "teal",
-      "color": "#5c5138",
+      "color": "#1f8a7a",
       "link": "https://github.com/shi-tou1234/cmchen-skill"
     },
     {
@@ -32,7 +32,7 @@
       "desc": "毛玻璃风格的英语单词学习工具：科学记忆挑战、错题驱动的每日复习计划。",
       "tags": ["JavaScript", "Tailwind CSS", "Express"],
       "theme": "ice",
-      "color": "#7a6a50",
+      "color": "#7d8fc4",
       "link": "https://github.com/shi-tou1234/word"
     },
     {
@@ -43,7 +43,7 @@
       "desc": "为银发群体设计的应急信息卡微信小程序：把老人的健康与联系方式编码为离线二维码，突发情况扫码即可一键联系家属，数据全程本地存储。",
       "tags": ["WeChat", "MiniProgram", "QRCode"],
       "theme": "ember",
-      "color": "#8a5230",
+      "color": "#c07138",
       "link": "https://github.com/shi-tou1234/card"
     }
   ]

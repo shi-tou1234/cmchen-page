@@ -119,17 +119,19 @@ export default function App() {
         velWritten = velSm
       }
       if (bgCanvas) {
-        // 参考站式滚轮响应：星空钉在原位缓慢下沉 + 放大潜入 + 压暗——
-        // 滚轮每滚一步天空都在动（位移/缩放/明度三重微变）。
-        // 缩放裕量按最大下沉量校准（vh*0.22/2 = 0.11vh ≥ 下沉 0.06vh），不露画布边缘
+        // 参考站式滚轮响应加强版：smoothstep 缓动 + 下沉 + 放大 + 微旋转 + 压暗
+        // 四重变化同时进行，跑道后半段变化最剧烈（前段蓄势、后段俯冲）。
+        // 旋转 2° 的角位移约 30px，被 1.38 倍缩放裕量完全覆盖，不露画布边缘
         const vh = window.innerHeight
-        const t = Math.min(1, currentY / (vh * 2.2))
-        const op = 1 - t * 0.55
-        const drift = t * vh * 0.06
-        const zoom = 1 + t * 0.22
+        const raw = Math.min(1, currentY / (vh * 1.6))
+        const t = raw * raw * (3 - 2 * raw) // smoothstep：两端慢、中段快
+        const op = 1 - t * 0.52
+        const drift = t * vh * 0.16
+        const zoom = 1 + t * 0.38
+        const rot = t * 2
         if (Math.abs(op - bgOpWritten) > 0.004) {
           bgCanvas.style.opacity = op.toFixed(3)
-          bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)})`
+          bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`
           bgOpWritten = op
         }
       }
@@ -142,11 +144,21 @@ export default function App() {
     }
 
     window.addEventListener('scroll', onScrollRaw, { passive: true })
+    // 后台标签 rAF 被节流会让 lerp 冻结在旧位置；回到前台时直接对齐真实滚动位置，
+    // 避免内容带着「历史进度」慢速追赶一秒
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        targetY = window.scrollY
+        currentY = targetY
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
     raf = requestAnimationFrame(loop)
 
     return () => {
       observer.disconnect()
       window.removeEventListener('scroll', onScrollRaw)
+      document.removeEventListener('visibilitychange', onVisible)
       cancelAnimationFrame(raf)
       setAccent(ACCENT_DEFAULT)
       window.__smoothY = 0

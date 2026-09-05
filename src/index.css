@@ -343,7 +343,7 @@ button {
 .hero {
   position: relative;
   /* 参考站式滚动跑道：高度给足 230svh，前两幕滚轮驱动动画而非推走页面 */
-  height: 230svh;
+  height: 200svh;
 }
 
 .hero-stage {
@@ -465,7 +465,23 @@ body.site-revealed .hero-eyebrow {
   display: inline-block;
   transform: translateY(112%) rotateX(-55deg);
   transform-origin: 50% 100%;
-  /* 参考站无描边花活：纯实心暖白 */
+  transition: color 0.35s ease, -webkit-text-stroke-color 0.35s ease;
+}
+
+/* 实心 + 描边混排：第 3、6 个字符常驻描边，悬停与实心字符互换（原版手感回归） */
+.hero-char--outline {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(234, 226, 214, 0.55);
+}
+
+.hero-char--outline:hover {
+  color: var(--text);
+  -webkit-text-stroke-color: transparent;
+}
+
+.hero-char:not(.hero-char--outline):hover {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(234, 226, 214, 0.85);
 }
 
 body.site-revealed .hero-char {
@@ -634,29 +650,46 @@ body.site-revealed .hero-cta > *:nth-child(2) {
   }
 }
 
-.hero-cta-link {
+/* CTA 回归实体按钮：主按钮奶油实底 + 副按钮描边，磁吸 + 弹性入场 */
+.btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding-bottom: 6px;
+  gap: 10px;
+  height: 50px;
+  padding: 0 28px;
+  border-radius: 999px;
   font-size: 15px;
   font-weight: 500;
-  border-bottom: 1px solid var(--border-strong);
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: transform 0.3s var(--ease-out), background 0.3s ease, border-color 0.3s ease;
 }
 
-.hero-cta-link .arrow {
+.btn .arrow {
   display: inline-flex;
   transition: transform 0.3s var(--ease-out);
 }
 
-.hero-cta-link:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.btn:hover .arrow {
+  transform: translateX(4px);
 }
 
-.hero-cta-link:hover .arrow {
-  transform: translateX(4px);
+.btn-primary {
+  background: var(--text);
+  color: #0a0908;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  background: rgba(234, 226, 214, 0.08);
+  border-color: rgba(234, 226, 214, 0.4);
+  transform: translateY(-2px);
 }
 
 .hero-copy {
@@ -1021,7 +1054,7 @@ body.site-revealed .hero-scroll {
   background:
     radial-gradient(
       120% 150% at 16% 6%,
-      color-mix(in srgb, var(--orb-color, #6b5138) 20%, transparent),
+      color-mix(in srgb, var(--orb-color, #46608f) 20%, transparent),
       transparent 58%
     ),
     #08090d;
@@ -1070,19 +1103,19 @@ body.site-revealed .hero-scroll {
 }
 
 [data-theme="blue"] .thumb-orb {
-  background: radial-gradient(circle, #8a6a4a, transparent 68%);
+  background: radial-gradient(circle, #4666c8, transparent 68%);
 }
 
 [data-theme="teal"] .thumb-orb {
-  background: radial-gradient(circle, #6e6a50, transparent 68%);
+  background: radial-gradient(circle, #1f8a7a, transparent 68%);
 }
 
 [data-theme="ice"] .thumb-orb {
-  background: radial-gradient(circle, #9a7b58, transparent 68%);
+  background: radial-gradient(circle, #7d8fc4, transparent 68%);
 }
 
 [data-theme="ember"] .thumb-orb {
-  background: radial-gradient(circle, #a2603a, transparent 68%);
+  background: radial-gradient(circle, #c07138, transparent 68%);
 }
 
 .project-index {
@@ -1212,6 +1245,7 @@ body.site-revealed .hero-scroll {
 }
 
 .post {
+  position: relative;
   display: grid;
   grid-template-columns: 96px 110px 118px 1fr auto;
   align-items: center;
@@ -1263,6 +1297,29 @@ body.site-revealed .hero-scroll {
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
+  transition: transform 0.35s var(--ease-out);
+}
+
+/* 悬停三连：左缘竖线从上生长 + 标题右移 + 箭头滑出 */
+.post::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.35s var(--ease-out);
+}
+
+.post:hover::before {
+  transform: scaleY(1);
+}
+
+.post:hover .post-title {
+  transform: translateX(10px);
 }
 
 .post .arrow {
@@ -1440,6 +1497,14 @@ body.site-revealed .hero-scroll {
   opacity: 1;
 }
 
+/* 标题逐字可玩：入场完成后，悬停哪个字哪个字轻轻跳起 */
+.split-on .split-m:hover .split-c {
+  transform: translateY(-12%);
+  color: var(--accent);
+  transition-delay: 0ms;
+  transition-duration: 0.25s;
+}
+
 /* ---------- Typewriter ---------- */
 .type-caret {
   display: inline-block;
@@ -1479,6 +1544,26 @@ body.site-revealed .hero-scroll {
   flex-direction: column;
   gap: 10px;
   border-left: 1px solid var(--border-strong);
+  transition: transform 0.35s var(--ease-out);
+}
+
+.stat-cell:hover {
+  transform: translateY(-5px);
+}
+
+/* 悬停时数字底部亮起一条渐变短线，与 hover 抬升呼应 */
+.stat-cell::after {
+  content: "";
+  width: 34px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease-out);
+}
+
+.stat-cell:hover::after {
+  transform: scaleX(1);
 }
 
 .stat-cell:first-child {
