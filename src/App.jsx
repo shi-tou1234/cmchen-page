@@ -93,6 +93,11 @@ export default function App() {
       return { el: g, sectionTop }
     })
 
+    // 星空→墨黑的滚动过渡：前几幕星空全亮，随滚动平滑压暗到编辑式黑底。
+    // 读 lerp 值（currentY）驱动，过渡自带"重量感"；只在变化时写样式
+    const bgCanvas = document.querySelector('.bg-canvas')
+    let bgOpWritten = NaN
+
     const onScrollRaw = () => {
       targetY = window.scrollY
     }
@@ -111,6 +116,15 @@ export default function App() {
       if (Math.abs(velSm - velWritten) > 0.1) {
         document.documentElement.style.setProperty('--scroll-vel', velSm.toFixed(1))
         velWritten = velSm
+      }
+      if (bgCanvas) {
+        const vh = window.innerHeight
+        const t = Math.min(1, currentY / (vh * 1.8))
+        const op = 1 - t * 0.55 // 1 → 0.45
+        if (Math.abs(op - bgOpWritten) > 0.004) {
+          bgCanvas.style.opacity = op.toFixed(3)
+          bgOpWritten = op
+        }
       }
       ghostData.forEach(({ el, sectionTop }) => {
         const relative = currentY - sectionTop
