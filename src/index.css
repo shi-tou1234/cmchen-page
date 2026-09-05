@@ -583,42 +583,6 @@ body.site-revealed .hero-midline {
   color: var(--accent);
 }
 
-/* ---------- 第二巨字：eyebrow 首词大写，右下角与名字形成对角呼应 ---------- */
-.hero-word-br-wrap {
-  align-self: flex-end;
-  overflow: hidden;
-  margin-top: -2vh;
-  text-align: right;
-}
-
-.hero-word-br {
-  display: inline-block;
-  font-size: clamp(44px, 12.5vw, 190px);
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -0.025em;
-  white-space: nowrap;
-}
-
-.br-char {
-  display: inline-block;
-  transform: translateY(115%);
-}
-
-body.site-revealed .br-char {
-  animation: br-rise 1.15s var(--ease-out) both;
-  animation-delay: var(--d);
-}
-
-@keyframes br-rise {
-  from {
-    transform: translateY(115%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
 /* ---------- 底部落款行：副标题 + 文字 CTA + © ---------- */
 .hero-foot {
   display: flex;
@@ -824,252 +788,225 @@ body.site-revealed .hero-scroll {
   transform: translateX(4px);
 }
 
-/* ---------- 项目中央时间轴：中轴发丝线 + 菱形节点 + 左右交错条目（参考站 Obra 年表的移植） ----------
-   注意：Awards 区也用 .tl-* 类名（组件内联样式，级联靠后），这里所有结构选择器
-   一律加 .timeline 前缀（0,2,0 特异性），与 Awards 的时间线彻底互不干扰。 */
-.timeline {
+/* ---------- 项目横向画廊：桌面 sticky 钉住 + 滚动进度推轨；移动/减少动效回退纵向堆叠 ---------- */
+.gallery-space {
   position: relative;
-  margin-top: clamp(56px, 8vw, 110px);
 }
 
-.timeline .tl-axis {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--border-strong);
-  z-index: 0;
+.gallery-viewport {
+  padding-top: 84px;
 }
 
-/* 菱形节点：sticky 驻留在视口中心，滚动时被条目依次「穿过」 */
-.timeline .tl-diamond-wrap {
-  position: sticky;
-  top: 50vh;
-  height: 0;
-  z-index: 2;
-}
-
-.timeline .tl-diamond {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 9px;
-  height: 9px;
-  transform: translate(-50%, -50%) rotate(45deg);
-  background: var(--text);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
-}
-
-.timeline .tl-list {
-  position: relative;
-  z-index: 1;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.timeline .tl-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 8vh 0;
-  opacity: 0.25; /* JS 滚动擦洗前的暗态：越靠近视口中线越亮 */
-}
-
-.timeline .tl-item--l .tl-inner {
-  grid-column: 1;
-  padding-right: clamp(44px, 7vw, 130px);
-}
-
-.timeline .tl-item--r .tl-inner {
-  grid-column: 2;
-  padding-left: clamp(44px, 7vw, 130px);
-}
-
-/* 大年份压在中轴上，随条目进视口升起 */
-.timeline .tl-year {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) translateY(26px);
-  font-size: clamp(30px, 4.6vw, 64px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  color: var(--text);
-  opacity: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.timeline .tl-item.is-inview .tl-year {
-  animation: tl-year-rise 1s var(--ease-out) 0.25s both;
-}
-
-@keyframes tl-year-rise {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) translateY(26px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) translateY(0);
-  }
-}
-
-/* 封面：进视口时自下而上揭开 + 缩放回落（参考站 reveal-clip 的移植） */
-.timeline .tl-thumb-wrap {
+.gallery-stage {
   overflow: hidden;
 }
 
-.timeline .tl-thumb-wrap .project-thumb {
-  clip-path: inset(0 0 100%);
-  transform: scale(1.08) translateY(-4%);
-  opacity: 0;
+.gallery-track {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(24px, 3vw, 48px);
+  padding: 0 max(32px, calc((100vw - 1240px) / 2 + 32px));
+  will-change: transform;
 }
 
-.timeline .tl-item.is-inview .tl-thumb-wrap .project-thumb {
-  animation: tl-reveal-clip 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both;
+.gallery-track > * {
+  flex: none;
 }
 
-@keyframes tl-reveal-clip {
-  from {
-    clip-path: inset(0 0 100%);
-    transform: scale(1.08) translateY(-4%);
-    opacity: 1;
-  }
-  to {
-    clip-path: inset(0 0 0%);
-    transform: none;
-    opacity: 1;
-  }
+/* 卡片宽度同时受视口宽与视口高约束，矮窗口下自动缩小保证整卡入画 */
+.gallery-track .project-card {
+  width: min(56vw, 780px, calc((100vh - 560px) * 1.9));
 }
 
-.timeline .tl-card {
-  display: block;
-  width: 100%;
-  max-width: 520px;
+.gallery-track .project-body {
+  padding: 30px 34px 34px;
 }
 
-/* 左列卡片贴向中轴（右列默认靠左自然贴轴） */
-.timeline .tl-item--l .tl-card {
-  margin-left: auto;
-}
-
-.timeline .tl-text {
+.gallery-hud {
+  display: flex;
+  align-items: center;
+  gap: 22px;
   margin-top: 22px;
 }
 
-.timeline .tl-title {
-  font-size: clamp(24px, 3vw, 40px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin-bottom: 12px;
-  transition: color 0.3s ease;
+.gallery-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.timeline .tl-card:hover .tl-title {
-  color: var(--accent);
+.gallery-count b {
+  color: var(--accent-2);
+  font-weight: 600;
 }
 
-/* 桌面端：描述与标签默认收起，悬停/聚焦时上升显出（参考站标题滑入的等价物） */
-@media (hover: hover) and (min-width: 861px) {
-  .timeline .tl-desc,
-  .timeline .tl-card .tags {
-    opacity: 0;
-    transform: translateY(14px);
-    transition:
-      opacity 0.5s var(--ease-out),
-      transform 0.5s var(--ease-out);
-  }
-
-  .timeline .tl-card:hover .tl-desc,
-  .timeline .tl-card:hover .tags,
-  .timeline .tl-card:focus-visible .tl-desc,
-  .timeline .tl-card:focus-visible .tags {
-    opacity: 1;
-    transform: none;
-  }
+.gallery-progress {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  overflow: hidden;
 }
 
-/* 悬停联动：悬停某一条目时其余条目退暗（参考站 timeline 的 hover 语法） */
-@media (hover: hover) {
-  .timeline:has(.tl-item:hover) .tl-item {
-    transition: opacity 0.45s var(--ease-out);
-  }
-
-  .timeline:has(.tl-item:hover) .tl-item:not(:hover) {
-    opacity: 0.3 !important; /* 内联的滚动亮度让位于悬停联动 */
-  }
+.gallery-progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform: scaleX(0.08);
+  transform-origin: left center;
 }
 
-/* 移动端：单列贴左缘中轴，年份改条目内小标 */
-@media (max-width: 860px) {
-  .timeline .tl-axis {
-    left: 6px;
-  }
+.gallery-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
 
-  .timeline .tl-diamond {
-    left: 6px;
-  }
-
-  .timeline .tl-item {
-    grid-template-columns: 1fr;
-    padding: 6vh 0 6vh 34px;
-  }
-
-  .timeline .tl-item--l .tl-inner,
-  .timeline .tl-item--r .tl-inner {
-    grid-column: 1;
-    grid-row: 2;
+@media (min-width: 861px) {
+  .section--gallery {
     padding: 0;
   }
 
-  .timeline .tl-year {
+  .gallery-space {
+    height: 330vh;
+  }
+
+  .gallery-viewport {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .gallery-viewport > .container {
+    flex: none;
+  }
+
+  /* 中部舞台弹性占据剩余高度，卡片在其内垂直居中，HUD 始终钉在底部 */
+  .gallery-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .gallery-viewport .section-head {
+    margin-bottom: 10px;
+  }
+
+  /* 画廊内压缩纵向预算：序号让位给大标题，封面改 1.9:1 宽幅 */
+  .gallery-viewport .sec-no {
+    display: none;
+  }
+
+  .gallery-track .project-thumb {
+    aspect-ratio: 1.9 / 1;
+  }
+
+  .gallery-hud {
+    flex: none;
+    margin: 18px 0 30px;
+  }
+}
+
+/* 减少动效：不做推轨，回退为原生横向滚动 */
+@media (min-width: 861px) and (prefers-reduced-motion: reduce) {
+  .gallery-space {
+    height: auto;
+  }
+
+  .gallery-viewport {
     position: static;
-    grid-row: 1;
-    transform: none;
-    margin-bottom: 14px;
-    font-size: 34px;
-    line-height: 1.2;
-    opacity: 1;
+    height: auto;
+    overflow: visible;
   }
 
-  .timeline .tl-item.is-inview .tl-year {
-    animation: fade-up 0.9s var(--ease-out) 0.15s both;
+  .gallery-stage {
+    overflow-x: auto;
   }
 
-  .timeline .tl-card {
-    width: 100%;
-    max-width: none;
-  }
-
-  .timeline .tl-item--l .tl-card {
-    margin-left: 0;
+  .gallery-hud {
+    display: none;
   }
 }
 
-/* 时间轴封面：沿用原抽象封面系统（网格/光斑/图标/角标），悬停反馈挂到 .tl-card */
-.tl-card:hover .thumb-orb {
-  animation-duration: 4.5s;
-  opacity: 0.95;
+/* 移动端：纵向堆叠（与旧版网格一致的观感） */
+@media (max-width: 860px) {
+  .gallery-space {
+    height: auto;
+  }
+
+  .gallery-viewport {
+    height: auto;
+    overflow: visible;
+    padding-top: 0;
+  }
+
+  .gallery-track {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 0;
+    transform: none !important;
+  }
+
+  .gallery-track .project-card {
+    width: auto;
+  }
+
+  .gallery-hud {
+    display: none;
+  }
 }
 
-/* 封面悬停呼吸：饱和度+亮度微脉冲，让封面"活过来" */
-.tl-card:hover .project-thumb {
-  animation: thumb-breathe 2.2s ease-in-out infinite;
+.project-card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+  position: relative;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    scale(var(--focus-scale, 1));
+  opacity: var(--focus-dim, 1);
+  transition: transform 0.25s ease-out, border-color 0.35s ease,
+    background 0.35s ease, opacity 0.3s ease;
+  will-change: transform;
 }
 
-@keyframes thumb-breathe {
-  0%,
-  100% {
-    filter: saturate(1) brightness(1);
-  }
-  50% {
-    filter: saturate(1.35) brightness(1.06);
-  }
+.project-card:hover {
+  transform: translateY(-5px) rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg)) scale(var(--focus-scale, 1));
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.tilt {
+  perspective: 900px;
+}
+
+.project-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    460px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.09),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.project-card:hover::after {
+  opacity: 1;
 }
 
 .project-thumb {
@@ -1158,7 +1095,7 @@ body.site-revealed .hero-scroll {
   transition: transform 0.5s var(--ease-out), -webkit-text-stroke-color 0.4s ease;
 }
 
-.tl-card:hover .project-index {
+.project-card:hover .project-index {
   transform: translateY(-4px);
   -webkit-text-stroke-color: rgba(255, 255, 255, 0.4);
 }
@@ -1180,9 +1117,13 @@ body.site-revealed .hero-scroll {
   height: 100%;
 }
 
-.tl-card:hover .thumb-glyph {
+.project-card:hover .thumb-glyph {
   transform: translateY(-3px) scale(1.05);
   opacity: 1;
+}
+
+.project-body {
+  padding: 24px 26px 26px;
 }
 
 .project-meta {
@@ -1220,6 +1161,32 @@ body.site-revealed .hero-scroll {
   gap: 8px;
 }
 
+.project-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.project-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  flex: none;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s var(--ease-out);
+}
+
+.project-card:hover .project-go {
+  background: #fff;
+  color: #0a0a0c;
+  transform: translateX(2px);
+}
+
 .tag {
   font-size: 12px;
   padding: 5px 12px;
@@ -1229,7 +1196,7 @@ body.site-revealed .hero-scroll {
   transition: border-color 0.3s ease, color 0.3s ease;
 }
 
-.tl-card:hover .tag {
+.project-card:hover .tag {
   border-color: var(--border-strong);
   color: var(--text);
 }
@@ -1704,9 +1671,7 @@ body.site-revealed .hero-scroll {
   .hero-scroll,
   .hero-midline,
   .hero-cta > *,
-  .hero-copy,
-  .br-char,
-  .about-factmark .fm-line {
+  .hero-copy {
     animation: none;
     opacity: 1;
     transform: none;
@@ -1813,46 +1778,6 @@ body.site-revealed .hero-scroll {
   transform: scaleX(1);
 }
 /* ---------- about ---------- */
-/* 巨型事实标题：→ 前缀两行错位，逐行从遮罩里升起（reveal-lines 的移植） */
-.about-factmark {
-  margin: clamp(40px, 6vw, 88px) 0 clamp(36px, 5vw, 72px);
-  font-weight: 800;
-  font-size: clamp(34px, 6.2vw, 92px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-}
-.about-factmark .fm-mask {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
-}
-.about-factmark .fm-line {
-  display: block;
-  transform: translateY(115%);
-}
-.reveal.is-visible .about-factmark .fm-line {
-  animation: fm-rise 1.3s var(--ease-out) both;
-}
-.reveal.is-visible .about-factmark .fm-mask:nth-child(2) .fm-line {
-  animation-delay: 0.14s;
-}
-@keyframes fm-rise {
-  from { transform: translateY(115%); }
-  to { transform: translateY(0); }
-}
-.about-factmark .fm-mask--indent {
-  padding-left: clamp(40px, 11vw, 210px);
-}
-/* 桌面端巨字不换行（宽度按第二行最长内容校准），移动端允许自然折行 */
-@media (min-width: 861px) {
-  .about-factmark .fm-line {
-    white-space: nowrap;
-  }
-}
-.about-factmark .fm-line--dim {
-  color: var(--text-dim);
-}
 .about-grid {
   display: grid;
   grid-template-columns: 6fr 5fr;
@@ -2345,9 +2270,6 @@ body.site-revealed .hero-scroll {
   .hero-mid-facts {
     display: none;
   }
-  .hero-word-br-wrap {
-    margin-top: 0;
-  }
   .hero-foot {
     flex-direction: column;
     align-items: flex-start;
@@ -2358,9 +2280,57 @@ body.site-revealed .hero-scroll {
   }
 }
 
-/* 后台指定了主题色时，光斑跟随该颜色 */
+/* 悬停荧光描边：一道光弧从顶点出发绕卡片巡行 */
+@property --trace-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--trace-angle),
+    transparent 0deg,
+    transparent 295deg,
+    var(--accent) 330deg,
+    var(--accent-2) 352deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.project-card:hover::before {
+  opacity: 1;
+  animation: border-trace 2.6s linear infinite;
+}
+@keyframes border-trace {
+  to {
+    --trace-angle: 360deg;
+  }
+}
+/* 后台指定了主题色时，光斑与描边跟随该颜色 */
 .project-thumb[style*="--orb-color"] .thumb-orb {
   background: radial-gradient(circle, var(--orb-color), transparent 68%);
+}
+.project-card[style*="--orb-color"]:hover::before {
+  background: conic-gradient(
+    from var(--trace-angle),
+    transparent 0deg,
+    transparent 295deg,
+    var(--orb-color) 330deg,
+    var(--accent-2) 352deg,
+    transparent 360deg
+  );
 }
 .thumb-tick {
   position: absolute;
@@ -2374,7 +2344,7 @@ body.site-revealed .hero-scroll {
 }
 .thumb-tick.tl { top: 12px; left: 12px; border-top-width: 1px; border-left-width: 1px; }
 .thumb-tick.br { bottom: 12px; right: 12px; border-bottom-width: 1px; border-right-width: 1px; }
-.tl-card:hover .thumb-tick {
+.project-card:hover .thumb-tick {
   border-color: rgba(255, 255, 255, 0.42);
 }
 
