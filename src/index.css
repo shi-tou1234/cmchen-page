@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   /* 色板对齐参考站（eladiodieste.com）：纯黑底 + 暖奶油白文字 + 发丝线，无彩色装饰 */
   --bg: #030303;
   --bg-elevated: #0a0908;
@@ -51,6 +51,9 @@ html {
   background: var(--bg);
   scrollbar-color: #2c2822 transparent;
   scrollbar-width: thin;
+  /* 跑马灯等装饰按设计越出视口：视口级横向裁剪，不产生横向滚动
+     （用 clip 而非 hidden，不创建滚动容器、不影响 sticky） */
+  overflow-x: clip;
 }
 
 ::-webkit-scrollbar {
@@ -360,7 +363,73 @@ button {
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  /* 星空全亮；随滚动压暗的过渡由 App.jsx lerp 层驱动（前两幕 1 → 0.45） */
+  /* 星云全亮；随滚动的分镜运镜（平移/缓推/压暗）由 ImmersiveBackground 驱动 */
+}
+
+/* ── 沉浸式图像背景（一镜到底的图像世界）───────────────────────
+   星云整图放大到 160%，四周各 30% 画面藏在视口外——余量与运镜单位
+   同轴同源（横向 vw / 纵向 vh）。关键：画布绝不能加 overflow: hidden——
+   裁剪发生在画布自身坐标系里，会把余量裁掉，之后的 scale/translate
+   放大的是「裁剩的盒子」，平移超过缩放扩张时盒边就扫进视口（v7 黑边
+   画框的根源）。不裁剪时越出视口的画面本来就在屏幕外，无需裁剪。
+   图像自身 48s 单向呼吸（scale-only）代替视频循环。.bg-photo 提为
+   常驻独立合成层：滚动运镜只触发合成、不重绘页面内容。 */
+.bg-photo {
+  background: var(--bg);
+  will-change: transform, opacity;
+}
+
+/* 鼠标视差层：transform 由 ImmersiveBackground 的 lerp 循环写入 */
+.bg-photo-parallax {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.bg-photo-img {
+  position: absolute;
+  top: -30%;
+  left: -30%;
+  width: 160%;
+  height: 160%;
+  object-fit: cover;
+  /* 慢呼吸补足原视频的常驻动态：只放大不缩，不吃余量 */
+  animation: bg-breathe 48s ease-in-out infinite alternate;
+}
+
+@keyframes bg-breathe {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+/* 遮罩：视口级静态层（与运镜画布分离，绝不跟随平移缩放）。
+   加重的四周暗角吞掉图像边界，顶部压暗护住导航、底部渐深衔接编辑式黑底。 */
+.bg-photo-shade {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 100% at 50% 42%, transparent 42%, rgba(3, 3, 3, 0.78) 100%),
+    linear-gradient(
+      180deg,
+      rgba(3, 3, 3, 0.55) 0%,
+      rgba(3, 3, 3, 0.18) 26%,
+      rgba(3, 3, 3, 0.14) 48%,
+      rgba(3, 3, 3, 0.46) 74%,
+      rgba(3, 3, 3, 0.8) 100%
+    );
+}
+
+/* 降级：减动效时冻结呼吸，静态单帧（滚动驱动同处已自行跳过） */
+@media (prefers-reduced-motion: reduce) {
+  .bg-photo-img {
+    animation: none;
+  }
 }
 
 .hero-glow {
