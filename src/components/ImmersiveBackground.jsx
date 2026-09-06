@@ -21,7 +21,7 @@ const ANCHORS = [
   { key: 'skills', tx: -19, ty: -11, scale: 1.52, op: 0.84 },
   { key: 'projects', tx: -24, ty: -15, scale: 1.44, op: 0.87 },
   { key: 'blog', tx: -27, ty: -18, scale: 1.32, op: 0.9 },
-  { key: 'contact', tx: -20, ty: -12, scale: 1.48, op: 0.88 },
+  { key: 'contact', tx: -27, ty: -18, scale: 1.48, op: 0.88 },
 ]
 
 const SECTION_IDS = ['top', 'about', 'awards', 'skills', 'projects', 'blog', 'contact']
