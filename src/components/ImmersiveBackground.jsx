@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import bgNebula from '../assets/bg-nebula.jpg'
+import bgVideo from '../assets/bg-nebula.mp4'
 
 // 沉浸式背景 —— 一镜到底的「图像世界」，不是一块会滑动的画框
 // 整张星云图放大到 160%（四周各 30% 画面藏在视口外），镜头沿一条连续
@@ -32,6 +33,20 @@ const WIN_END = 0.05
 export default function ImmersiveBackground() {
   const parallaxRef = useRef(null)
   const canvasRef = useRef(null)
+  const videoRef = useRef(null)
+  const [videoFailed, setVideoFailed] = useState(false)
+
+  // 视频自动播放（muted 后满足浏览器策略）+ reduced-motion 时停帧
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      video.pause()
+    } else {
+      const p = video.play()
+      if (p) p.catch(() => setVideoFailed(true))
+    }
+  }, [])
 
   // 分镜滚动编排：读平滑滚动源，在锚点间插值；收敛即停帧省 GPU
   useEffect(() => {
@@ -176,7 +191,22 @@ export default function ImmersiveBackground() {
           的根源），暗角必须钉死在视口上。 */}
       <div className="bg-canvas bg-photo" aria-hidden="true" ref={canvasRef}>
         <div className="bg-photo-parallax" ref={parallaxRef}>
-          <img className="bg-photo-img" src={bgNebula} alt="" draggable="false" />
+          {videoFailed ? (
+            <img className="bg-photo-img" src={bgNebula} alt="" draggable="false" />
+          ) : (
+            <video
+              className="bg-photo-video"
+              ref={videoRef}
+              src={bgVideo}
+              poster={bgNebula}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              onError={() => setVideoFailed(true)}
+            />
+          )}
         </div>
       </div>
       {/* 视口级静态遮罩：压暗渐变 + 四周暗角，永远正对视口 */}

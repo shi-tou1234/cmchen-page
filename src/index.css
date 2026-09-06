@@ -386,6 +386,7 @@ button {
   will-change: transform;
 }
 
+.bg-photo-video,
 .bg-photo-img {
   position: absolute;
   top: -30%;
@@ -393,8 +394,15 @@ button {
   width: 160%;
   height: 160%;
   object-fit: cover;
-  /* 缓慢呼吸 + 微漂移，让定格期的背景不是死图：缩放 8% + 水平漂 2%,
-     40s 一个来回；只放大只向内漂，不吃余量。 */
+}
+
+.bg-photo-video {
+  display: block;
+  /* 视频自带 8s 循环流动，无需额外动画；滚动运镜由画布驱动 */
+}
+
+/* 静态兜底帧：视频加载失败时用 CSS 呼吸补足动态 */
+.bg-photo-img {
   animation: bg-breathe 40s ease-in-out infinite alternate;
 }
 
