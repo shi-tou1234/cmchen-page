@@ -12,7 +12,7 @@ import Blog from './components/Blog'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import CursorGlow from './components/CursorGlow'
-import ImmersiveBackground from './components/ImmersiveBackground'
+import NebulaBackground from './components/NebulaBackground'
 import Preloader from './components/Preloader'
 import Toast from './components/Toast'
 
@@ -90,11 +90,14 @@ export default function App() {
       const sectionTop = section
         ? section.getBoundingClientRect().top + currentY
         : 0
-      // last 哨兵必须是有效数字——NaN 会让 Math.abs(x-NaN)>阈值 恒为 false，永不写入
-      return { el: g, sectionTop, last: 1e9 }
+      return { el: g, sectionTop }
     })
 
-    // 背景分镜滚动编排已移入 ImmersiveBackground 组件（读 __smoothY 自行插值锚点）
+    // 星空→墨黑的滚动过渡：前几幕星空全亮，随滚动平滑压暗到编辑式黑底。
+    // 读 lerp 值（currentY）驱动，过渡自带"重量感"；只在变化时写样式。
+    // 哨兵初值必须是有效数字——用 NaN 会让 Math.abs(x-NaN)>阈值 恒为 false，永不写入
+    const bgCanvas = document.querySelector('.bg-canvas')
+    let bgOpWritten = 1
 
     const onScrollRaw = () => {
       targetY = window.scrollY
@@ -115,14 +118,27 @@ export default function App() {
         document.documentElement.style.setProperty('--scroll-vel', velSm.toFixed(1))
         velWritten = velSm
       }
-      ghostData.forEach((g) => {
-        const relative = currentY - g.sectionTop
-        const offset = Math.max(-150, Math.min(150, relative * -0.06))
-        // lerp 收敛后 offset 不再变化：值变才写，避免静止期逐帧样式失效
-        if (Math.abs(offset - g.last) > 0.05) {
-          g.last = offset
-          g.el.style.transform = `translateY(${offset.toFixed(1)}px)`
+      if (bgCanvas) {
+        // 参考站式滚轮响应加强版：smoothstep 缓动 + 下沉 + 放大 + 微旋转 + 压暗
+        // 四重变化同时进行，跑道后半段变化最剧烈（前段蓄势、后段俯冲）。
+        // 旋转 2° 的角位移约 30px，被 1.38 倍缩放裕量完全覆盖，不露画布边缘
+        const vh = window.innerHeight
+        const raw = Math.min(1, currentY / (vh * 1.6))
+        const t = raw * raw * (3 - 2 * raw) // smoothstep：两端慢、中段快
+        const op = 1 - t * 0.52
+        const drift = t * vh * 0.16
+        const zoom = 1 + t * 0.38
+        const rot = t * 2
+        if (Math.abs(op - bgOpWritten) > 0.004) {
+          bgCanvas.style.opacity = op.toFixed(3)
+          bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`
+          bgOpWritten = op
         }
+      }
+      ghostData.forEach(({ el, sectionTop }) => {
+        const relative = currentY - sectionTop
+        const offset = Math.max(-150, Math.min(150, relative * -0.06))
+        el.style.transform = `translateY(${offset.toFixed(1)}px)`
       })
       raf = requestAnimationFrame(loop)
     }
@@ -160,7 +176,7 @@ export default function App() {
   return (
     <>
       <Preloader />
-      <ImmersiveBackground />
+      <NebulaBackground />
       <div className="page-grid" aria-hidden="true">
         <i />
         <i />
