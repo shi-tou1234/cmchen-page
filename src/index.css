@@ -372,7 +372,7 @@ button {
    裁剪发生在画布自身坐标系里，会把余量裁掉，之后的 scale/translate
    放大的是「裁剩的盒子」，平移超过缩放扩张时盒边就扫进视口（v7 黑边
    画框的根源）。不裁剪时越出视口的画面本来就在屏幕外，无需裁剪。
-   图像自身 48s 单向呼吸（scale-only）代替视频循环。.bg-photo 提为
+   图像自身 40s 缓慢呼吸+微漂移代替视频循环。.bg-photo 提为
    常驻独立合成层：滚动运镜只触发合成、不重绘页面内容。 */
 .bg-photo {
   background: var(--bg);
@@ -393,8 +393,9 @@ button {
   width: 160%;
   height: 160%;
   object-fit: cover;
-  /* 慢呼吸补足原视频的常驻动态：只放大不缩，不吃余量 */
-  animation: bg-breathe 48s ease-in-out infinite alternate;
+  /* 缓慢呼吸 + 微漂移，让定格期的背景不是死图：缩放 8% + 水平漂 2%,
+     40s 一个来回；只放大只向内漂，不吃余量。 */
+  animation: bg-breathe 40s ease-in-out infinite alternate;
 }
 
 @keyframes bg-breathe {
@@ -402,7 +403,7 @@ button {
     transform: scale(1);
   }
   to {
-    transform: scale(1.05);
+    transform: scale(1.08) translate(-1.5%, 1%);
   }
 }
 
