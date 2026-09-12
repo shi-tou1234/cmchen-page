@@ -1,6 +1,6 @@
 # cmchen · 个人主页
 
-深空主题的个人作品集网站 —— 单文件片段着色器渲染的星云、星空与流星背景，参考 [eladiodieste.com](https://www.eladiodieste.com/) 的滚动编排重做全套 UI：暖奶油编辑色板、滚动跑道式 Hero、全站发丝分隔线与逐字入场，配合电影级滚动动效。内容全部外置为 JSON，内置 `#/admin` 可视化后台，改完提交到 GitHub 即自动重新部署。
+实拍影像驱动的个人作品集网站 —— 蓝调山谷雾海视频背景随滚动呼吸推进，参考 [eladiodieste.com](https://www.eladiodieste.com/) 的滚动编排：暖奶油编辑色板、滚动跑道式 Hero、全站发丝分隔线与逐字入场，配合电影级滚动动效。内容全部外置为 JSON，内置 `#/admin` 可视化后台，改完提交到 GitHub 即自动重新部署。
 
 **在线访问**：<https://shi-tou1234.github.io/cmchen-page/>
 
@@ -12,23 +12,24 @@
 
 **开场与全局运动系统**
 
-- **深空背景（原生 WebGL）**：433 行片段着色器完成全部渲染——fbm/ridge 噪声星云、三层视差星空、错峰流星、极光缎带、鼠标光晕与滚动镜头推进；`prefers-reduced-motion` 时降为单帧静态
-- **Preloader 电影开场**：4 阶段编排——logo 逐字打出 → 蓝晕发光脉冲 → 副标题淡入 → 遮罩揭幕星云（2.2s，减少动效秒进）
-- **平滑滚动 lerp 层**：rAF 插值循环让所有滚动驱动效果共享有"重量感"的插值源；lerp 层同时输出速度信号（`--scroll-vel`），快滚时全站运动带速度反馈
+- **实拍视频背景（混合驱动）**：蓝调山谷雾海一镜到底素材，全关键帧编码（任意位置 seek 不跨关键帧）。播放头由 rAF 手动推——**0.45× 环境自播 ping-pong**（页面静止时雾也在流动，到片尾自动折返不做硬切）＋ **滚轮速度实时推拉**（下滚推进旅程、上滚倒回，单帧限幅防甩滚跳帧）；压暗/下沉/放大/微旋转的滚动编舞由 App.jsx 对 `.bg-canvas` 的既有编排层驱动。静态暗角遮罩为视频兄弟层（不参与运镜变换）；`prefers-reduced-motion` 降为单帧静态；iOS/Safari 首次交互解锁 seek 渲染
+- **Preloader 电影开场**：logo 逐字打出 → 蓝晕发光脉冲 → 副标题淡入 → 遮罩揭幕背景（2.2s，减少动效秒进）
+- **平滑滚动 lerp 层**：rAF 插值循环让所有滚动驱动效果共享有"重量感"的插值源（`window.__smoothY`，背景刷帧同源消费）；lerp 层同时输出速度信号（`--scroll-vel`），快滚时全站运动带速度反馈
 - **滚动色温旅程**：`@property` 驱动 `--accent`/`--accent-2` 过渡，7 个区块的色温收窄为暖色同族微差（奶油→暖沙→琥珀），导航/进度条/芯片全站跟着变
 - **自定义光标**：白点即时 + 细环滞后追踪（0.16 lerp），悬停可交互元素时环放大变色；系统箭头仅在组件挂载时隐藏（`#/admin` 不受影响）
 - **滚动视差深度层**：ghost 水印以 section-relative 方式漂移（±150px），制造景深
 
 **各屏编排**
 
-- **跑道式 Hero**：200svh 滚动跑道 + sticky 舞台——滚轮在前两幕驱动星空下沉/放大/微旋/压暗（smoothstep 缓动），而不是把页面推走；名字巨字第 3/6 字符常驻描边、悬停实心↔描边互换，逐字弹性入场 + 跑道内按进度散隐
+- **跑道式 Hero**：200svh 滚动跑道 + sticky 舞台——滚轮在前两幕驱动背景下沉/放大/微旋/压暗（smoothstep 缓动），而不是把页面推走；名字巨字第 3/6 字符常驻描边、悬停实心↔描边互换，逐字弹性入场 + 跑道内按进度散隐
 - **跑马灯速度斜切**：滚动越快字带越倾斜（skewX，峰值约 12°），停手回正——水平边线不变形
 - **About 大字逐字点亮**：滚动经过时宣言逐字从暗擦洗到亮，`<em>` 强调段点亮时荧光笔下划线同步显出；rAF 仅在段落进入视口邻域时驱动
 - **Awards 中央时间线**：中轴发丝线上菱形游标随滚动行进，条目左右交替悬挂、越靠近视口中线越亮，末端「更多竞赛与项目，正在路上」空节点；背景巨型年份水印随中心条目切换
 - **全站发丝分隔线**：各区块之间的横线进视口后从左向右 scaleX 展开（expo 缓动）
 - **Skills 动能榜**：瑞士表格风——熟练轨进场画入、评分数字 odometer 滚动（数据含 `score` 时）、光标接近时整列行如铁屑趋磁般剪切反应、悬停整行反白
-- **横向项目画廊**：sticky 钉住 + 滚动进度推轨 + 焦点卡深度效果（远离中线的卡缩小变暗），底部 `01/04` 计数器 + 进度发丝线；四张卡片光斑各自一色（靛蓝/青绿/长春花/赤陶）
-- **Blog 大字行**：运行时抓取最新文章，标题与 mono 小字构成大小对比；悬停左缘渐变竖线生长 + 标题右移 + 箭头滑出
+- **横向项目画廊**：sticky 钉住 + 滚动进度推轨 + 焦点卡深度效果（远离中线的卡缩小变暗），底部 `01/05` 计数器 + 进度发丝线；五张卡片光斑四色循环（靛蓝/青绿/长春花/赤陶）
+- **Blog 大字行 + 引语**：运行时抓取最新文章，标题与 mono 小字构成大小对比；悬停左缘渐变竖线生长 + 标题右移 + 箭头滑出；文章列表上方挂博客关于页同款引语「欢迎光临我的缝隙」
+- **旅行足迹地图**：ECharts 中国地图（自博客站点 TravelMap 组件移植）——全国视图点亮去过的省份，点击下钻省市视图点亮城市，侧栏城市标签支持搜索；进视口才动态加载 echarts（按需分包，首屏零开销）
 - **Contact 终章**：巨型 email 描边跑马灯带（悬停停住填充实心、点击复制）+ 磁吸主按钮 + 实时时钟 + 呼吸状态点
 - **Footer wordmark 落幕**：巨型站名（后台可编辑）即「回到顶部」按钮——渐变逐字裁剪（字母动渐变跟着动），悬停整词从左到右波浪抬升、单字深跳提亮，色带缓慢流动
 - **标题逐字入场统一**：五个区块标题全部 SplitText 逐字入场；导航滑动指示器在当前区块链接下滑动
@@ -36,6 +37,7 @@
 ### 内容与后台
 
 - **内容即数据**：十个分区的文案全部在 `src/data/content/*.json`，改 JSON 不碰组件；Skills 支持可选 `score` 字段（缺失时轨长按档位映射）
+- **旅行数据与博客同源**：`scripts/fetch-travel.mjs` 在 dev/build 前从博客仓库 `about-personal.ts` 提取 `travelCities`（58 城）写入 `src/data/generated/travel.json` 快照——博客改足迹，主页下次构建自动跟上；拉取链路 GitHub raw → 本机相邻博客仓库 → 上次快照，三级回退绝不空窗
 - **可视化后台**：`#/admin` 表单化编辑 + 保存即提交 GitHub（Contents API），带 SHA 冲突自动重试、未保存提醒
 - **运行时数据**：GitHub 开源项目数构建时快照 + 运行时刷新；博客最新文章运行时抓取（10 分钟缓存 + 8 秒超时）
 - **安全加固**：后台 PBKDF2 密码门 fail-closed；About 富文本按结构化解析渲染（仅 em/strong/b/i/br，不注入原始 HTML）；GitHub API 仅允许 `api.github.com`
@@ -45,7 +47,8 @@
 | 层 | 选择 |
 |----|------|
 | 框架 | React 19 + Vite 8 |
-| 背景 | 原生 WebGL 片段着色器（无 three.js，主包 gzip ≈ 80 kB） |
+| 背景 | 实拍视频（全关键帧 mp4，懒解码不进首屏包）＋ rAF 播放头混合驱动 |
+| 地图 | ECharts 按需分包（`echarts/core` + MapChart，进视口才加载），边界资源本地自持（`public/maps`） |
 | 字体 | @fontsource/noto-sans-sc + @fontsource/jetbrains-mono（按 unicode-range 分片按需加载） |
 | 动效 | 纯 CSS + rAF（弹性缓动 / clip-path / @property 过渡 / IntersectionObserver 级联 / lerp 平滑滚动 / scroll-scrub） |
 | 检查 | oxlint |
@@ -58,17 +61,17 @@ npm install
 npm run dev        # http://localhost:5173 会自动跳转到 /cmchen-page/
 ```
 
-Windows 双击 `start.bat` 一键启动（首次自动安装依赖并打开浏览器）。
+`predev` 会先同步一次旅行数据快照（失败自动回退，不阻塞启动）。Windows 双击 `start.bat` 一键启动（首次自动安装依赖并打开浏览器）。
 
 其他命令：
 
 ```bash
 npm run lint       # oxlint 检查
-npm run build      # 拉取 GitHub 快照 + 产出 dist/
+npm run build      # 拉取 GitHub 数 + 旅行数据快照 + 产出 dist/
 npm run preview    # 本地预览构建结果
 ```
 
-> **被 TLS 拦截代理的网络环境**：构建前的 GitHub 快照拉取可能失败，脚本会保留上一次的有效值并继续构建（页面运行时会再刷新一次）。必要时可设 `GH_INSECURE_TLS=1` 放宽校验（仅建议本地开发使用）。
+> **被 TLS 拦截代理的网络环境**：构建前的 GitHub 快照拉取（项目数 / 旅行数据）可能失败，脚本会依次回退到本机相邻博客仓库与上次有效快照，构建继续。必要时可设 `GH_INSECURE_TLS=1` 放宽校验（仅建议本地开发使用）。
 
 ## 目录结构
 
@@ -76,17 +79,22 @@ npm run preview    # 本地预览构建结果
 ├── index.html                  # 入口 HTML（og/twitter 分享 meta）
 ├── public/
 │   ├── admin-security.json     # 后台密码的 PBKDF2 哈希配置
+│   ├── maps/                   # 中国地图边界（china.full.json + 34 省份，拷贝自博客站点）
+│   ├── videos/                 # 背景视频（全关键帧编码版）
 │   ├── og-image.png            # 社交分享图
 │   └── favicon.svg
 ├── scripts/
 │   ├── fetch-github.mjs        # 构建前拉取开源项目数快照（prebuild）
+│   ├── fetch-travel.mjs        # dev/build 前同步旅行足迹快照（predev/prebuild，三级回退）
 │   └── gen-admin-hash.mjs      # 生成/重置后台密码哈希
 ├── src/
 │   ├── App.jsx                 # hash 路由 + 共享 scroll lerp/速度信号 + 色温切换
 │   ├── main.jsx / index.css
 │   ├── admin/                  # 后台（懒加载 chunk）
-│   ├── components/             # 前台组件（含 NebulaBackground 着色器）
-│   ├── data/content/*.json     # 全部站点文案（后台可编辑）
+│   ├── components/             # 前台组件（VideoBackground 混合驱动背景 / TravelMap 足迹地图；旧 NebulaBackground 着色器保留未挂载，可一键回滚）
+│   ├── data/
+│   │   ├── content/*.json      # 全部站点文案（后台可编辑）
+│   │   └── generated/travel.json  # 旅行数据快照（脚本生成，勿手改）
 │   └── lib/                    # toast / clipboard / HTML 白名单消毒
 └── .github/workflows/deploy.yml
 ```
@@ -106,18 +114,23 @@ npm run preview    # 本地预览构建结果
 3. **保存**：「保存并提交」推送到分支，Pages 约 1–2 分钟后自动重建
 4. **改密码**：安全页更新 或 本地 `node scripts/gen-admin-hash.mjs <新密码>`
 
+### 改旅行足迹
+
+在**博客站点**的关于页后台改城市标记并提交即可——主页在下次 dev/build 时经 `fetch-travel.mjs` 自动同步，无需两边手动维护。
+
 ## 部署
 
 推送到 `main` 分支后 GitHub Actions 自动构建并发布到 GitHub Pages。
 
 - `vite.config.js` 中 `base: '/cmchen-page/'` 与 Pages 子路径对应
 - 运行时抓取博客文章依赖博客站与主页同源；若博客绑定自定义域名需补 CORS
+- 旅行数据同步以博客仓库 `main` 分支 `src/data/about-personal.ts` 为唯一上游
 
 ## 设计与无障碍
 
-- 全站遵循 `prefers-reduced-motion`：背景单帧、入场即时、跑马灯停转、斜切/剪切/擦洗归零、光标隐藏、色温不切换
+- 全站遵循 `prefers-reduced-motion`：背景静帧、入场即时、跑马灯停转、斜切/剪切/擦洗归零、光标隐藏、色温不切换、地图入场动画关闭
 - 键盘焦点可见（`focus-visible` 描边），交互元素 `aria-label`，装饰元素 `aria-hidden`
-- 背景亮度以"克制偏暗"为基准；移动端（≤768px）所有新效果均有降级路径，触屏设备禁用悬停依赖交互
+- 背景亮度以"克制偏暗"为基准（视频全画面均值 ≈15% 亮度 + 滚动压暗编舞 + 静态暗角遮罩）；移动端（≤768px）所有新效果均有降级路径，触屏设备禁用悬停依赖交互
 - 悬停联动类效果（Awards 行、Skills 剪切、Contact 磁吸）均以 `(hover: hover)` / `(pointer: fine)` 门控，触屏自动退化为静态等亮排版
 
 ## License
