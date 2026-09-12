@@ -2390,9 +2390,8 @@ body.site-revealed .hero-scroll {
   }
 }
 
-/* 区块幽灵水印字：参考站无此装饰，关闭（保留 DOM 以便回退） */
+/* 区块幽灵水印字：超大描边，低存在感但不至于看不见 */
 .sec-ghost {
-  display: none;
   position: absolute;
   top: 30px;
   right: 30px;
