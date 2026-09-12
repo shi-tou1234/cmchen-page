@@ -108,6 +108,7 @@ export default function TravelMap() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let disposed = false
     let chart = null
+    let echartsLib = null
 
     // 访问索引：省份名归一化集合 + 省内城市集合
     const state = {
@@ -280,6 +281,8 @@ export default function TravelMap() {
     }
 
     async function renderProvince(name, adcode) {
+      const ech = echartsLib
+      if (!ech) return
       const code = String(adcode || '').trim()
       if (!code) return
       state.level = 'province'
@@ -320,8 +323,6 @@ export default function TravelMap() {
         if (adcode) renderProvince(params.name, adcode).catch(() => setError(true))
       }
     }
-
-    let echartsLib = null
 
     function backToChina() {
       if (chart) renderChina(echartsLib).catch(() => setError(true))

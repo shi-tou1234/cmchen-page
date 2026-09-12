@@ -2989,6 +2989,11 @@ input[type="color"].admin-input {
   font-size: 0.86rem;
   color: var(--text-dim);
 }
+/* 作者样式的 display 会盖掉 [hidden] 的 UA 规则：不显式补一条，
+   这层盖在 stage 之上的提示会常驻显示、并吃掉整张地图的点击 */
+.tm-error[hidden] {
+  display: none;
+}
 
 .tm-side {
   display: grid;
