@@ -2373,9 +2373,16 @@ body.site-revealed .hero-scroll {
   position: relative;
 }
 
-/* 全页固定竖向骨架细线：参考站为纯黑无网格，整组关闭（保留 DOM 以便回退） */
+/* 全页固定竖向骨架细线（瑞士网格，低透明度，不抢戏） */
 .page-grid {
-  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 32px;
 }
 .page-grid i {
   flex: 1;
