@@ -3,6 +3,7 @@ import Reveal from './Reveal'
 import Arrow from './Arrow'
 import SplitText from './SplitText'
 import Typewriter from './Typewriter'
+import TravelMap from './TravelMap'
 import blog from '../data/content/blog.json'
 
 const CACHE_KEY = 'cmchen-page:blog-posts'
@@ -112,6 +113,12 @@ export default function Blog() {
             </a>
           </div>
         </Reveal>
+        <Reveal>
+          <p className="blog-quote">
+            「{blog.quote}」
+            <span className="q-src">{blog.quoteSource}</span>
+          </p>
+        </Reveal>
         <div className="blog-list">
           {!posts && !error && (
             <div className="post post--status">{blog.loadingText}</div>
@@ -139,6 +146,16 @@ export default function Blog() {
               </Reveal>
             ))}
         </div>
+        <Reveal>
+          <div className="travel-block">
+            <div className="travel-head">
+              <p className="eyebrow">Footprints</p>
+              <h3 className="travel-title">去过的地方</h3>
+              <p className="travel-sub">DATA SYNCED WITH BLOG · ABOUT PAGE</p>
+            </div>
+            <TravelMap />
+          </div>
+        </Reveal>
       </div>
     </section>
   )

@@ -366,6 +366,23 @@ button {
   /* 星空全亮；随滚动压暗/缩放/旋转的过渡由 App.jsx lerp 层驱动 */
 }
 
+/* 视频背景：复用 .bg-canvas 的滚动编排（压暗/下沉/放大/微旋转），只补封面裁切 */
+.bg-video {
+  object-fit: cover;
+}
+
+/* 静态暗角遮罩：独立兄弟层，不参与视频的滚动变换；
+   压住四角与底部，保文字对比，也掩盖 720p 放大后的轻微软化 */
+.bg-shade {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 32%, transparent 55%, rgba(3, 3, 3, 0.42) 100%),
+    linear-gradient(to bottom, rgba(3, 3, 3, 0.1), rgba(3, 3, 3, 0.42));
+}
+
 .hero-glow {
   position: absolute;
   border-radius: 50%;
@@ -2811,5 +2828,245 @@ input[type="color"].admin-input {
 
   .admin-title small {
     display: none;
+  }
+}
+
+/* ===== Blog 引语（博客关于页同款） ===== */
+.blog-quote {
+  margin: 34px 0 0;
+  padding-left: 18px;
+  border-left: 1px solid var(--border-strong);
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+.blog-quote .q-src {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+}
+
+/* ===== 旅行足迹（数据与博客关于页同步，样式随全站暖色编辑风） ===== */
+.travel-block {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.travel-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.travel-head .eyebrow {
+  margin: 0;
+}
+.travel-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.travel-sub {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+}
+
+.travel-map {
+  /* 地图主题变量（供 echarts 运行时读取） */
+  --tm-strong: var(--accent-2);
+  --tm-accent: #a98d5f;
+  --tm-text: var(--text);
+  --tm-subtle: var(--text-dim);
+  --tm-map-area: rgba(234, 226, 213, 0.045);
+  --tm-map-border: rgba(234, 226, 213, 0.14);
+  --tm-emphasis: var(--accent-2);
+  --tm-tip-bg: var(--surface);
+  --tm-tip-border: var(--border-strong);
+  display: grid;
+  gap: 16px;
+}
+.tm-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.tm-stat {
+  flex: 1;
+  min-width: 140px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.tm-stat b {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--accent-2);
+  line-height: 1.1;
+}
+.tm-stat span {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+}
+
+.tm-map {
+  position: relative;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+}
+.tm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  min-height: 32px;
+}
+.tm-back {
+  display: none;
+  padding: 5px 12px;
+  border: 1px solid rgba(201, 185, 152, 0.35);
+  border-radius: 999px;
+  background: rgba(201, 185, 152, 0.12);
+  color: var(--accent-2);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.tm-back.show {
+  display: inline-block;
+}
+.tm-crumb {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+.tm-crumb i {
+  font-style: normal;
+  color: var(--accent-2);
+  cursor: pointer;
+}
+.tm-crumb i.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.tm-crumb em {
+  font-style: normal;
+  color: var(--text);
+}
+.tm-stage {
+  width: 100%;
+  height: 540px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 22% 12%,
+    rgba(201, 185, 152, 0.05),
+    transparent 55%
+  );
+}
+.tm-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.86rem;
+  color: var(--text-dim);
+}
+
+.tm-side {
+  display: grid;
+  gap: 12px;
+}
+.tm-search {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+}
+.tm-search:focus {
+  border-color: var(--border-strong);
+}
+.tm-search::placeholder {
+  color: var(--text-faint);
+}
+.tm-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tm-tag {
+  padding: 5px 12px;
+  border: 1px solid rgba(201, 185, 152, 0.28);
+  border-radius: 999px;
+  background: rgba(201, 185, 152, 0.08);
+  color: var(--accent-2);
+  font-size: 0.78rem;
+}
+.tm-empty {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.tm-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.tm-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  background: rgba(234, 226, 213, 0.06);
+}
+.tm-dot.on {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--tm-strong), var(--tm-accent));
+}
+.tm-dot:last-of-type {
+  margin-right: 6px;
+}
+.tm-note {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+@media (max-width: 860px) {
+  .tm-stage {
+    height: 380px;
+  }
+  .travel-head {
+    flex-wrap: wrap;
+  }
+  .travel-sub {
+    margin-left: 0;
+    width: 100%;
   }
 }

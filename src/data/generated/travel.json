@@ -1,0 +1,296 @@
+{
+  "source": "local-sibling",
+  "updatedAt": "2026-09-12T02:56:48.253Z",
+  "cities": [
+    {
+      "province": "安徽省",
+      "city": "黄山市",
+      "visited": true
+    },
+    {
+      "province": "北京市",
+      "city": "朝阳区",
+      "visited": true
+    },
+    {
+      "province": "北京市",
+      "city": "东城区",
+      "visited": true
+    },
+    {
+      "province": "北京市",
+      "city": "海淀区",
+      "visited": true
+    },
+    {
+      "province": "北京市",
+      "city": "西城区",
+      "visited": true
+    },
+    {
+      "province": "重庆市",
+      "city": "江北区",
+      "visited": true
+    },
+    {
+      "province": "重庆市",
+      "city": "南岸区",
+      "visited": true
+    },
+    {
+      "province": "重庆市",
+      "city": "沙坪坝区",
+      "visited": true
+    },
+    {
+      "province": "重庆市",
+      "city": "渝中区",
+      "visited": true
+    },
+    {
+      "province": "福建省",
+      "city": "厦门市",
+      "visited": true
+    },
+    {
+      "province": "甘肃省",
+      "city": "嘉峪关市",
+      "visited": true
+    },
+    {
+      "province": "甘肃省",
+      "city": "酒泉市",
+      "visited": true
+    },
+    {
+      "province": "甘肃省",
+      "city": "兰州市",
+      "visited": true
+    },
+    {
+      "province": "甘肃省",
+      "city": "武威市",
+      "visited": true
+    },
+    {
+      "province": "甘肃省",
+      "city": "张掖市",
+      "visited": true
+    },
+    {
+      "province": "广东省",
+      "city": "潮州市",
+      "visited": true
+    },
+    {
+      "province": "广东省",
+      "city": "广州市",
+      "visited": true
+    },
+    {
+      "province": "广东省",
+      "city": "揭阳市",
+      "visited": true
+    },
+    {
+      "province": "广东省",
+      "city": "汕头市",
+      "visited": true
+    },
+    {
+      "province": "广东省",
+      "city": "珠海市",
+      "visited": true
+    },
+    {
+      "province": "广西壮族自治区",
+      "city": "北海市",
+      "visited": true
+    },
+    {
+      "province": "广西壮族自治区",
+      "city": "南宁市",
+      "visited": true
+    },
+    {
+      "province": "河北省",
+      "city": "秦皇岛市",
+      "visited": true
+    },
+    {
+      "province": "河南省",
+      "city": "三门峡市",
+      "visited": true
+    },
+    {
+      "province": "湖北省",
+      "city": "恩施土家族苗族自治州",
+      "visited": true
+    },
+    {
+      "province": "湖北省",
+      "city": "武汉市",
+      "visited": true
+    },
+    {
+      "province": "吉林省",
+      "city": "白山市",
+      "visited": true
+    },
+    {
+      "province": "吉林省",
+      "city": "延边朝鲜族自治州",
+      "visited": true
+    },
+    {
+      "province": "江苏省",
+      "city": "南京市",
+      "visited": true
+    },
+    {
+      "province": "江苏省",
+      "city": "苏州市",
+      "visited": true
+    },
+    {
+      "province": "江苏省",
+      "city": "无锡市",
+      "visited": true
+    },
+    {
+      "province": "江西省",
+      "city": "上饶市",
+      "visited": true
+    },
+    {
+      "province": "辽宁省",
+      "city": "大连市",
+      "visited": true
+    },
+    {
+      "province": "辽宁省",
+      "city": "沈阳市",
+      "visited": true
+    },
+    {
+      "province": "内蒙古自治区",
+      "city": "呼伦贝尔市",
+      "visited": true
+    },
+    {
+      "province": "青海省",
+      "city": "海南藏族自治州",
+      "visited": true
+    },
+    {
+      "province": "青海省",
+      "city": "西宁市",
+      "visited": true
+    },
+    {
+      "province": "山东省",
+      "city": "青岛市",
+      "visited": true
+    },
+    {
+      "province": "山西省",
+      "city": "大同市",
+      "visited": true
+    },
+    {
+      "province": "山西省",
+      "city": "太原市",
+      "visited": true
+    },
+    {
+      "province": "陕西省",
+      "city": "西安市",
+      "visited": true
+    },
+    {
+      "province": "上海市",
+      "city": "虹口区",
+      "visited": true
+    },
+    {
+      "province": "上海市",
+      "city": "黄浦区",
+      "visited": true
+    },
+    {
+      "province": "上海市",
+      "city": "闵行区",
+      "visited": true
+    },
+    {
+      "province": "上海市",
+      "city": "浦东新区",
+      "visited": true
+    },
+    {
+      "province": "上海市",
+      "city": "徐汇区",
+      "visited": true
+    },
+    {
+      "province": "四川省",
+      "city": "成都市",
+      "visited": true
+    },
+    {
+      "province": "四川省",
+      "city": "乐山市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "杭州市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "湖州市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "嘉兴市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "金华市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "丽水市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "宁波市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "绍兴市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "台州市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "温州市",
+      "visited": true
+    },
+    {
+      "province": "浙江省",
+      "city": "舟山市",
+      "visited": true
+    }
+  ]
+}

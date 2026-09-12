@@ -37,6 +37,20 @@ const GLYPHS = {
       <path d="M13.2 5.5l-2.4 13" />
     </svg>
   ),
+  桌面工具: (
+    <svg {...glyphProps}>
+      <rect x="3.5" y="4.5" width="17" height="13" rx="2" />
+      <path d="M3.5 8.5h17M6.8 6.6h.01M9.4 6.6h.01" />
+      <path d="M12 17.5v3M8.5 20.5h7" />
+    </svg>
+  ),
+  桌面应用: (
+    <svg {...glyphProps}>
+      <rect x="4" y="4" width="16" height="12" rx="1.5" />
+      <path d="M9.5 7.5l-2 2.5 2 2.5M14.5 7.5l2 2.5-2 2.5" />
+      <path d="M12 16v4M8 20h8" />
+    </svg>
+  ),
   微信小程序: (
     <svg {...glyphProps}>
       <rect x="4" y="4" width="6" height="6" rx="1" />
