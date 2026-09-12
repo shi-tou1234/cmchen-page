@@ -132,7 +132,3 @@ npm run preview    # 本地预览构建结果
 - 键盘焦点可见（`focus-visible` 描边），交互元素 `aria-label`，装饰元素 `aria-hidden`
 - 背景亮度以"克制偏暗"为基准（视频全画面均值 ≈15% 亮度 + 滚动压暗编舞 + 静态暗角遮罩）；移动端（≤768px）所有新效果均有降级路径，触屏设备禁用悬停依赖交互
 - 悬停联动类效果（Awards 行、Skills 剪切、Contact 磁吸）均以 `(hover: hover)` / `(pointer: fine)` 门控，触屏自动退化为静态等亮排版
-
-## License
-
-MIT
