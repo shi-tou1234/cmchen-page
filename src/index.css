@@ -490,6 +490,11 @@ body.site-revealed .hero-eyebrow {
   letter-spacing: -0.035em;
 }
 
+/* T5 斥力包层：transform 只由 JS 写，入场动画在内层 .hero-char 上互不干扰 */
+.hero-repel {
+  display: inline-block;
+}
+
 .hero-char {
   display: inline-block;
   transform: translateY(112%) rotateX(-55deg);
@@ -564,15 +569,35 @@ body.site-revealed .hero-roles {
   transition: transform 0.7s var(--ease-out);
 }
 
+/* T6 视觉锚点：关键词上周期性一条窄光带扫过，两侧仍是 accent 沙色，仅此处提亮 */
 .word-track span {
   display: block;
   height: 1.4em;
   line-height: 1.4em;
   white-space: nowrap;
-  background: linear-gradient(90deg, #e3d9c6, #c9b998);
+  background: linear-gradient(
+    100deg,
+    #e3d9c6 0%,
+    #c9b998 34%,
+    #fff8ea 50%,
+    #c9b998 66%,
+    #e3d9c6 100%
+  );
+  background-size: 260% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: word-shine 4.2s ease-in-out infinite;
+}
+
+@keyframes word-shine {
+  0% {
+    background-position: 120% 0;
+  }
+  40%,
+  100% {
+    background-position: -30% 0;
+  }
 }
 
 .magnetic {
@@ -1861,6 +1886,9 @@ body.site-revealed .hero-scroll {
   }
   .word-track {
     transition: none;
+  }
+  .word-track span {
+    animation: none;
   }
   .cursor-dot,
   .cursor-ring,
