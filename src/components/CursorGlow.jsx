@@ -31,6 +31,9 @@ export default function CursorGlow() {
     const onMove = (e) => {
       x = e.clientX
       y = e.clientY
+      // 全局坐标共享：TiltCard 等组件把高光对到真实进入边，而非只看卡片内坐标
+      window.__cursorX = x
+      window.__cursorY = y
       visible = true
       dot.style.opacity = '1'
       ring.style.opacity = '1'

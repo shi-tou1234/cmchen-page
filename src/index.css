@@ -383,6 +383,15 @@ button {
     linear-gradient(to bottom, rgba(3, 3, 3, 0.1), rgba(3, 3, 3, 0.42));
 }
 
+/* T1 前景视差粒子层：与视频、遮罩同为 fixed z -1，
+   DOM 顺序（App 中随 VideoBackground 之后渲染）决定位于视频之上、内容之下 */
+.particle-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
 .hero-glow {
   position: absolute;
   border-radius: 50%;
