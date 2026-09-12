@@ -12,7 +12,7 @@ import Blog from './components/Blog'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import CursorGlow from './components/CursorGlow'
-import NebulaBackground from './components/NebulaBackground'
+import VideoBackground from './components/VideoBackground'
 import Preloader from './components/Preloader'
 import Toast from './components/Toast'
 
@@ -176,7 +176,7 @@ export default function App() {
   return (
     <>
       <Preloader />
-      <NebulaBackground />
+      <VideoBackground />
       <div className="page-grid" aria-hidden="true">
         <i />
         <i />
