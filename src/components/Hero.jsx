@@ -64,8 +64,9 @@ export default function Hero() {
       // 跑道进度 p：滚轮在前两幕的「剧情进度条」（参考站 250lvh 跑道的移植）
       const runway = Math.max(1, sectionEl.offsetHeight - vh)
       const p = Math.min(1, Math.max(0, y / runway))
-      // 内容淡出窗口拉长（0.18 → 0.85）：减少跑道中段的空白感
-      const fade = Math.min(1, Math.max(0, (p - 0.18) / 0.67))
+      // 内容淡出窗口（0.10 → 0.72）：巨字在跑道上多停留一会儿再散场，
+      // 中段不再出现「只剩背景」的空档
+      const fade = Math.min(1, Math.max(0, (p - 0.1) / 0.62))
       root.style.opacity = String(Math.max(0, 1 - fade))
       root.style.transform = `translateY(${(-p * 5).toFixed(2)}vh) scale(${(1 - p * 0.05).toFixed(4)})`
       // 逐字微差消隐：各字符按不同速率变淡，退场像「散开」而非整体变淡

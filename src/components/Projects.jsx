@@ -95,6 +95,16 @@ export default function Projects() {
 
     const cards = trackRef.current ? [...track.children] : []
 
+    // 跑道度量在 resize/字体就绪时测一次：滚动帧里只消费 __smoothY，
+    // 不再每帧 getBoundingClientRect（滚动回调里禁同步布局读取）
+    let spaceTop = 0
+    let spaceH = 1
+    const measure = () => {
+      const rect = space.getBoundingClientRect()
+      spaceTop = rect.top + window.scrollY
+      spaceH = space.offsetHeight || 1
+    }
+
     const apply = () => {
       raf = 0
       if (!desktop.matches || reduced.matches) {
@@ -105,9 +115,9 @@ export default function Projects() {
         })
         return
       }
-      const rect = space.getBoundingClientRect()
-      const total = space.offsetHeight - window.innerHeight
-      const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0
+      const y = window.__smoothY ?? window.scrollY
+      const total = spaceH - window.innerHeight
+      const p = total > 0 ? Math.min(1, Math.max(0, (y - spaceTop) / total)) : 0
       const max = Math.max(0, track.scrollWidth - stage.clientWidth)
       const x = -p * max
       track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`
@@ -141,11 +151,17 @@ export default function Projects() {
     }
 
     apply()
+    measure()
+    document.fonts?.ready.then(measure).catch(() => {})
+    const onResize = () => {
+      measure()
+      onScroll()
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
+    window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
+      window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [])

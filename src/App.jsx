@@ -98,10 +98,6 @@ const ACCENTS = {
 }
 const ACCENT_DEFAULT = { a: '#e3d9c6', a2: '#c9b998' }
 
-// 章节滤镜编表（T2）：视频层 hue 随当前区块偏移——暖沙底主题嘛，
-// 变化刻意克制（±10deg），叠加 blur 惯性后与视频层 p/p 同帧合成。
-const HUES = { top: 0, about: 6, awards: -5, skills: 4, projects: 0, blog: -6, contact: 10 }
-
 export default function App() {
   const isAdmin = useIsAdminRoute()
   const isCopy = useIsCopyRoute()
@@ -119,12 +115,10 @@ export default function App() {
 
     // 色温：IntersectionObserver 判断当前区块中心是否在视口中线
     let lastA = ''
-    const setAccent = (c, id) => {
+    const setAccent = (c) => {
       const root = document.documentElement
       root.style.setProperty('--accent', c.a)
       root.style.setProperty('--accent-2', c.a2)
-      // 章节滤镜目标：App loop 将 hueSm lerp 追赶本值，与滚动 blur 同帧合成
-      window.__targetHue = HUES[id] ?? 0
     }
     const observer = new IntersectionObserver(
       (entries) => {
@@ -169,10 +163,6 @@ export default function App() {
 
     let velSm = 0
     let velWritten = 0
-    // T2 章节 hue / T3 惯性 blur：与 velSm 同帧平滑，合成一条 filter 写入
-    let hueSm = 0
-    let blurSm = 0
-    let filterWritten = ''
 
     const loop = () => {
       const prevY = currentY
@@ -188,9 +178,8 @@ export default function App() {
       }
       if (bgCanvas) {
         // 滚轮响应：smoothstep 缓动 + 下沉 + 轻微放大 + 压暗。
-        // 放大上限从 0.28 收到 0.10、微旋转整条去掉——非整数倍放大叠旋转会逼着
-        // 每一帧重采样，暗部夜空那种高频颗粒会被放大成一层「脏沙」，
-        // 清晰度就是这么掉的。0.10 的余量只够盖住下沉位移，不产生重采样压力。
+        // 只写 opacity/transform（合成器属性）——旧版的 hue-rotate / 惯性 blur
+        // 是整屏每帧重跑一次滤镜通道的性能黑洞，运镜交给 CSS Ken Burns 后这里全部撤掉。
         const vh = window.innerHeight
         const raw = Math.min(1, currentY / (vh * 1.6))
         const t = raw * raw * (3 - 2 * raw) // smoothstep：两端慢、中段快
@@ -201,21 +190,6 @@ export default function App() {
           bgCanvas.style.opacity = op.toFixed(3)
           bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)})`
           bgOpWritten = op
-        }
-        // T3 惯性 blur：快速滚动时视频轻微弥散，静止回落 0；
-        // T2 章节 hue：IO 目标值缓慢追赶，跨章节色温渐变。
-        // 关键：两者都归零时把 filter 整个撤掉——恒定的 filter 会让整段视频
-        // 每帧多走一次全屏滤镜通道（重采样 + 掉清晰度），「什么都不做」
-        // 才是画面最锐、GPU 最闲的状态。原来常驻的 brightness(1.08) 更糟：
-        // 夜空素材本身均值只有 15/255，+8% 增益等于把噪点一起放大。
-        hueSm += ((window.__targetHue || 0) - hueSm) * 0.06
-        blurSm += (Math.min(1.1, Math.abs(velSm) * 0.035) - blurSm) * 0.18
-        const motionBlur = blurSm > 0.04 ? ` blur(${blurSm.toFixed(2)}px)` : ''
-        const hue = Math.abs(hueSm) > 0.08 ? ` hue-rotate(${hueSm.toFixed(2)}deg)` : ''
-        const filter = `${motionBlur} ${hue}`.trim()
-        if (filter !== filterWritten) {
-          bgCanvas.style.filter = filter
-          filterWritten = filter
         }
       }
       ghostData.forEach(({ el, sectionTop }) => {
@@ -244,7 +218,6 @@ export default function App() {
       document.removeEventListener('visibilitychange', onVisible)
       cancelAnimationFrame(raf)
       setAccent(ACCENT_DEFAULT, 'default')
-      bgCanvas.style.filter = ''
       window.__smoothY = 0
     }
   }, [isAdmin])
