@@ -178,10 +178,10 @@ export default function Hero() {
             <span className="hero-copy">{brYear ? `© ${brYear}` : ''}</span>
           </div>
 
-          <div className="hero-scroll">
-            <span>{hero.scrollHint}</span>
-            <span className="hero-scroll-line" />
-          </div>
+        </div>
+        <div className="hero-scroll">
+          <span>{hero.scrollHint}</span>
+          <span className="hero-scroll-line" />
         </div>
       </div>
     </section>

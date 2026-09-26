@@ -86,17 +86,17 @@ function useIsCopyRoute() {
   return isCopy
 }
 
-// 色温映射：滚动经过不同区块时 accent 色相微妙偏移。参考站无彩色装饰，
-// 旅程收窄为「暖奶油 → 暖沙 → 落日琥珀」的同族微差，保留机制不抢戏
+// 色温映射：滚动经过不同区块时 accent 微妙偏移。全程收在香槟金一族内
+// （亮度/冷暖 ±3%，呼应各段视频的夜色温度），不再出现奶油/琥珀跳色
 const ACCENTS = {
-  about: { a: '#e6ddcb', a2: '#d4c6ab' },
-  awards: { a: '#e8dcc2', a2: '#cdb992' },
-  skills: { a: '#e3d9c6', a2: '#c9b998' },
-  projects: { a: '#e6dcc8', a2: '#c9b998' },
-  blog: { a: '#e3d9c6', a2: '#cdb992' },
-  contact: { a: '#e8c9a4', a2: '#dfa878' },
+  about: { a: '#e9dfc9', a2: '#cdbb92' },
+  awards: { a: '#e4d5b4', a2: '#c5a878' },
+  skills: { a: '#e7dcc4', a2: '#c9b285' },
+  projects: { a: '#e6d9bd', a2: '#c9ab74' },
+  blog: { a: '#e9e0cf', a2: '#d0c09d' },
+  contact: { a: '#eedcb4', a2: '#d8b87e' },
 }
-const ACCENT_DEFAULT = { a: '#e3d9c6', a2: '#c9b998' }
+const ACCENT_DEFAULT = { a: '#e6d9bd', a2: '#c9ab74' }
 
 export default function App() {
   const isAdmin = useIsAdminRoute()

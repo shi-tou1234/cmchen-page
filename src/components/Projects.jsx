@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import Reveal from './Reveal'
 import Arrow from './Arrow'
 import TiltCard from './TiltCard'
@@ -70,190 +69,83 @@ function Glyph({ kind }) {
   )
 }
 
+// 项目陈列：纵向交错网格（Z 字节奏）。旧版「sticky 推轨」把滚轮映射成横移，
+// 手感发卡且窗口稍窄就退化成手机横滑——弃用；动效交给 Reveal 入场 + TiltCard
+// 悬停倾斜 + 封面色球呼吸，滚动方向与全页一致。
 export default function Projects() {
-  const spaceRef = useRef(null)
-  const stageRef = useRef(null)
-  const trackRef = useRef(null)
-  const barRef = useRef(null)
-  const idxRef = useRef(null)
-
-  // 横向画廊：sticky 钉住视口，滚动进度映射为轨道位移（原生滚动，不劫持滚轮）
-  // 移动端 / 减少动效：CSS 回退为纵向堆叠或原生横向滚动，这里直接不驱动
-  useEffect(() => {
-    const space = spaceRef.current
-    const stage = stageRef.current
-    const track = trackRef.current
-    if (!space || !stage || !track) return undefined
-    const bar = barRef.current
-    const idx = idxRef.current
-    // 桌面推轨的启用条件必须和 index.css 里 sticky 舞台的媒体查询逐字对齐：
-    // 视口太矮时 CSS 已经解除 sticky、解除裁切、卡片按内容定高，
-    // 此时若 JS 还按「轨道总宽 - 舞台宽」推轨，滚动这一段就会把卡片甩出画面。
-    const desktop = window.matchMedia('(min-width: 861px) and (min-height: 641px)')
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let raf = 0
-
-    const cards = trackRef.current ? [...track.children] : []
-
-    // 跑道度量在 resize/字体就绪时测一次：滚动帧里只消费 __smoothY，
-    // 不再每帧 getBoundingClientRect（滚动回调里禁同步布局读取）
-    let spaceTop = 0
-    let spaceH = 1
-    const measure = () => {
-      const rect = space.getBoundingClientRect()
-      spaceTop = rect.top + window.scrollY
-      spaceH = space.offsetHeight || 1
-    }
-
-    const apply = () => {
-      raf = 0
-      if (!desktop.matches || reduced.matches) {
-        track.style.transform = ''
-        cards.forEach((el) => {
-          el.style.setProperty('--focus-scale', 1)
-          el.style.setProperty('--focus-dim', 1)
-        })
-        return
-      }
-      const y = window.__smoothY ?? window.scrollY
-      const total = spaceH - window.innerHeight
-      const p = total > 0 ? Math.min(1, Math.max(0, (y - spaceTop) / total)) : 0
-      const max = Math.max(0, track.scrollWidth - stage.clientWidth)
-      const x = -p * max
-      track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`
-      if (bar) bar.style.transform = `scaleX(${0.08 + p * 0.92})`
-      // 焦点卡：越靠近视口中线越完整，远处的卡轻微缩小、压暗封面与正文，
-      // 制造纵深。注意不给整卡降 opacity——半透明卡片会让底下的视频透上来。
-      const mid = stage.clientWidth / 2
-      cards.forEach((el) => {
-        const c = el.offsetLeft + el.offsetWidth / 2 + x
-        const d = Math.min(1, Math.abs(c - mid) / (stage.clientWidth * 0.62))
-        el.style.setProperty('--focus-scale', (1 - d * 0.07).toFixed(3))
-        el.style.setProperty('--focus-dim', (1 - d * 0.35).toFixed(3))
-      })
-      if (idx) {
-        // 当前卡 = 中心离视口中线最近的那张
-        const viewCenter = -x + stage.clientWidth / 2
-        let best = 0
-        let bestD = Infinity
-        cards.forEach((el, i) => {
-          const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - viewCenter)
-          if (d < bestD) {
-            bestD = d
-            best = i
-          }
-        })
-        idx.textContent = String(best + 1).padStart(2, '0')
-      }
-    }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply)
-    }
-
-    apply()
-    measure()
-    document.fonts?.ready.then(measure).catch(() => {})
-    const onResize = () => {
-      measure()
-      onScroll()
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [])
-
   return (
     <section className="section section--gallery" id="projects">
       <span className="sec-ghost" aria-hidden="true">WORKS</span>
-      <div className="gallery-space" ref={spaceRef}>
-        <div className="gallery-viewport">
-          <div className="container">
-            <Reveal>
-              <div className="section-head">
-                <div>
-                  <div className="sec-no">04</div>
-                  <p className="eyebrow">Projects</p>
-                  <h2 className="section-title">
-                    <SplitText text={projects.title} />
-                  </h2>
-                </div>
-                <span className="sec-rule" aria-hidden="true" />
+      <div className="container">
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <div className="sec-no">04</div>
+              <p className="eyebrow">Projects</p>
+              <h2 className="section-title">
+                <SplitText text={projects.title} />
+              </h2>
+            </div>
+            <span className="sec-rule" aria-hidden="true" />
+            <a
+              className="view-all"
+              href={projects.viewAll.href}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {projects.viewAll.label}
+              <span className="arrow">
+                <Arrow />
+              </span>
+            </a>
+          </div>
+        </Reveal>
+        <div className="work-grid">
+          {projects.items.map((p, i) => (
+            <Reveal key={p.index} delay={(i % 2) * 90} variant="up">
+              <TiltCard>
                 <a
-                  className="view-all"
-                  href={projects.viewAll.href}
+                  className="project-card"
+                  href={p.link}
                   target="_blank"
                   rel="noreferrer"
+                  style={p.color ? { '--orb-color': p.color } : undefined}
                 >
-                  {projects.viewAll.label}
-                  <span className="arrow">
-                    <Arrow />
-                  </span>
+                  <div className="project-thumb" data-theme={p.theme}>
+                    <span className="thumb-grid" aria-hidden="true" />
+                    <span className="thumb-orb" aria-hidden="true" />
+                    <Glyph kind={p.kind} />
+                    <span className="thumb-tick tl" aria-hidden="true" />
+                    <span className="thumb-tick br" aria-hidden="true" />
+                    <span className="project-index" aria-hidden="true">
+                      {p.index}
+                    </span>
+                  </div>
+                  <div className="project-body">
+                    <div className="project-meta">
+                      <span>{p.year}</span>
+                      <i />
+                      <span>{p.kind}</span>
+                    </div>
+                    <h3 className="project-title">{p.title}</h3>
+                    <p className="project-desc">{p.desc}</p>
+                    <div className="project-foot">
+                      <ul className="tags">
+                        {p.tags.map((t) => (
+                          <li key={t} className="tag">
+                            {t}
+                          </li>
+                        ))}
+                      </ul>
+                      <span className="project-go">
+                        <Arrow />
+                      </span>
+                    </div>
+                  </div>
                 </a>
-              </div>
+              </TiltCard>
             </Reveal>
-          </div>
-          <div className="gallery-stage" ref={stageRef}>
-            <div className="gallery-track" ref={trackRef}>
-              {projects.items.map((p, i) => (
-                <Reveal key={p.index} delay={i * 80} variant="up">
-                  <TiltCard>
-                    <a
-                      className="project-card"
-                      href={p.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={p.color ? { '--orb-color': p.color } : undefined}
-                    >
-                      <div className="project-thumb" data-theme={p.theme}>
-                        <span className="thumb-grid" aria-hidden="true" />
-                        <span className="thumb-orb" aria-hidden="true" />
-                        <Glyph kind={p.kind} />
-                        <span className="thumb-tick tl" aria-hidden="true" />
-                        <span className="thumb-tick br" aria-hidden="true" />
-                        <span className="project-index" aria-hidden="true">
-                          {p.index}
-                        </span>
-                      </div>
-                      <div className="project-body">
-                        <div className="project-meta">
-                          <span>{p.year}</span>
-                          <i />
-                          <span>{p.kind}</span>
-                        </div>
-                        <h3 className="project-title">{p.title}</h3>
-                        <p className="project-desc">{p.desc}</p>
-                        <div className="project-foot">
-                          <ul className="tags">
-                            {p.tags.map((t) => (
-                              <li key={t} className="tag">
-                                {t}
-                              </li>
-                            ))}
-                          </ul>
-                          <span className="project-go">
-                            <Arrow />
-                          </span>
-                        </div>
-                      </div>
-                    </a>
-                  </TiltCard>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-          <div className="container gallery-hud" aria-hidden="true">
-            <span className="gallery-count">
-              <b ref={idxRef}>01</b> / {String(projects.items.length).padStart(2, '0')}
-            </span>
-            <span className="gallery-progress">
-              <i ref={barRef} />
-            </span>
-            <span className="gallery-hint">SCROLL →</span>
-          </div>
+          ))}
         </div>
       </div>
     </section>

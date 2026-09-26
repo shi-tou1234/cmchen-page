@@ -536,19 +536,19 @@ h3 {
 
 .nav-cta {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
   color: var(--accent);
+  background: transparent;
   border: 1px solid rgba(230, 217, 189, 0.4);
   border-radius: var(--radius-md);
   padding: 8px 16px;
-  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .nav-cta:hover {
-  background: var(--text);
-  color: #0b0c10;
-  border-color: var(--text);
+  color: var(--text);
+  border-color: var(--accent-2);
 }
 
 /* 滚动进度发丝线：header 底边一条 scaleX 的金线 */
@@ -855,11 +855,12 @@ body.site-revealed .hero-foot {
   color: var(--text-faint);
 }
 
+/* 挂在 stage 上、坐在内容列左边的留白里；留白不够宽就隐藏 */
 .hero-scroll {
   position: absolute;
-  left: 32px;
+  left: clamp(16px, 2vw, 40px);
   bottom: clamp(52px, 7vh, 84px);
-  display: inline-flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   gap: 12px;
@@ -870,6 +871,12 @@ body.site-revealed .hero-foot {
   writing-mode: vertical-rl;
   opacity: 0;
   transition: opacity 1s ease 1.3s;
+}
+
+@media (min-width: 1360px) {
+  .hero-scroll {
+    display: inline-flex;
+  }
 }
 
 body.site-revealed .hero-scroll {
@@ -922,46 +929,60 @@ body.site-revealed .hero-scroll {
     flex-direction: column;
     align-items: flex-start;
   }
-  .hero-scroll {
-    display: none;
-  }
 }
 
 /* =====================================================================
    按钮（Magnetic 容器 .magnetic 不设样式，只做位移宿主）
    ===================================================================== */
 
+/* 按钮统一「描边字幕式」：透明底 + 细描边 + 等宽小字大字距；
+   悬停时香槟金从左向右充填（::before scaleX，合成层属性），文字转深色 */
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  font-size: 14px;
-  letter-spacing: 0.12em;
-  padding: 15px 30px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  padding: 16px 30px;
+  border: 1px solid rgba(240, 235, 226, 0.3);
   border-radius: var(--radius-md);
-  transition: transform 0.4s var(--ease-out), background 0.35s ease, color 0.35s ease,
-    border-color 0.35s ease, box-shadow 0.4s var(--ease-out);
+  color: var(--text-dim);
+  background: transparent;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.4s ease, border-color 0.4s ease;
 }
 
-.btn-primary {
-  background: var(--text);
-  color: #0b0c10;
-  font-weight: 500;
-}
-
-.btn-primary:hover {
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: var(--accent);
-  box-shadow: 0 14px 34px rgba(201, 171, 116, 0.16);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease-out);
+}
+
+.btn:hover {
+  color: #0b0c10;
+  border-color: var(--accent);
+}
+
+.btn:hover::before {
+  transform: scaleX(1);
+}
+
+/* 主按钮：金字 + 亮一档的描边，与次按钮拉开层级 */
+.btn-primary {
+  color: var(--accent);
+  border-color: rgba(230, 217, 189, 0.55);
 }
 
 .btn-outline {
-  border: 1px solid var(--border-strong);
   color: var(--text-dim);
-}
-
-.btn-outline:hover {
-  border-color: var(--accent-2);
-  color: var(--text);
 }
 
 .arrow {
@@ -1314,100 +1335,33 @@ body.site-revealed .hero-scroll {
    Projects：横向画廊（桌面 sticky 推轨 / 移动原生横滚）
    ===================================================================== */
 
-.gallery-space {
-  position: relative;
-}
-
-.gallery-viewport {
-  position: relative;
-}
-
-.gallery-stage {
-  overflow: hidden;
-}
-
-.gallery-track {
+/* 项目纵向交错网格：两列，偶数卡下沉形成 Z 字阅读节奏；
+   回归原生竖向滚动——推轨「滚轮横向映射」在手感上发卡，弃用 */
+.work-grid {
   display: flex;
-  align-items: stretch;
-  gap: clamp(24px, 2.6vw, 44px);
-  padding: 8px max(32px, calc((100vw - 1240px) / 2 + 32px)) 24px;
-  width: max-content;
-  will-change: transform;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: clamp(28px, 3.2vw, 52px);
 }
 
-@media (min-width: 861px) {
-  .gallery-space {
-    height: 330vh;
+.work-grid > * {
+  width: calc(50% - clamp(14px, 1.6vw, 26px));
+}
+
+.work-grid > .reveal:nth-child(even) {
+  margin-top: clamp(36px, 5vw, 76px);
+}
+
+@media (max-width: 719px) {
+  .work-grid {
+    display: grid;
+    grid-template-columns: 1fr;
   }
-  .gallery-viewport {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
+  .work-grid > * {
+    width: 100%;
   }
-  .gallery-stage {
-    overflow: visible;
-  }
-}
-
-@media (max-width: 860px) {
-  .gallery-stage {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  .gallery-track > * {
-    scroll-snap-align: center;
-  }
-  .gallery-track {
-    padding-bottom: 8px;
-  }
-}
-
-/* HUD：计数 / 进度 / 提示 */
-.gallery-hud {
-  display: flex;
-  align-items: center;
-  gap: 26px;
-  margin-top: clamp(28px, 4vh, 44px);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  color: var(--text-faint);
-}
-
-.gallery-count b {
-  color: var(--accent);
-  font-weight: 500;
-}
-
-.gallery-progress {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-  position: relative;
-  overflow: hidden;
-}
-
-.gallery-progress i {
-  position: absolute;
-  inset: 0;
-  background: var(--gold-line);
-  transform: scaleX(0.08);
-  transform-origin: left center;
-  will-change: transform;
-}
-
-.gallery-hint {
-  flex: none;
-}
-
-@media (max-width: 860px) {
-  .gallery-hud {
-    display: none;
+  .work-grid > .reveal:nth-child(even) {
+    margin-top: 0;
   }
 }
 
@@ -1421,19 +1375,18 @@ body.site-revealed .hero-scroll {
 .project-card {
   display: flex;
   flex-direction: column;
-  width: clamp(400px, 36vw, 560px);
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: linear-gradient(170deg, rgba(244, 240, 232, 0.04), rgba(244, 240, 232, 0.012));
-  transform: scale(var(--focus-scale, 1));
-  transition: border-color 0.45s ease, box-shadow 0.5s var(--ease-out);
-  filter: brightness(calc(0.72 + var(--focus-dim, 1) * 0.28));
+  transition: border-color 0.45s ease, box-shadow 0.5s var(--ease-out), transform 0.5s var(--ease-out);
 }
 
 .project-card:hover {
   border-color: rgba(230, 217, 189, 0.42);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  transform: translateY(-4px);
 }
 
 /* 封面：抽象色球 + 细网格 + 线性图标。每张卡的颜色来自后台 JSON（--orb-color） */
@@ -1621,11 +1574,7 @@ body.site-revealed .hero-scroll {
   color: #0b0c10;
 }
 
-@media (max-width: 860px) {
-  .project-card {
-    width: min(78vw, 420px);
-  }
-}
+
 
 /* =====================================================================
    Blog：引语 + 文章索引行
@@ -1839,41 +1788,59 @@ body.site-revealed .hero-scroll {
   flex-wrap: wrap;
 }
 
+/* 邮箱主按钮：与全站同款描边字幕式，悬停金色充填 */
 .contact-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 14px;
   font-family: var(--font-mono);
   font-size: clamp(15px, 1.7vw, 19px);
-  letter-spacing: 0.06em;
-  background: var(--text);
-  color: #0b0c10;
-  border: 0;
+  letter-spacing: 0.08em;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(230, 217, 189, 0.55);
   border-radius: var(--radius-md);
   padding: 18px 30px;
   cursor: pointer;
-  transition: box-shadow 0.4s var(--ease-out), background 0.3s ease, transform 0.4s var(--ease-out);
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.4s ease, border-color 0.4s ease;
+}
+
+.contact-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease-out);
 }
 
 .contact-btn:hover {
-  background: var(--accent);
-  box-shadow: 6px 6px 0 rgba(201, 171, 116, 0.28);
+  color: #0b0c10;
+  border-color: var(--accent);
+}
+
+.contact-btn:hover::before {
+  transform: scaleX(1);
 }
 
 .contact-ghost {
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.24em;
+  font-size: 11px;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--text-dim);
-  border: 1px solid var(--border-strong);
+  border: 1px solid rgba(240, 235, 226, 0.3);
   border-radius: var(--radius-md);
-  padding: 16px 26px;
-  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  padding: 17px 26px;
+  transition: color 0.35s ease, border-color 0.35s ease;
 }
 
 .contact-ghost:hover {
-  background: var(--surface-hover);
   border-color: var(--accent-2);
   color: var(--text);
 }
@@ -2159,17 +2126,17 @@ body.site-revealed .hero-scroll {
   width: 100%;
 }
 
-.copy-page .gallery-space,
-.copy-page .gallery-viewport {
-  height: auto;
-  position: static;
+.copy-page .work-grid {
+  display: grid;
+  grid-template-columns: 1fr;
 }
 
-.copy-page .gallery-track {
-  flex-direction: column;
-  width: auto;
-  align-items: stretch;
-  padding: 0;
+.copy-page .work-grid > * {
+  width: 100%;
+}
+
+.copy-page .work-grid > .reveal:nth-child(even) {
+  margin-top: 0;
 }
 
 .copy-page .footer-word {
@@ -2669,20 +2636,28 @@ input[type="color"].admin-input {
   border-radius: var(--radius-md);
   background: var(--surface);
 }
+.tm-stat {
+  border: 0;
+  background: none;
+  padding: 0;
+}
 .tm-stat b {
   display: block;
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.2vw, 2rem);
-  font-weight: 500;
-  color: var(--accent-2);
-  line-height: 1.1;
+  font-size: clamp(64px, 7vw, 116px);
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 0.95;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.01em;
 }
 .tm-stat span {
   display: block;
-  margin-top: 6px;
+  margin-top: 10px;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
   color: var(--text-faint);
 }
 
