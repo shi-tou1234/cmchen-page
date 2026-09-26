@@ -16,6 +16,7 @@ import VideoBackground from './components/VideoBackground'
 import ParticleField from './components/ParticleField'
 import Preloader from './components/Preloader'
 import Toast from './components/Toast'
+import CopyModeExit from './components/CopyModeExit'
 
 const AdminApp = lazy(() => import('./admin/AdminApp'))
 
@@ -31,6 +32,58 @@ function useIsAdminRoute() {
     return () => window.removeEventListener('hashchange', on)
   }, [])
   return isAdmin
+}
+
+// #/copy 只作为文字排版副本入口。进入副本后，普通栏目锚点不会把它切回原版；
+// 点击“返回原版”或回到 #top 时退出副本。sessionStorage 让刷新后的 #about 仍保留副本模式。
+function useIsCopyRoute() {
+  const [isCopy, setIsCopy] = useState(() => {
+    const hash = window.location.hash.toLowerCase()
+    if (hash.startsWith('#/copy')) {
+      try {
+        sessionStorage.setItem('cmchen-page:copy-mode', '1')
+      } catch {
+        // 隐私模式下仍可直接使用当前会话，不影响路由本身。
+      }
+      return true
+    }
+    if (hash === '' || hash === '#/' || hash === '#top') {
+      try {
+        sessionStorage.removeItem('cmchen-page:copy-mode')
+      } catch {
+        // 忽略存储不可用。
+      }
+      return false
+    }
+    try {
+      return sessionStorage.getItem('cmchen-page:copy-mode') === '1'
+    } catch {
+      return false
+    }
+  })
+  useEffect(() => {
+    const on = () => {
+      const hash = window.location.hash.toLowerCase()
+      if (hash.startsWith('#/copy')) {
+        try {
+          sessionStorage.setItem('cmchen-page:copy-mode', '1')
+        } catch {
+          // 忽略存储不可用。
+        }
+        setIsCopy(true)
+      } else if (hash === '' || hash === '#/' || hash === '#top') {
+        try {
+          sessionStorage.removeItem('cmchen-page:copy-mode')
+        } catch {
+          // 忽略存储不可用。
+        }
+        setIsCopy(false)
+      }
+    }
+    window.addEventListener('hashchange', on)
+    return () => window.removeEventListener('hashchange', on)
+  }, [])
+  return isCopy
 }
 
 // 色温映射：滚动经过不同区块时 accent 色相微妙偏移。参考站无彩色装饰，
@@ -51,6 +104,7 @@ const HUES = { top: 0, about: 6, awards: -5, skills: 4, projects: 0, blog: -6, c
 
 export default function App() {
   const isAdmin = useIsAdminRoute()
+  const isCopy = useIsCopyRoute()
 
   // 共享 scroll handler：平滑 lerp 层 + ghost 视差 + 色温切换
   useEffect(() => {
@@ -103,7 +157,7 @@ export default function App() {
       return { el: g, sectionTop }
     })
 
-    // 星空→墨黑的滚动过渡：前几幕星空全亮，随滚动平滑压暗到编辑式黑底。
+    // 星空→可读夜景的滚动过渡：保留视频细节，只做轻微压暗，避免背景吞掉栏目内容。
     // 读 lerp 值（currentY）驱动，过渡自带"重量感"；只在变化时写样式。
     // 哨兵初值必须是有效数字——用 NaN 会让 Math.abs(x-NaN)>阈值 恒为 false，永不写入
     const bgCanvas = document.querySelector('.bg-canvas')
@@ -133,26 +187,32 @@ export default function App() {
         velWritten = velSm
       }
       if (bgCanvas) {
-        // 参考站式滚轮响应加强版：smoothstep 缓动 + 下沉 + 放大 + 微旋转 + 压暗
-        // 四重变化同时进行，跑道后半段变化最剧烈（前段蓄势、后段俯冲）。
-        // 旋转 2° 的角位移约 30px，被 1.38 倍缩放裕量完全覆盖，不露画布边缘
+        // 滚轮响应：smoothstep 缓动 + 下沉 + 轻微放大 + 压暗。
+        // 放大上限从 0.28 收到 0.10、微旋转整条去掉——非整数倍放大叠旋转会逼着
+        // 每一帧重采样，暗部夜空那种高频颗粒会被放大成一层「脏沙」，
+        // 清晰度就是这么掉的。0.10 的余量只够盖住下沉位移，不产生重采样压力。
         const vh = window.innerHeight
         const raw = Math.min(1, currentY / (vh * 1.6))
         const t = raw * raw * (3 - 2 * raw) // smoothstep：两端慢、中段快
-        const op = 1 - t * 0.52
-        const drift = t * vh * 0.16
-        const zoom = 1 + t * 0.38
-        const rot = t * 2
+        const op = 1 - t * 0.2
+        const drift = t * vh * 0.1
+        const zoom = 1 + t * 0.1
         if (Math.abs(op - bgOpWritten) > 0.004) {
           bgCanvas.style.opacity = op.toFixed(3)
-          bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`
+          bgCanvas.style.transform = `translate3d(0, ${drift.toFixed(1)}px, 0) scale(${zoom.toFixed(4)})`
           bgOpWritten = op
         }
         // T3 惯性 blur：快速滚动时视频轻微弥散，静止回落 0；
-        // T2 章节 hue：IO 目标值缓慢追赶，跨章节色温渐变
+        // T2 章节 hue：IO 目标值缓慢追赶，跨章节色温渐变。
+        // 关键：两者都归零时把 filter 整个撤掉——恒定的 filter 会让整段视频
+        // 每帧多走一次全屏滤镜通道（重采样 + 掉清晰度），「什么都不做」
+        // 才是画面最锐、GPU 最闲的状态。原来常驻的 brightness(1.08) 更糟：
+        // 夜空素材本身均值只有 15/255，+8% 增益等于把噪点一起放大。
         hueSm += ((window.__targetHue || 0) - hueSm) * 0.06
-        blurSm += (Math.min(4, Math.abs(velSm) * 0.08) - blurSm) * 0.18
-        const filter = `blur(${blurSm.toFixed(2)}px) hue-rotate(${hueSm.toFixed(2)}deg)`
+        blurSm += (Math.min(1.1, Math.abs(velSm) * 0.035) - blurSm) * 0.18
+        const motionBlur = blurSm > 0.04 ? ` blur(${blurSm.toFixed(2)}px)` : ''
+        const hue = Math.abs(hueSm) > 0.08 ? ` hue-rotate(${hueSm.toFixed(2)}deg)` : ''
+        const filter = `${motionBlur} ${hue}`.trim()
         if (filter !== filterWritten) {
           bgCanvas.style.filter = filter
           filterWritten = filter
@@ -198,7 +258,8 @@ export default function App() {
   }
 
   return (
-    <>
+    <div className={isCopy ? 'site-shell copy-page' : 'site-shell'}>
+      {isCopy && <CopyModeExit />}
       <Preloader />
       <VideoBackground />
       <ParticleField />
@@ -229,6 +290,6 @@ export default function App() {
       <Contact />
       <Footer />
       <Toast />
-    </>
+    </div>
   )
 }

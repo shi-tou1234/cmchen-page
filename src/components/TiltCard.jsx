@@ -15,10 +15,13 @@ export default function TiltCard({ children }) {
     if (!el) return
     const t = targetRef.current
     const c = curRef.current
+    const copy = el.closest('.copy-page')
+    const rxScale = copy ? 3 : 7
+    const ryScale = copy ? 4 : 9
     c.px += (t.px - c.px) * 0.22
     c.py += (t.py - c.py) * 0.22
-    el.style.setProperty('--rx', `${((c.py - 0.5) * -7).toFixed(2)}deg`)
-    el.style.setProperty('--ry', `${((c.px - 0.5) * 9).toFixed(2)}deg`)
+    el.style.setProperty('--rx', `${((c.py - 0.5) * -rxScale).toFixed(2)}deg`)
+    el.style.setProperty('--ry', `${((c.px - 0.5) * ryScale).toFixed(2)}deg`)
     el.style.setProperty('--mx', `${(c.px * 100).toFixed(1)}%`)
     el.style.setProperty('--my', `${(c.py * 100).toFixed(1)}%`)
     rafRef.current = requestAnimationFrame(loop)

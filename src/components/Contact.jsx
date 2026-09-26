@@ -20,20 +20,21 @@ const STYLE = `
   100%{box-shadow:0 0 0 0 rgba(201,185,152,0)}
 }
 .fin-clock{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:.08em;color:var(--text)}
-.fin-band{display:block;width:100%;margin-top:clamp(56px,8vw,110px);padding:26px 0;
-  background:none;border:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+.fin-band{display:block;width:100%;margin-top:clamp(56px,8vw,110px);padding:30px 0;
+  background:none;border:0;border-top:1px solid var(--border-strong);border-bottom:1px solid var(--border-strong);
   cursor:pointer;overflow:hidden;text-align:inherit;font:inherit;color:inherit;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
 .fin-band-track{display:flex;align-items:center;gap:56px;width:max-content;
-  animation:marquee-scroll 22s linear infinite;will-change:transform}
+  animation:marquee-scroll 26s linear infinite;will-change:transform}
 .fin-band:hover .fin-band-track{animation-play-state:paused}
+/* 巨型描边邮箱：等宽字体的连排字符在 130px 下像一条打字机纸带 */
 .fin-band-cell{display:flex;align-items:center;gap:56px;white-space:nowrap;
-  font-size:clamp(52px,10vw,130px);font-weight:800;letter-spacing:-.02em;line-height:1.15;
-  color:transparent;-webkit-text-stroke:1.5px rgba(242,242,242,.3);
-  transition:color .4s ease,-webkit-text-stroke-color .4s ease}
+  font-family:var(--font-mono);font-size:clamp(40px,7.2vw,104px);font-weight:500;letter-spacing:-.01em;
+  line-height:1.2;color:transparent;-webkit-text-stroke:1px rgba(236,229,216,.28);
+  transition:color .45s ease,-webkit-text-stroke-color .45s ease}
 .fin-band:hover .fin-band-cell{color:var(--text);-webkit-text-stroke-color:transparent}
-.fin-band-sep{width:10px;height:10px;background:var(--border-strong);transform:rotate(45deg);flex:none}
+.fin-band-sep{width:9px;height:9px;background:var(--border-strong);transform:rotate(45deg);flex:none}
 @media (prefers-reduced-motion: reduce){
   .fin-dot{animation:none}
   .fin-band-track{animation:none}

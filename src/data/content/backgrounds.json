@@ -1,0 +1,79 @@
+{
+  "sectionOrder": ["top", "about", "awards", "skills", "projects", "blog", "contact"],
+  "clips": [
+    {
+      "id": "starfield",
+      "label": "星空星轨微尘",
+      "src": "videos/bg-starfield.mp4",
+      "poster": "images/background-keyframes/starfield-first.jpg",
+      "duration": 10.041667
+    },
+    {
+      "id": "snow",
+      "label": "雪山流星竞赛",
+      "src": "videos/bg-snow.mp4",
+      "poster": "images/background-keyframes/snow-first.jpg",
+      "duration": 10.041667
+    },
+    {
+      "id": "moon-river",
+      "label": "静谧月夜河流",
+      "src": "videos/bg-moon-river.mp4",
+      "poster": "images/background-keyframes/moon-river-first.jpg",
+      "duration": 15.041667
+    },
+    {
+      "id": "galaxy",
+      "label": "银河云海项目",
+      "src": "videos/bg-galaxy.mp4",
+      "poster": "images/background-keyframes/galaxy-first.jpg",
+      "duration": 10.041667
+    },
+    {
+      "id": "night-stream",
+      "label": "静谧月夜山溪",
+      "src": "videos/bg-night-stream.mp4",
+      "poster": "images/background-keyframes/night-stream-first.jpg",
+      "duration": 10.041667
+    }
+  ],
+  "sections": {
+    "top": "starfield",
+    "about": "starfield",
+    "awards": "snow",
+    "skills": "moon-river",
+    "projects": "galaxy",
+    "blog": "galaxy",
+    "contact": "night-stream"
+  },
+  "transitions": [
+    {
+      "id": "about-awards",
+      "from": "starfield",
+      "to": "snow",
+      "out": "images/background-keyframes/02-about-awards-out.jpg",
+      "in": "images/background-keyframes/02-about-awards-in.jpg"
+    },
+    {
+      "id": "awards-skills",
+      "from": "snow",
+      "to": "moon-river",
+      "out": "images/background-keyframes/03-awards-skills-out.jpg",
+      "in": "images/background-keyframes/03-awards-skills-in.jpg"
+    },
+    {
+      "id": "skills-projects",
+      "from": "moon-river",
+      "to": "galaxy",
+      "out": "images/background-keyframes/04-skills-projects-out.jpg",
+      "in": "images/background-keyframes/04-skills-projects-in.jpg"
+    },
+    {
+      "id": "blog-contact",
+      "from": "galaxy",
+      "to": "night-stream",
+      "out": "images/background-keyframes/06-blog-contact-out.jpg",
+      "in": "images/background-keyframes/06-blog-contact-in.jpg"
+    }
+  ]
+}

@@ -1,114 +1,558 @@
 import { useEffect, useRef } from 'react'
+import backgrounds from '../data/content/backgrounds.json'
 
-// 混合驱动视频背景（视频保持暂停，播放头由 rAF 手动推）：
-// ① 环境自播——播放头以 0.45x 匀速往返（ping-pong，首尾帧不同所以不用 loop 硬切），雾永远在流动；
-// ② 滚动推拉——滚轮速度按比例叠加到播放头（下滚推进旅程、上滚倒回），页面静止时背景也是活的；
-// ③ 压暗/下沉/放大/微旋转仍由 App.jsx 对 .bg-canvas 的滚动编排驱动，本组件只管「时间」。
-// 素材为全关键帧编码（public/videos/bg-blue-hour.mp4），高频 seek 不跨关键帧。
+// 每个视频只对应一个连续轨道：栏目滚动进度直接映射到 0 → 结尾，
+// 不再使用 ping-pong 循环。跨栏目时两个轨道在重叠窗口内自然交叉溶解。
+const BASE_URL = import.meta.env.BASE_URL
+const START_TIME = 0.02
+const END_EPSILON = 0.08
+const TRANSITION_SPAN_RATIO = 0.46
+const TRANSITION_MIN = 220
+const TRANSITION_MAX = 520
+const PLAYBACK_EPSILON = 0.12
+const IDLE_SETTLE_MS = 650
+// 静止时让当前可见的视频真正播放起来（而不是冻帧）。
+// 倍速必须是 1：素材是 24fps，0.3 倍速等于每 139ms 才换一帧——那是 7Hz 的
+// 幻灯片，正是「背景卡顿」的真正来源。1 倍速就是素材本来的 24fps，播放器
+// 直接按原生节奏送帧，反而最稳。循环靠 loop 属性，首尾硬切对氛围片无感。
+const IDLE_PLAYBACK_RATE = 1
+
+const clipMap = new Map(backgrounds.clips.map((clip) => [clip.id, clip]))
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value))
+const smoothstep = (value) => value * value * (3 - 2 * value)
+const asset = (path) => `${BASE_URL}${path}`
+
+const transitionSpan = (viewportHeight) =>
+  clamp(
+    viewportHeight * TRANSITION_SPAN_RATIO,
+    TRANSITION_MIN,
+    TRANSITION_MAX,
+  )
+
+const buildTrackRanges = (sectionClipIds, boundaries, viewportHeight, maxScroll) => {
+  const groups = []
+
+  sectionClipIds.forEach((clipId, sectionIndex) => {
+    const previous = groups[groups.length - 1]
+    if (!previous || previous.clipId !== clipId) {
+      groups.push({ clipId, startIndex: sectionIndex, endIndex: sectionIndex })
+    } else {
+      previous.endIndex = sectionIndex
+    }
+  })
+
+  const span = transitionSpan(viewportHeight)
+  const ranges = groups.map((group, groupIndex) => {
+    const startY =
+      groupIndex === 0 ? 0 : boundaries[group.startIndex] - span / 2
+    const endY =
+      groupIndex === groups.length - 1
+        ? Math.max(maxScroll, startY + 1)
+        : boundaries[group.endIndex + 1] + span / 2
+
+    return {
+      ...group,
+      startY,
+      endY: Math.max(startY + 1, endY),
+    }
+  })
+
+  const rangeBySection = []
+  ranges.forEach((range) => {
+    for (let index = range.startIndex; index <= range.endIndex; index += 1) {
+      rangeBySection[index] = range
+    }
+  })
+
+  return { ranges, rangeBySection }
+}
+
 export default function VideoBackground() {
-  const videoRef = useRef(null)
+  const reelRef = useRef(null)
+  const videoRefs = useRef({})
+  const outRefs = useRef({})
+  const inRefs = useRef({})
+  const veilRef = useRef(null)
 
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
+    const reel = reelRef.current
+    const sectionEls = backgrounds.sectionOrder
+      .map((id) => document.getElementById(id))
+      .filter(Boolean)
+    if (!reel || !sectionEls.length) return undefined
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    // Safari/iOS 必须真实播放过一次才允许后续 seek 出画面；静音播放后立刻暂停即解锁
-    let unlocked = false
-    const unlock = () => {
-      if (unlocked) return
-      unlocked = true
-      video.play().then(() => video.pause()).catch(() => {})
+    const sectionIds = sectionEls.map((el) => el.id)
+    const sectionClipIds = sectionIds.map((id) => backgrounds.sections[id])
+    const transitionMap = new Map()
+    for (let i = 1; i < sectionIds.length; i += 1) {
+      const from = sectionClipIds[i - 1]
+      const to = sectionClipIds[i]
+      const transition = backgrounds.transitions.find(
+        (item) => item.from === from && item.to === to,
+      )
+      if (transition) transitionMap.set(i, transition)
     }
 
-    const AMBIENT_RATE = 0.45 // 静止时雾的流动速度（相对原速）
-    const SEC_PER_PX = 0.0012 // 滚动 1px 推进的播放头秒数（约 6~7 屏滚完整段旅程）
-    const BOOST_LIMIT = 0.15 // 单帧滚动贡献上限（秒），甩滚不跳帧
-
+    const metrics = []
+    const boundaries = []
+    let rangeBySection = []
+    let maxScroll = 0
+    const assigned = Object.fromEntries(
+      backgrounds.clips.map((clip) => [clip.id, -1]),
+    )
+    const autoLoadStarted = new Set()
+    const styleState = new Map(
+      backgrounds.clips.map((clip) => [
+        clip.id,
+        { opacity: '', visibility: '', filter: '', visible: '' },
+      ]),
+    )
+    const motion = { lastY: null, velocity: 0 }
+    let lastMappedY = null
+    let lastActivity = performance.now()
     let raf = 0
-    let assigned = -1
-    let current = 0
-    let dir = 1
-    let lastY = null
-    let smoothVel = 0
-    let lastTs = 0
 
-    const frame = (ts) => {
-      raf = requestAnimationFrame(frame)
-      // 元数据未就绪/页面隐藏时不积分——NaN 时长会让下方的钳制全部失效
-      if (document.hidden || !Number.isFinite(video.duration) || video.duration <= 0) {
-        lastTs = ts
+    const measure = () => {
+      const viewportHeight = Math.max(1, window.innerHeight)
+      metrics.splice(
+        0,
+        metrics.length,
+        ...sectionEls.map((el) => {
+          const rect = el.getBoundingClientRect()
+          return {
+            top: rect.top + window.scrollY,
+          }
+        }),
+      )
+      boundaries.splice(
+        0,
+        boundaries.length,
+        ...metrics.map((metric) => metric.top - viewportHeight * 0.5),
+      )
+      maxScroll = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+      )
+      const built = buildTrackRanges(
+        sectionClipIds,
+        boundaries,
+        viewportHeight,
+        maxScroll,
+      )
+      rangeBySection = built.rangeBySection
+    }
+
+    const clipDuration = (id) => {
+      const video = videoRefs.current[id]
+      const fallback = clipMap.get(id)?.duration
+      if (video && Number.isFinite(video.duration) && video.duration > 0) {
+        return video.duration
+      }
+      return fallback || 10
+    }
+
+    const setVideoTime = (id, value, force = false) => {
+      const video = videoRefs.current[id]
+      if (!video || video.readyState < 1) return
+      const duration = clipDuration(id)
+      if (!Number.isFinite(duration) || duration <= 0) return
+      const end = Math.max(START_TIME, duration - END_EPSILON)
+      const next = clamp(value, START_TIME, end)
+      const reference = force ? video.currentTime : (assigned[id] ?? -1)
+      const threshold = force ? 0.03 : 0.015
+      if (Math.abs(reference - next) < threshold) {
+        assigned[id] = next
         return
       }
-      const dt = Math.min(((ts - lastTs) / 1000) || 0, 0.1)
-      lastTs = ts
-
-      // 滚动速度：读 App.jsx 已平滑的 __smoothY，帧间差再平滑一层后折算成播放头位移
-      const y = Number.isFinite(window.__smoothY) ? window.__smoothY : window.scrollY
-      if (lastY === null) lastY = y
-      smoothVel += (y - lastY - smoothVel) * 0.12
-      lastY = y
-      const boost = Math.max(-BOOST_LIMIT, Math.min(BOOST_LIMIT, smoothVel * SEC_PER_PX))
-
-      current += dt * AMBIENT_RATE * dir + boost
-      const end = video.duration - 0.1
-      // 无条件钳制 + NaN 自愈：任何异常值都拉回行程内，方向按触碰的边界翻转
-      if (!Number.isFinite(current) || current >= end) {
-        current = end
-        dir = -1
-      } else if (current <= 0.02) {
-        current = 0.02
-        dir = 1
-      }
-
-      // 阈值 ≈ 半帧（24fps 素材帧距 42ms），低于它不值得触发一次解码
-      if (Math.abs(current - assigned) < 0.02) return
-      assigned = current
-      video.currentTime = current
-    }
-
-    const onVisible = () => {
-      // 回前台时 __smoothY 已被 App.jsx 对齐到真实滚动位置，速度历史作废重采
-      if (document.visibilityState === 'visible') {
-        lastY = null
-        smoothVel = 0
+      try {
+        video.currentTime = next
+        assigned[id] = next
+      } catch {
+        // 媒体尚未完全可 seek 时，下一帧会继续尝试。
       }
     }
 
-    if (reduced) {
-      // 与原着色器同策略：减动效偏好下降为单帧静态（取前 1/5 处的全景帧）
-      const still = () => {
-        video.currentTime = Math.min(video.duration * 0.18, video.duration - 0.1)
+    const requestAutoLoad = (id) => {
+      if (autoLoadStarted.has(id)) return
+      const video = videoRefs.current[id]
+      if (!video) return
+      autoLoadStarted.add(id)
+      video.preload = 'auto'
+      video.load()
+    }
+
+    // 静止时不再冻帧：让当前可见的视频以原生倍速继续播放，画面始终在动。
+    // 流畅性靠三件事保证——
+    //   ① 只播权重最高的那一条，其余保持暂停（最多 1 条在解码）；
+    //   ② 1 倍速即素材原生 24fps，不做慢放（慢放会把 24fps 压成 7Hz 幻灯片）；
+    //   ③ 视频层上没有任何 filter / transform，全部交给合成器直接贴图。
+    // 滚轮一动就 pause() 回到纯 seek 驱动，rAF 随即停摆。
+    // forceIdle：rAF 静止窗口到期时补跑的那一帧。此刻滚动速度早已归零，
+    // 但 seekRequested / velocity 还留着上一帧的残值，必须显式覆盖。
+    const syncIdleState = (weights, scrollMotion, seekRequested, forceIdle) => {
+      const moving = !forceIdle && (seekRequested || scrollMotion > PLAYBACK_EPSILON)
+
+      if (reduced || moving) {
+        // 滚动接管（或减少动效）：全部暂停，回到纯 seek 驱动
+        for (const clip of backgrounds.clips) {
+          const video = videoRefs.current[clip.id]
+          if (video && !video.paused) video.pause()
+        }
+        return
       }
-      if (video.readyState >= 1) still()
-      else video.addEventListener('loadedmetadata', still, { once: true })
-    } else {
-      window.addEventListener('pointerdown', unlock, { once: true })
-      document.addEventListener('visibilitychange', onVisible)
+
+      // 只有权重最高的那一条参与解码播放
+      let leadId = null
+      let leadWeight = 0
+      for (const clip of backgrounds.clips) {
+        const weight = weights.get(clip.id) || 0
+        if (weight > leadWeight) {
+          leadWeight = weight
+          leadId = clip.id
+        }
+      }
+      // 交叉溶解的中段：两条各占一半，此时谁都算不上「主角」，
+      // 与其猜一个不如都冻住，等溶解结束再交给新的主角
+      const lead = leadWeight > 0.55 ? leadId : null
+
+      for (const clip of backgrounds.clips) {
+        const video = videoRefs.current[clip.id]
+        if (!video) continue
+        const weight = weights.get(clip.id) || 0
+        const visible = weight > 0.01 ? '1' : '0'
+        const state = styleState.get(clip.id)
+        if (state && state.visible !== visible) {
+          video.dataset.visible = visible
+          state.visible = visible
+        }
+        if (clip.id === lead && video.readyState >= 2) {
+          if (video.playbackRate !== IDLE_PLAYBACK_RATE) {
+            video.playbackRate = IDLE_PLAYBACK_RATE
+          }
+          if (video.paused) video.play().catch(() => {})
+        } else if (!video.paused) {
+          // 不是主角却还在播（例如刚跨过栏目，主角刚换人）：停掉
+          video.pause()
+        }
+      }
+    }
+
+    const getTimeline = (y, viewportHeight) => {
+      let active = 0
+      let transitionIndex = -1
+      let progress = 0
+      const span = transitionSpan(viewportHeight)
+
+      for (let i = 1; i < boundaries.length; i += 1) {
+        if (y >= boundaries[i]) active = i
+        const start = boundaries[i] - span / 2
+        const end = boundaries[i] + span / 2
+        if (y >= start && y < end) {
+          transitionIndex = i
+          progress = smoothstep((y - start) / span)
+          break
+        }
+      }
+
+      return { active, transitionIndex, progress }
+    }
+
+    // 滚动映射：把 y 换算成播放头时间。
+    //
+    // 这里不做「idle 漂移补偿」。试过把静止期走过的距离并入映射（MAP_OFFSET），
+    // 结果是偏移会在多次 idle↔滚动往返里不断累积，越滚越偏——因为补偿的基准
+    // assigned 本身已经是上一次补偿后的值，反推误差被放大了好几轮。
+    //
+    // 不补偿反而是对的：idle 只按 0.3 倍速播，滚轮一动就掐掉，一轮往返最多
+    // 攒 1s 左右的播放头差，落在 10s 的氛围片里根本看不出接缝；
+    // 而映射保持「滚动位置 → 时间」这条干净的纯函数，任何时候都可复现、
+    // 可测试，滚回顶部也一定回到片头。
+    const timeAt = (id, range, y, force = false) => {
+      if (!range) return
+      const distance = Math.max(1, range.endY - range.startY)
+      const progress = smoothstep(clamp((y - range.startY) / distance, 0, 1))
+      const end = Math.max(START_TIME, clipDuration(id) - END_EPSILON)
+      setVideoTime(id, START_TIME + progress * (end - START_TIME), force)
+    }
+
+    const update = (forceIdle = false) => {
+      if (!metrics.length) return
+      const smoothY = window.__smoothY
+      // 后台标签可能冻结 lerp 值；此时直接跟随原生滚动，避免视频停在错误栏目。
+      const y =
+        Number.isFinite(smoothY) &&
+        document.visibilityState === 'visible' &&
+        Math.abs(smoothY - window.scrollY) < window.innerHeight * 1.5
+          ? smoothY
+          : window.scrollY
+      const viewportHeight = Math.max(1, window.innerHeight)
+      const timeline = getTimeline(y, viewportHeight)
+      const activeTransition =
+        timeline.transitionIndex >= 0
+          ? transitionMap.get(timeline.transitionIndex)
+          : null
+      const seekRequested =
+        lastMappedY === null || Math.abs(y - lastMappedY) > 0.05
+      lastMappedY = y
+
+      if (motion.lastY !== null) {
+        motion.velocity += (y - motion.lastY - motion.velocity) * 0.12
+      }
+      motion.lastY = y
+
+      const scrollMotion = Math.abs(motion.velocity)
+      if (seekRequested || scrollMotion > 0.02) {
+        lastActivity = performance.now()
+      }
+      const transitionBlur = activeTransition && scrollMotion > 0.08
+        ? Math.sin(Math.PI * timeline.progress) * 0.18
+        : 0
+      const weights = new Map()
+
+      if (activeTransition) {
+        const fromId = activeTransition.from
+        const toId = activeTransition.to
+        weights.set(fromId, Math.max(weights.get(fromId) || 0, 1 - timeline.progress))
+        weights.set(toId, Math.max(weights.get(toId) || 0, timeline.progress))
+      } else {
+        weights.set(sectionClipIds[timeline.active], 1)
+      }
+
+      for (const clip of backgrounds.clips) {
+        const video = videoRefs.current[clip.id]
+        const weight = weights.get(clip.id) || 0
+        if (!video) continue
+        const state = styleState.get(clip.id)
+        const opacity = weight.toFixed(3)
+        const visibility = weight > 0.01 ? 'visible' : 'hidden'
+        const filter = transitionBlur > 0.01 ? `blur(${transitionBlur.toFixed(2)}px)` : ''
+        if (state) {
+          if (state.opacity !== opacity) {
+            video.style.opacity = opacity
+            state.opacity = opacity
+          }
+          if (state.visibility !== visibility) {
+            video.style.visibility = visibility
+            state.visibility = visibility
+          }
+          if (state.filter !== filter) {
+            video.style.filter = filter
+            state.filter = filter
+          }
+        } else {
+          video.style.opacity = opacity
+          video.style.visibility = visibility
+          video.style.filter = filter
+        }
+        if (weight > 0.01) requestAutoLoad(clip.id)
+      }
+
+      for (const transition of backgrounds.transitions) {
+        const out = outRefs.current[transition.id]
+        const incoming = inRefs.current[transition.id]
+        const isCurrent = activeTransition?.id === transition.id
+        // 正常模式让真实视频完成过渡；减少动效模式才用首尾静帧。
+        const keyframeMix = reduced && isCurrent ? 1 : 0
+        const nextOut = keyframeMix ? (1 - timeline.progress).toFixed(3) : '0'
+        const nextIn = keyframeMix ? timeline.progress.toFixed(3) : '0'
+        if (out && out.dataset.opacity !== nextOut) {
+          out.dataset.opacity = nextOut
+          out.style.opacity = nextOut
+        }
+        if (incoming && incoming.dataset.opacity !== nextIn) {
+          incoming.dataset.opacity = nextIn
+          incoming.style.opacity = nextIn
+        }
+      }
+
+      if (veilRef.current) {
+        const veilOpacity = activeTransition ? Math.sin(Math.PI * timeline.progress) * 0.06 : 0
+        const nextVeil = veilOpacity.toFixed(3)
+        if (veilRef.current.dataset.opacity !== nextVeil) {
+          veilRef.current.dataset.opacity = nextVeil
+          veilRef.current.style.opacity = nextVeil
+        }
+      }
+
+      if (activeTransition) {
+        const fromRange = rangeBySection[timeline.transitionIndex - 1]
+        const toRange = rangeBySection[timeline.transitionIndex]
+        if (reduced) {
+          setVideoTime(
+            activeTransition.from,
+            Math.max(START_TIME, clipDuration(activeTransition.from) - END_EPSILON),
+            seekRequested,
+          )
+          setVideoTime(activeTransition.to, START_TIME, seekRequested)
+        } else {
+          timeAt(activeTransition.from, fromRange, y, seekRequested)
+          timeAt(activeTransition.to, toRange, y, seekRequested)
+        }
+        syncIdleState(weights, scrollMotion, seekRequested, forceIdle)
+        return
+      }
+
+      const activeId = sectionClipIds[timeline.active]
+      const activeRange = rangeBySection[timeline.active]
+      if (reduced) {
+        setVideoTime(activeId, clipDuration(activeId) * 0.18, seekRequested)
+      } else {
+        timeAt(activeId, activeRange, y, seekRequested)
+      }
+      syncIdleState(weights, scrollMotion, seekRequested, forceIdle)
+    }
+
+    const frame = () => {
+      raf = 0
+      if (document.hidden) return
+      update()
+      if (performance.now() - lastActivity < IDLE_SETTLE_MS) {
+        raf = requestAnimationFrame(frame)
+      } else {
+        // 静止窗口到期：补跑一帧并强制走「无人滚动」分支，
+        // 把当前主角交给慢速播放。之后 rAF 完全停下——
+        // 播放本身由浏览器的视频管线驱动，不需要我们每帧参与。
+        update(true)
+      }
+    }
+
+    const wake = () => {
+      lastActivity = performance.now()
+      if (reduced) return
+      if (document.hidden) {
+        update()
+        return
+      }
+      if (raf) return
       raf = requestAnimationFrame(frame)
     }
+
+    const onMetadata = () => {
+      update()
+      wake()
+    }
+    const videos = backgrounds.clips
+      .map((clip) => videoRefs.current[clip.id])
+      .filter(Boolean)
+    videos.forEach((video) => video.addEventListener('loadedmetadata', onMetadata))
+
+    const refreshLayout = () => {
+      motion.lastY = null
+      motion.velocity = 0
+      lastMappedY = null
+      measure()
+      update()
+      wake()
+    }
+    const onResize = () => refreshLayout()
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      refreshLayout()
+    }
+    const layoutObserver =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(refreshLayout)
+        : null
+    layoutObserver?.observe(document.body)
+    const unlock = () => {
+      wake()
+    }
+
+    measure()
+    document.fonts?.ready
+      .then(() => {
+        measure()
+        update()
+        wake()
+      })
+      .catch(() => {})
+    window.addEventListener('resize', onResize)
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('pointerdown', unlock, { once: true })
+
+    if (reduced) {
+      const onScroll = () => update()
+      window.addEventListener('scroll', onScroll, { passive: true })
+      update()
+      return () => {
+        window.removeEventListener('resize', onResize)
+        window.removeEventListener('scroll', onScroll)
+        document.removeEventListener('visibilitychange', onVisible)
+        window.removeEventListener('pointerdown', unlock)
+        layoutObserver?.disconnect()
+        videos.forEach((video) => video.removeEventListener('loadedmetadata', onMetadata))
+      }
+    }
+
+    const onScrollWake = () => wake()
+    window.addEventListener('scroll', onScrollWake, { passive: true })
+    update()
+    wake()
 
     return () => {
       cancelAnimationFrame(raf)
-      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('scroll', onScrollWake)
+      window.removeEventListener('resize', onResize)
       document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('pointerdown', unlock)
+      layoutObserver?.disconnect()
+      videos.forEach((video) => video.removeEventListener('loadedmetadata', onMetadata))
     }
   }, [])
 
   return (
     <>
-      <video
-        ref={videoRef}
-        className="bg-canvas bg-video"
-        src={`${import.meta.env.BASE_URL}videos/bg-blue-hour.mp4`}
-        muted
-        playsInline
-        preload="auto"
-        disablePictureInPicture
-        aria-hidden="true"
-      />
-      {/* 暗角遮罩必须是视频的静态兄弟层（v9 教训：遮罩进运镜层会随变换露盒边） */}
+      <div ref={reelRef} className="bg-canvas bg-reel" aria-hidden="true">
+        {/* 视频层单独包一层：固定的降噪 / 锐化滤镜挂在这一层，
+            视频元素自己的 inline filter（转场瞬间的动态模糊）就不会覆盖掉它 */}
+        <div className="bg-stage">
+          {backgrounds.clips.map((clip, index) => (
+            <video
+              key={clip.id}
+              ref={(el) => {
+                videoRefs.current[clip.id] = el
+              }}
+              className="bg-video-layer"
+              data-clip={clip.id}
+              poster={asset(clip.poster)}
+              src={asset(clip.src)}
+              muted
+              loop
+              playsInline
+              preload={index === 0 ? 'auto' : 'metadata'}
+              disablePictureInPicture
+              style={{ opacity: index === 0 ? 1 : 0 }}
+            />
+          ))}
+        </div>
+        {backgrounds.transitions.map((transition) => (
+          <div className="bg-transition" key={transition.id} data-transition={transition.id}>
+            <img
+              ref={(el) => {
+                outRefs.current[transition.id] = el
+              }}
+              className="bg-transition-frame"
+              src={asset(transition.out)}
+              alt=""
+              decoding="async"
+            />
+            <img
+              ref={(el) => {
+                inRefs.current[transition.id] = el
+              }}
+              className="bg-transition-frame"
+              src={asset(transition.in)}
+              alt=""
+              decoding="async"
+            />
+          </div>
+        ))}
+        <div ref={veilRef} className="bg-transition-veil" aria-hidden="true" />
+        <div className="bg-reel-vignette" aria-hidden="true" />
+        <div className="bg-veil" aria-hidden="true" />
+      </div>
       <div className="bg-shade" aria-hidden="true" />
     </>
   )

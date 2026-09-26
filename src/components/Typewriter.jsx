@@ -9,6 +9,9 @@ export default function Typewriter({ text, speed = 70 }) {
     const el = ref.current
     if (!el) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // 副本的排版更像文章导语，打字节奏比原版快一些。
+    const copyMode = !!el.closest('.copy-page')
+    const interval = copyMode ? Math.max(34, Math.round(speed * 0.62)) : speed
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -24,7 +27,7 @@ export default function Typewriter({ text, speed = 70 }) {
             i += 1
             setN(i)
             if (i >= text.length) clearInterval(timer)
-          }, speed)
+          }, interval)
         }
       },
       { threshold: 0.5 }

@@ -1,30 +1,44 @@
 :root {
-  /* 色板对齐参考站（eladiodieste.com）：纯黑底 + 暖奶油白文字 + 发丝线，无彩色装饰 */
+  /* 色板：纯黑底 + 暖奶油白文字 + 发丝线，无彩色装饰 */
   --bg: #030303;
   --bg-elevated: #0a0908;
-  --surface: #0e0d0b;
-  --surface-hover: #131210;
-  --border: rgba(234, 226, 214, 0.09);
-  --border-strong: rgba(234, 226, 214, 0.22);
-  --text: #eae2d5;
-  --text-dim: rgba(234, 226, 213, 0.56);
-  --text-faint: rgba(234, 226, 213, 0.4);
+  --surface: #0d0c0a;
+  --surface-hover: #13110e;
+  --border: rgba(234, 226, 214, 0.1);
+  --border-strong: rgba(234, 226, 214, 0.24);
+  --text: #ece5d8;
+  --text-dim: rgba(236, 229, 216, 0.68);
+  --text-faint: rgba(236, 229, 216, 0.46);
   --glow-blue: rgba(205, 165, 110, 0.09);
   --glow-purple: rgba(185, 140, 95, 0.08);
   --accent: #e3d9c6;
   --accent-2: #c9b998;
   /* 滚动色温旅程：accent 变量可过渡，区块切换时平滑偏移（收窄为暖色微差） */
   transition: --accent 0.8s ease, --accent-2 0.8s ease;
+
+  /* ---------- 字体三层 ----------
+     display 衬线：Playfair Display 负责拉丁（站名、项目名、编号），
+                Noto Serif SC 负责中文（区块大标题）——编辑体主线，气质来源
+     body    黑体：Noto Sans SC 负责长段落与说明文字，保证小字号可读
+     mono    等宽：JetBrains Mono 负责 meta / 编号 / 年份等信息层 */
+  --font-display:
+    "Playfair Display", "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC",
+    "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
+  --font-serif-cjk:
+    "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC",
+    "STSong", "SimSun", serif;
+  --font:
+    "Noto Sans SC", "MiSans", "HarmonyOS Sans SC", "PingFang SC",
+    "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", "M PLUS 1",
+    system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:
     "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", "Consolas",
     "SFMono-Regular", Menlo, monospace;
-  --radius-lg: 20px;
-  --radius-md: 14px;
+
+  /* 圆角收紧到近方：衬线 + 发丝线的编辑语言里，圆角越大越像消费级 App */
+  --radius-lg: 4px;
+  --radius-md: 3px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --font:
-    "MiSans", "Noto Sans SC", "HarmonyOS Sans SC", "PingFang SC",
-    "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", "M PLUS 1",
-    system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* 自定义属性声明：使 --accent / --accent-2 可过渡（@property 是必经之路） */
@@ -89,9 +103,28 @@ body {
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* 中文正文略微放松字距：Noto Sans SC 默认字距在深色底上显得拥挤 */
+  letter-spacing: 0.012em;
   overflow-x: hidden;
   /* clip 不产生滚动容器，保证项目区画廊的 position:sticky 正常工作 */
   overflow-x: clip;
+}
+
+/* 衬线字体的老式数字默认有升降部，大字号下会参差；统一用等高数字 */
+.hero-title,
+.section-title,
+.contact-title,
+.footer-word,
+.stat-num,
+.post-title,
+.project-title,
+.award-row-name,
+.skill-name,
+.blog-quote {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-kerning: normal;
 }
 
 ::selection {
@@ -173,9 +206,11 @@ button {
 }
 
 .logo {
-  font-size: 17px;
+  font-family: var(--font-display);
+  font-size: 21px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  line-height: 1;
   transition: opacity 0.25s ease;
   display: inline-flex;
   align-items: baseline;
@@ -184,8 +219,9 @@ button {
 
 .logo-mono {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
   color: var(--text-faint);
 }
 
@@ -194,58 +230,78 @@ button {
 }
 
 .logo-dot {
-  color: var(--text-faint);
+  color: var(--accent-2);
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .nav-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-family: var(--font-mono);
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 13.5px;
+  letter-spacing: 0.08em;
   color: var(--text-dim);
-  transition: color 0.25s ease, background 0.25s ease;
-}
-
-.nav-link .nav-idx {
-  font-size: 10px;
-  color: var(--text-faint);
   transition: color 0.25s ease;
 }
 
-.nav-link:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
+/* 悬停时一条发丝线从左向右扫出——比整块底色更符合「刊头导航」的克制感 */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease-out);
 }
 
+.nav-link:hover,
 .nav-link.is-active {
   color: var(--text);
+}
+
+/* 悬停时一条发丝线从左向右扫出——比整块底色更符合「刊头导航」的克制感。
+   常态的「当前区块」由下方滑动的 nav-indicator 单独表达，两者不重复 */
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-link .nav-idx {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  transform: translateY(-0.35em);
+  transition: color 0.25s ease;
 }
 
 .nav-link.is-active .nav-idx {
   color: var(--accent-2);
 }
 
-/* 导航 CTA：参考站式纯文字 + 发丝下划线，去掉胶囊按钮的"App 感" */
+/* 导航 CTA：纯文字 + 发丝下划线，去掉胶囊按钮的「App 感」 */
 .nav-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 36px;
+  height: 34px;
   padding: 0 2px;
-  margin-left: 22px;
-  font-size: 14px;
+  margin-left: 26px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--text);
   border-bottom: 1px solid var(--border-strong);
   transition: border-color 0.25s ease, color 0.25s ease;
@@ -260,17 +316,18 @@ button {
   position: relative;
 }
 
-/* 活跃指示器：短发丝线随当前区块在链接间滑动 */
+/* 活跃指示器：一条短发丝线随当前区块在链接间滑动。
+   常态的 active 状态由它单独表达（链接本身只提亮，不画下划线） */
 .nav-indicator {
   position: absolute;
-  bottom: 1px;
+  bottom: 2px;
   left: 0;
   height: 2px;
   width: 22px;
   border-radius: 2px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   opacity: 0;
-  transition: transform 0.45s var(--ease-out), opacity 0.3s ease;
+  transition: transform 0.5s var(--ease-out), opacity 0.3s ease;
   pointer-events: none;
 }
 
@@ -363,24 +420,104 @@ button {
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  /* 星空全亮；随滚动压暗/缩放/旋转的过渡由 App.jsx lerp 层驱动 */
+  /* 胶片容器承接 App.jsx 的滚动编排；视频层与关键帧层只在容器内部叠化 */
+  overflow: hidden;
+  background: var(--bg);
 }
 
-/* 视频背景：复用 .bg-canvas 的滚动编排（压暗/下沉/放大/微旋转），只补封面裁切 */
-.bg-video {
+.bg-reel {
+  isolation: isolate;
+}
+
+/* ---------- 背景视频：只做「容器」，不挂任何滤镜 ----------
+   上一版在这里挂了 contrast + saturate + blur(0.4px)，本想压噪点，结果三个反效果：
+     ① contrast(1.08) 恰好放大了「星点 / 星云 vs 暗空」的对比——而素材里本来
+        就没有胶片颗粒（实测最平坦区域的高频 RMS 只有 0.82/255）。看到的
+        「噪点」其实是几百颗星点和星云丝缕这种高频细节，提对比等于把它们衬得更刺眼；
+     ② blur 作用在整屏视频上，每帧都要重跑一次全屏高斯，是卡顿主因；
+     ③ transform: scale(1.22) 让画面离原生像素更远，多一轮重采样，反而更糊。
+   现在这里只做裁切容器；压制改由下面那层零成本的 alpha 遮罩来做。 */
+.bg-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.bg-video-layer,
+.bg-transition-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
+.bg-video-layer {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.bg-transition {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bg-transition-frame {
+  opacity: 0;
+}
+
+.bg-transition-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(3, 3, 3, 0.7);
+  opacity: 0;
+  mix-blend-mode: multiply;
+}
+
+/* ---------- 压底层：把视频从「内容」压回「氛围」 ----------
+   素材本身没有颗粒（实测最平坦区域高频 RMS 仅 0.82/255）， perceived 噪点
+   来自星点 / 星云这种高频细节在深色底上与文字抢注意力。所以这里不碰像素、
+   只叠一层纯 alpha 遮罩：alpha 混合是合成器最便宜的一档操作，零 GPU 滤镜
+   开销，却能同时做三件事——
+     ① 星星、星云的亮度整体压低，细节还在但不刺眼；
+     ② 正文与背景的对比度直接抬起来，清晰度不靠 sharpening 而靠「让位」；
+     ③ 底部一道更重的暗带，顺带把素材右下角那条生成工具水印压到看不见
+       （实测位于画面 83%–96% 宽、86%–94% 高，正好落在这道暗带里）。
+   比 filter: blur() 便宜一个数量级，也不损失任何画质。 */
+.bg-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(3, 3, 3, 0.34) 0%,
+      rgba(3, 3, 3, 0.44) 62%,
+      rgba(3, 3, 3, 0.72) 92%,
+      rgba(3, 3, 3, 0.86) 100%
+    );
+}
+
+.bg-reel-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(118% 92% at 50% 38%, transparent 58%, rgba(3, 3, 3, 0.3));
+}
+
 /* 静态暗角遮罩：独立兄弟层，不参与视频的滚动变换；
-   压住四角与底部，保文字对比，也掩盖 720p 放大后的轻微软化 */
+   压住四角与底部，保文字对比，也收住视频边缘的轻微放大感 */
 .bg-shade {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 32%, transparent 55%, rgba(3, 3, 3, 0.42) 100%),
-    linear-gradient(to bottom, rgba(3, 3, 3, 0.1), rgba(3, 3, 3, 0.42));
+    radial-gradient(124% 92% at 50% 30%, transparent 58%, rgba(3, 3, 3, 0.26) 100%),
+    linear-gradient(to bottom, rgba(3, 3, 3, 0.02), rgba(3, 3, 3, 0.22));
 }
 
 /* T1 前景视差粒子层：与视频、遮罩同为 fixed z -1，
@@ -417,24 +554,29 @@ button {
   }
 }
 
+/* Hero 编排：巨字 → 发丝线 → 角色词与副题 → 按钮落款。
+   不用 space-between 均分空白——那会在两处各留一块说不清用途的空洞；
+   改成「上三段按固定节奏排下来，最下面一条按钮带用 margin-top:auto 压底」，
+   多出来的余量集中成一条有横线标记的呼吸带。 */
 .hero-content {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   height: 100svh;
-  padding-top: 112px;
-  padding-bottom: 84px;
-  gap: 26px;
+  padding-top: clamp(96px, 12vh, 132px);
+  padding-bottom: clamp(56px, 7vh, 84px);
+  gap: clamp(30px, 4.6vh, 60px);
 }
 
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  letter-spacing: 0.28em;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.3em;
   color: var(--text-dim);
   text-transform: uppercase;
   opacity: 0;
@@ -447,13 +589,13 @@ body.site-revealed .hero-eyebrow {
 
 @keyframes eyebrow-in {
   from {
-    letter-spacing: 0.5em;
+    letter-spacing: 0.52em;
     opacity: 0;
     transform: translateY(10px);
     filter: blur(6px);
   }
   to {
-    letter-spacing: 0.28em;
+    letter-spacing: 0.3em;
     opacity: 1;
     transform: none;
     filter: none;
@@ -462,7 +604,7 @@ body.site-revealed .hero-eyebrow {
 
 .hero-eyebrow::before {
   content: "";
-  width: 28px;
+  width: 34px;
   height: 1px;
   background: var(--border-strong);
 }
@@ -471,23 +613,30 @@ body.site-revealed .hero-eyebrow {
   position: relative;
   overflow: hidden;
   margin: 0;
-  perspective: 900px;
-}
-
-.hero-title-mask {
+  perspective: 1000px;
   /* 标题字号定义在 mask 层，实心层与扫光层共用同一字号精确重叠 */
-  --title-size: clamp(84px, 18.5vw, 300px);
+  --title-size: clamp(56px, 22.5vw, 380px);
   font-size: var(--title-size);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
+  font-weight: 500;
+  /* Playfair 的 hhea 上下留白合计约 1.34em，行高低于 1 时下伸部会被裁；
+     1.06 + 0.1em 底部留白刚好兜住字腔，揭幕动画也才有一个干净的裁切面 */
+  line-height: 1.06;
+  /* Playfair 自身已经收紧，再压负字距会挤掉衬线之间的小三角，这里几乎不压 */
+  letter-spacing: -0.022em;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
 }
 
 .hero-title {
+  font-family: var(--font-display);
   font-size: var(--title-size);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+  /* 站名是拉丁单词，逐字动画依赖「一个字也不折行」——
+     一旦折行，第二行会被上一行的遮罩漏出来 */
+  white-space: nowrap;
+  text-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
 }
 
 /* T5 斥力包层：transform 只由 JS 写，入场动画在内层 .hero-char 上互不干扰 */
@@ -497,15 +646,18 @@ body.site-revealed .hero-eyebrow {
 
 .hero-char {
   display: inline-block;
-  transform: translateY(112%) rotateX(-55deg);
+  /* 130% 保证字符在动画起点完全落在遮罩之下（遮罩高 1.16em），
+     112% 会露出约 4px 的字顶，揭幕就变成了「半截字上浮」 */
+  transform: translateY(130%) rotateX(-55deg);
   transform-origin: 50% 100%;
   transition: color 0.35s ease, -webkit-text-stroke-color 0.35s ease;
 }
 
-/* 实心 + 描边混排：第 3、6 个字符常驻描边，悬停与实心字符互换（原版手感回归） */
+/* 实心 + 描边混排：第 3、6 个字符常驻描边，悬停与实心字符互换。
+   描边随字号缩放（1.05cqw 基准），300px 巨字下 2px 会细得看不见 */
 .hero-char--outline {
   color: transparent;
-  -webkit-text-stroke: 2px rgba(234, 226, 214, 0.55);
+  -webkit-text-stroke: 0.02em rgba(236, 229, 216, 0.62);
 }
 
 .hero-char--outline:hover {
@@ -515,7 +667,7 @@ body.site-revealed .hero-eyebrow {
 
 .hero-char:not(.hero-char--outline):hover {
   color: transparent;
-  -webkit-text-stroke: 2px rgba(234, 226, 214, 0.85);
+  -webkit-text-stroke: 0.016em rgba(236, 229, 216, 0.9);
 }
 
 body.site-revealed .hero-char {
@@ -526,7 +678,7 @@ body.site-revealed .hero-char {
 
 @keyframes char-bounce {
   0% {
-    transform: translateY(112%) rotateX(-55deg);
+    transform: translateY(130%) rotateX(-55deg);
     filter: blur(12px);
   }
   68% {
@@ -543,9 +695,12 @@ body.site-revealed .hero-char {
 }
 
 .hero-roles {
-  font-size: clamp(19px, 2.2vw, 26px);
-  font-weight: 600;
-  margin: 20px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4.2vw, 58px);
+  font-weight: 500;
+  line-height: 1.24;
+  letter-spacing: 0.01em;
+  margin: 22px 0 0;
   opacity: 0;
 }
 
@@ -554,13 +709,15 @@ body.site-revealed .hero-roles {
 }
 
 .word-roller {
+  --word-step: 1.24em;
   display: inline-block;
-  height: 1.4em;
+  height: var(--word-step);
   overflow: hidden;
   vertical-align: top;
-  /* 换词瞬间在窗口边缘渐隐，避免硬裁切露出半个字 */
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 76%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 24%, #000 76%, transparent 100%);
+  /* 换词瞬间在窗口边缘渐隐，避免硬裁切露出半个字。
+     上下只留 20% 的羽化带——再宽就会把当前词的字顶/字底也一起褪掉 */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 20%, #000 80%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 20%, #000 80%, transparent 100%);
 }
 
 .word-track {
@@ -572,8 +729,8 @@ body.site-revealed .hero-roles {
 /* T6 视觉锚点：关键词上周期性一条窄光带扫过，两侧仍是 accent 沙色，仅此处提亮 */
 .word-track span {
   display: block;
-  height: 1.4em;
-  line-height: 1.4em;
+  height: var(--word-step);
+  line-height: var(--word-step);
   white-space: nowrap;
   background: linear-gradient(
     100deg,
@@ -606,11 +763,13 @@ body.site-revealed .hero-roles {
 }
 
 .hero-sub {
-  max-width: 520px;
-  margin-top: 16px;
-  font-size: clamp(14px, 1.35vw, 16px);
-  line-height: 1.75;
+  max-width: 34em;
+  margin-top: 20px;
+  font-size: clamp(14.5px, 1.25vw, 17px);
+  line-height: 1.95;
+  letter-spacing: 0.03em;
   color: var(--text-dim);
+  text-wrap: pretty;
   opacity: 0;
 }
 
@@ -618,9 +777,9 @@ body.site-revealed .hero-sub {
   animation: fade-up 0.9s var(--ease-out) 1.2s forwards;
 }
 
-/* ---------- 中部贯穿发丝线：编辑式 meta 行（参考站 hero 中线的移植） ---------- */
+/* ---------- 中部贯穿发丝线：编辑式 meta 行 ---------- */
 .hero-mid {
-  margin-top: 3vh;
+  margin-top: 0;
 }
 
 .hero-midline {
@@ -628,11 +787,11 @@ body.site-revealed .hero-sub {
   align-items: baseline;
   justify-content: space-between;
   gap: 18px;
-  padding-top: 14px;
+  padding-top: 16px;
   border-top: 1px solid var(--border-strong);
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.22em;
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--text-dim);
   opacity: 0;
@@ -646,7 +805,7 @@ body.site-revealed .hero-midline {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.75;
+  opacity: 0.72;
 }
 
 .hero-mid-link {
@@ -659,19 +818,23 @@ body.site-revealed .hero-midline {
   color: var(--accent);
 }
 
-/* ---------- 底部落款行：副标题 + 文字 CTA + © ---------- */
+/* ---------- 底部落款行：按钮带 + © ----------
+   上下两条发丝线把中间的宣言块夹住，落款带因此像页脚而不是孤零零的按钮 */
 .hero-foot {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
+  margin-top: auto;
+  padding-top: clamp(20px, 3vh, 34px);
+  border-top: 1px solid var(--border);
 }
 
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
-  gap: 26px;
-  margin-top: 22px;
+  gap: 12px;
+  margin-top: 0;
 }
 
 .hero-cta > * {
@@ -702,26 +865,48 @@ body.site-revealed .hero-cta > *:nth-child(2) {
   }
 }
 
-/* CTA 回归实体按钮：主按钮奶油实底 + 副按钮描边，磁吸 + 弹性入场 */
+/* CTA：近方角 + 发丝描边的编辑式按钮，取代圆润胶囊。
+   主按钮奶油实底，副按钮透明描边；两者共用一条自下而上的填充扫光 */
 .btn {
+  position: relative;
+  /* isolation 让按钮自己成为层叠上下文：z-index:-1 的填充层因此被关在
+     按钮内部，不会穿到祖先背景后面去 */
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 50px;
-  padding: 0 28px;
-  border-radius: 999px;
+  height: 52px;
+  padding: 0 30px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-family: var(--font);
   font-size: 15px;
   font-weight: 500;
-  transition: transform 0.3s var(--ease-out), background 0.3s ease, border-color 0.3s ease;
+  letter-spacing: 0.06em;
+  transition: transform 0.3s var(--ease-out), background 0.3s ease,
+    border-color 0.3s ease, color 0.3s ease;
+}
+
+/* 悬停填充：从下往上推上来，按钮因此有「实体感」而不是发光。
+   z-index:-1 让填充层落在按钮自身背景之上、文字之下——
+   按钮的文字是裸文本节点（不是元素），没法用 z-index 提层，只能让填充层下沉 */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateY(101%);
+  transition: transform 0.45s var(--ease-out);
 }
 
 .btn .arrow {
   display: inline-flex;
-  transition: transform 0.3s var(--ease-out);
+  transition: transform 0.35s var(--ease-out);
 }
 
 .btn:hover .arrow {
-  transform: translateX(4px);
+  transform: translateX(5px);
 }
 
 .btn-primary {
@@ -731,6 +916,12 @@ body.site-revealed .hero-cta > *:nth-child(2) {
 
 .btn-primary:hover {
   transform: translateY(-2px);
+  color: #0a0908;
+}
+
+/* 主按钮的填充用深一档的沙色：白叠在奶油底上几乎看不出状态变化 */
+.btn-primary::before {
+  background: var(--accent-2);
 }
 
 .btn-outline {
@@ -738,17 +929,25 @@ body.site-revealed .hero-cta > *:nth-child(2) {
   color: var(--text);
 }
 
+.btn-outline::before {
+  background: var(--accent);
+}
+
 .btn-outline:hover {
-  background: rgba(234, 226, 214, 0.08);
-  border-color: rgba(234, 226, 214, 0.4);
+  border-color: var(--accent);
+  color: #0a0908;
   transform: translateY(-2px);
+}
+
+.btn:hover::before {
+  transform: translateY(0);
 }
 
 .hero-copy {
   flex: none;
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.18em;
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
   color: var(--text-faint);
   opacity: 0;
 }
@@ -814,54 +1013,67 @@ body.site-revealed .hero-scroll {
 }
 
 .section {
-  padding: 140px 0;
+  padding: clamp(96px, 12vh, 160px) 0;
+  position: relative;
 }
 
 @media (max-width: 720px) {
   .section {
-    padding: 96px 0;
+    padding: 80px 0;
   }
 }
 
+/* 区块头：编号 + eyebrow + 巨号衬线标题 + 一条向右延伸的发丝线 */
 .section-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 64px;
+  gap: 24px;
+  margin-bottom: clamp(44px, 5.5vw, 78px);
 }
 
 .eyebrow {
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.26em;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--text-faint);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
+/* 中文大标题走宋体骨架：思源宋体的横细竖粗与三角衬线在深色底上非常耐看，
+   比黑体加粗少了「海报感」，多了「刊物感」 */
 .section-title {
-  font-size: clamp(44px, 6.4vw, 92px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
+  font-family: var(--font-serif-cjk);
+  font-size: clamp(46px, 6.6vw, 98px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-shadow: 0 18px 46px rgba(0, 0, 0, 0.4);
 }
 
 .section-desc {
-  margin-top: 12px;
+  margin-top: 20px;
+  max-width: 46ch;
   font-size: 15px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
   color: var(--text-dim);
+  text-wrap: pretty;
 }
 
 .view-all {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 9px;
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
   color: var(--text-dim);
   white-space: nowrap;
   padding-bottom: 6px;
-  transition: color 0.25s ease;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.25s ease, border-color 0.25s ease;
 }
 
 .view-all .arrow {
@@ -871,10 +1083,11 @@ body.site-revealed .hero-scroll {
 
 .view-all:hover {
   color: var(--text);
+  border-color: var(--accent);
 }
 
 .view-all:hover .arrow {
-  transform: translateX(4px);
+  transform: translateX(5px);
 }
 
 /* ---------- 项目横向画廊：桌面 sticky 钉住 + 滚动进度推轨；移动/减少动效回退纵向堆叠 ---------- */
@@ -883,7 +1096,7 @@ body.site-revealed .hero-scroll {
 }
 
 .gallery-viewport {
-  padding-top: 84px;
+  padding-top: 0;
 }
 
 .gallery-stage {
@@ -893,8 +1106,8 @@ body.site-revealed .hero-scroll {
 .gallery-track {
   display: flex;
   align-items: stretch;
-  gap: clamp(24px, 3vw, 48px);
-  padding: 0 max(32px, calc((100vw - 1240px) / 2 + 32px));
+  gap: clamp(20px, 2.4vw, 40px);
+  padding: 0 max(28px, calc((100vw - 1240px) / 2 + 32px));
   will-change: transform;
 }
 
@@ -902,13 +1115,8 @@ body.site-revealed .hero-scroll {
   flex: none;
 }
 
-/* 卡片宽度同时受视口宽与视口高约束，矮窗口下自动缩小保证整卡入画 */
-.gallery-track .project-card {
-  width: min(56vw, 780px, calc((100vh - 560px) * 1.9));
-}
-
 .gallery-track .project-body {
-  padding: 30px 34px 34px;
+  padding: clamp(24px, 2.2vw, 34px) clamp(24px, 2.4vw, 36px) clamp(24px, 2.2vw, 32px);
 }
 
 .gallery-hud {
@@ -920,8 +1128,8 @@ body.site-revealed .hero-scroll {
 
 .gallery-count {
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.14em;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -929,7 +1137,7 @@ body.site-revealed .hero-scroll {
 
 .gallery-count b {
   color: var(--accent-2);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .gallery-progress {
@@ -949,8 +1157,8 @@ body.site-revealed .hero-scroll {
 
 .gallery-hint {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
   color: var(--text-faint);
   white-space: nowrap;
 }
@@ -967,7 +1175,8 @@ body.site-revealed .hero-scroll {
   .gallery-viewport {
     position: sticky;
     top: 0;
-    height: 100vh;
+    height: 100svh;
+    padding-top: clamp(58px, 8vh, 86px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -983,28 +1192,115 @@ body.site-revealed .hero-scroll {
     min-height: 0;
     display: flex;
     align-items: center;
+    padding: 18px 0;
   }
 
-  .gallery-viewport .section-head {
-    margin-bottom: 10px;
-  }
-
-  /* 画廊内压缩纵向预算：序号让位给大标题，封面改 1.9:1 宽幅 */
+  /* 画廊内压缩纵向预算：序号让位给大标题，标题也收一档，
+     剩下的高度全部留给卡片——卡片不裁切是这一区的硬指标 */
   .gallery-viewport .sec-no {
     display: none;
   }
 
-  .gallery-track .project-thumb {
-    aspect-ratio: 1.9 / 1;
+  .gallery-viewport .section-head {
+    margin-bottom: 0;
+    align-items: flex-end;
+  }
+
+  .gallery-viewport .eyebrow {
+    margin-bottom: 10px;
+  }
+
+  .gallery-viewport .section-title {
+    font-size: clamp(32px, 3.4vw, 54px);
+    line-height: 1.06;
+  }
+
+  /* ---------- 卡片尺寸：宽幅横向卡（封面在左、信息在右） ----------
+     这是「卡片显示不全面」的根因修复，宽与高各自只由一个变量决定：
+       · 宽  clamp(560px, 72vw, 1060px)——下限 560px 是「正文可读宽度」的
+         硬底线：卡片再窄，正文栏也不低于 270px，中文一行不少于 18 个字，
+         描述只会换行、不会溢出。旧版这一项 effectively 是 0，矮窗口下
+         宽度被压到两三百像素，描述直接被挤出卡片底部；
+       · 高  min(600px, 100svh - 260px)——sticky 舞台只有 100svh，这一项
+         保证整卡永远落进舞台，不会被 overflow:hidden 切掉底部；
+       · 比例 --card-ratio 只按视口宽分档：屏幕越宽卡片越「宽而扁」，
+         内部字号用 cqw 同步放大，于是大屏上是「填满」而不是「空旷」。 */
+  .gallery-track .project-card {
+    --card-ratio: 1.6;
+    width: clamp(560px, 72vw, 1060px);
+    max-height: min(600px, calc(100svh - 260px));
+    aspect-ratio: var(--card-ratio) / 1;
   }
 
   .gallery-hud {
     flex: none;
-    margin: 18px 0 30px;
+    margin: 14px 0 26px;
   }
 }
 
-/* 减少动效：不做推轨，回退为原生横向滚动 */
+/* 视口越宽，卡片越接近电影宽幅（内部字号用 cqw 同步变大，不会空旷） */
+@media (min-width: 1900px) {
+  .gallery-track .project-card {
+    --card-ratio: 2.7;
+  }
+}
+
+@media (min-width: 1600px) and (max-width: 1899px) {
+  .gallery-track .project-card {
+    --card-ratio: 2.55;
+  }
+}
+
+@media (min-width: 1300px) and (max-width: 1599px) {
+  .gallery-track .project-card {
+    --card-ratio: 2.45;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1299px) {
+  .gallery-track .project-card {
+    --card-ratio: 2.15;
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1099px) {
+  .gallery-track .project-card {
+    --card-ratio: 1.85;
+  }
+}
+
+/* 极矮窗口（外接小屏 / 窗口被压扁）：横向分栏已经塞不下 60 字描述，
+   与其裁切不如放弃 sticky 推轨——舞台解除裁切、卡片按内容定高，
+   退化为普通文档流里的一条横向轨道。Projects.jsx 的驱动条件同步收窄。 */
+@media (min-width: 861px) and (max-height: 640px) {
+  .gallery-space {
+    height: auto;
+  }
+
+  .gallery-viewport {
+    position: static;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .gallery-stage {
+    overflow-x: auto;
+    padding: 22px 0;
+  }
+
+  .gallery-track .project-card {
+    width: min(62vw, 620px);
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  .gallery-hud {
+    display: none;
+  }
+}
+
+/* 减少动效：不做推轨，回退为原生横向滚动，卡片按内容定高 */
 @media (min-width: 861px) and (prefers-reduced-motion: reduce) {
   .gallery-space {
     height: auto;
@@ -1018,6 +1314,12 @@ body.site-revealed .hero-scroll {
 
   .gallery-stage {
     overflow-x: auto;
+  }
+
+  .gallery-track .project-card {
+    width: min(62vw, 620px);
+    max-height: none;
+    aspect-ratio: auto;
   }
 
   .gallery-hud {
@@ -1054,8 +1356,16 @@ body.site-revealed .hero-scroll {
   }
 }
 
+/* ---------- 项目卡 ----------
+   桌面画廊里是「宽幅横向卡」：封面在左、信息在右。
+   横向分栏的好处是同样的高度能塞下更宽的正文——竖排卡在矮窗口里
+   为了塞下 60 字描述会被迫拉高，然后被 100svh 的 sticky 舞台裁掉底部。
+   卡片自身是容器（container-type），内部字号用 cqw 跟着卡片宽度走：
+   560px 的卡片和 1060px 的卡片都是「填满」的排版密度。 */
 .project-card {
-  display: block;
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 1fr;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -1063,34 +1373,38 @@ body.site-revealed .hero-scroll {
   position: relative;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
     scale(var(--focus-scale, 1));
-  opacity: var(--focus-dim, 1);
+  /* 纵深不靠整卡降 alpha：卡片一旦半透明，底下的视频会直接透上来，
+     文字读不清、卡片也失去「实体」感。改成只压封面亮度与正文不透明度，
+     卡片本身始终不透明。--focus-dim 由 Projects.jsx 写入（1 = 正中，0.65 = 远处） */
+  border-color: rgba(234, 226, 214, calc(0.09 + var(--focus-dim, 1) * 0.15));
   transition: transform 0.25s ease-out, border-color 0.35s ease,
-    background 0.35s ease, opacity 0.3s ease;
+    background 0.35s ease;
   will-change: transform;
 }
 
 .project-card:hover {
-  transform: translateY(-5px) rotateX(var(--rx, 0deg))
+  transform: translateY(-4px) rotateX(var(--rx, 0deg))
     rotateY(var(--ry, 0deg)) scale(var(--focus-scale, 1));
   border-color: var(--border-strong);
   background: var(--surface-hover);
 }
 
 .tilt {
-  perspective: 900px;
+  perspective: 1000px;
 }
 
+/* 悬停时一圈柔光跟随光标落点，把注意力从「卡片」引到「这一张」 */
 .project-card::after {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    460px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(255, 255, 255, 0.09),
-    transparent 45%
+    520px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.07),
+    transparent 42%
   );
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.4s ease;
   pointer-events: none;
 }
 
@@ -1100,16 +1414,19 @@ body.site-revealed .hero-scroll {
 
 .project-thumb {
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
-  /* 主题色渗入底色，封面不再是纯黑空洞 */
+  /* 远处卡片靠压暗封面退到背景里（而不是把卡片整体调透明） */
+  filter: brightness(calc(0.5 + var(--focus-dim, 1) * 0.5))
+    saturate(calc(0.55 + var(--focus-dim, 1) * 0.45));
+  /* 主题色渗入底色，封面不再是纯黑空洞；底色取暖调，和全站奶油/米黄一致 */
   background:
     radial-gradient(
       120% 150% at 16% 6%,
-      color-mix(in srgb, var(--orb-color, #46608f) 20%, transparent),
+      color-mix(in srgb, var(--orb-color, #46608f) 22%, transparent),
       transparent 58%
     ),
-    #08090d;
+    linear-gradient(160deg, #14110c, #080706);
 }
 
 .thumb-grid {
@@ -1170,23 +1487,26 @@ body.site-revealed .hero-scroll {
   background: radial-gradient(circle, #c07138, transparent 68%);
 }
 
+/* 巨型序号：压在封面右下角，描边斜体，像书脊上的编号 */
 .project-index {
   position: absolute;
-  right: 22px;
-  bottom: -6px;
-  font-size: clamp(72px, 8vw, 108px);
-  font-weight: 700;
+  right: 4cqw;
+  bottom: -1.2cqw;
+  font-family: var(--font-display);
+  font-size: clamp(76px, 12cqw, 148px);
+  font-weight: 500;
+  font-style: italic;
   line-height: 1;
   letter-spacing: -0.02em;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.22);
   user-select: none;
   transition: transform 0.5s var(--ease-out), -webkit-text-stroke-color 0.4s ease;
 }
 
 .project-card:hover .project-index {
-  transform: translateY(-4px);
-  -webkit-text-stroke-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-5px);
+  -webkit-text-stroke-color: rgba(255, 255, 255, 0.45);
 }
 
 .thumb-glyph {
@@ -1211,43 +1531,70 @@ body.site-revealed .hero-scroll {
   opacity: 1;
 }
 
+/* 信息栏：桌面横向卡里与封面等高，标题/描述/标签用 flex 分配，
+   标签与箭头永远钉在卡片底部。留白用 cqw 跟随卡片宽度 */
 .project-body {
-  padding: 24px 26px 26px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* 远处卡片只压正文一档，标题与描述始终可读 */
+  opacity: calc(0.52 + var(--focus-dim, 1) * 0.48);
+  padding: clamp(22px, 3cqw, 40px) clamp(22px, 3.2cqw, 42px) clamp(22px, 3cqw, 38px);
 }
 
 .project-meta {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12.5px;
-  letter-spacing: 0.14em;
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 1.02cqw, 12.5px);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-faint);
-  margin-bottom: 12px;
+  margin-bottom: clamp(10px, 1.4cqw, 18px);
 }
 
 .project-meta i {
-  width: 14px;
+  width: 16px;
   height: 1px;
   background: var(--border-strong);
 }
 
+/* 项目名多为拉丁（cmchen-skill / DeskBasket），衬线体让它们有「作品标题」的重量 */
 .project-title {
-  font-size: 19px;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6cqw, 34px);
   font-weight: 600;
-  margin-bottom: 8px;
+  line-height: 1.22;
+  letter-spacing: -0.005em;
+  margin-bottom: clamp(10px, 1.3cqw, 18px);
+}
+
+/* 横向卡比内容高出的那截留白，由标题上方与标签行上方各分一半：
+   两个 auto 外边距会平分 flex 容器里的剩余空间。
+   若全给一处，卡片中间会塌出一个洞；平分之后读起来是版式呼吸。 */
+.gallery-track .project-title {
+  margin-top: auto;
 }
 
 .project-desc {
-  font-size: 14.5px;
+  font-size: clamp(13.5px, 1.48cqw, 17.5px);
+  line-height: 1.9;
+  letter-spacing: 0.028em;
   color: var(--text-dim);
-  margin-bottom: 18px;
+  margin-bottom: clamp(16px, 2cqw, 26px);
+  text-wrap: pretty;
+}
+
+/* 横向卡里描述吃掉多余高度，标签行被推到卡片底边对齐 */
+.gallery-track .project-desc {
+  flex: 0 0 auto;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 
 .project-foot {
@@ -1255,67 +1602,89 @@ body.site-revealed .hero-scroll {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  /* auto 而不是固定值：内容少时把标签行压到卡片底边，多时也不会溢出 */
+  margin-top: auto;
+  padding-top: clamp(16px, 2.2cqw, 28px);
+  border-top: 1px solid var(--border);
 }
 
+/* 箭头方框：与近方角卡面呼应，悬停时奶油实底 + 深色箭头 */
 .project-go {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: clamp(34px, 3.9cqw, 44px);
+  height: clamp(34px, 3.9cqw, 44px);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-strong);
   color: var(--text-dim);
   flex: none;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.3s var(--ease-out);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .project-card:hover .project-go {
-  background: #fff;
+  background: var(--text);
+  border-color: var(--text);
   color: #0a0a0c;
-  transform: translateX(2px);
 }
 
+/* 标签：近方角 + 发丝描边的「技术栈铭牌」，取代圆润胶囊 */
 .tag {
-  font-size: 12px;
-  padding: 5px 12px;
-  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 1.02cqw, 12.5px);
+  letter-spacing: 0.1em;
+  padding: 0.45em 0.85em;
+  border-radius: 2px;
   border: 1px solid var(--border);
-  color: var(--text-dim);
+  color: var(--text-faint);
+  white-space: nowrap;
   transition: border-color 0.3s ease, color 0.3s ease;
 }
 
 .project-card:hover .tag {
   border-color: var(--border-strong);
-  color: var(--text);
+  color: var(--text-dim);
+}
+
+/* 桌面画廊：卡片横向分栏。封面不吃 aspect-ratio（否则会反过来撑高卡片），
+   靠 grid 默认的 align-self:stretch 铺满卡高 */
+@media (min-width: 861px) {
+  .gallery-track .project-card {
+    grid-template-columns: 1.06fr 1fr;
+  }
+
+  .gallery-track .project-thumb {
+    aspect-ratio: auto;
+  }
 }
 
 .blog-list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-strong);
 }
 
+/* 文章行：像期刊目录一样横向排布——编号 / 分类 / 日期 / 大标题 / 箭头 */
 .post {
   position: relative;
   display: grid;
-  grid-template-columns: 96px 110px 118px 1fr auto;
-  align-items: center;
-  gap: 24px;
-  padding: 28px 10px;
+  grid-template-columns: 92px 104px 116px 1fr auto;
+  align-items: baseline;
+  gap: 26px;
+  padding: 32px 12px;
   border-bottom: 1px solid var(--border);
-  transition: background 0.3s ease, padding 0.3s var(--ease-out);
+  transition: background 0.3s ease, padding 0.35s var(--ease-out);
 }
 
 .post:hover {
-  background: rgba(255, 255, 255, 0.025);
-  padding-left: 22px;
-  padding-right: 22px;
+  background: rgba(255, 255, 255, 0.028);
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .post-idx {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
@@ -1328,27 +1697,28 @@ body.site-revealed .hero-scroll {
 
 .post-cat {
   font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--accent-2);
 }
 
 .post-date {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-/* 大字标题：与 mono 小字构成大小对比（2026 趋势「contrast as communication」） */
+/* 大字标题：衬线体与 mono 小字构成大小对比（对比本身即信息层级） */
 .post-title {
-  font-size: clamp(19px, 2.2vw, 30px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.1vw, 30px);
+  font-weight: 500;
+  line-height: 1.34;
+  letter-spacing: -0.004em;
   transition: transform 0.35s var(--ease-out);
 }
 
@@ -1388,7 +1758,7 @@ body.site-revealed .hero-scroll {
 .post--status {
   display: block;
   grid-template-columns: none;
-  padding: 26px 10px;
+  padding: 28px 12px;
   font-size: 14px;
   color: var(--text-faint);
   border-bottom: 1px solid var(--border);
@@ -1397,7 +1767,8 @@ body.site-revealed .hero-scroll {
 @media (max-width: 640px) {
   .post {
     grid-template-columns: 1fr auto;
-    gap: 8px 16px;
+    gap: 10px 16px;
+    padding: 24px 4px;
   }
   .post-idx {
     display: none;
@@ -1408,16 +1779,16 @@ body.site-revealed .hero-scroll {
   .post-cat {
     grid-column: 1 / -1;
     order: -1;
-    margin-bottom: -10px;
+    margin-bottom: -6px;
   }
   .post-title {
-    font-size: 17px;
+    font-size: 18px;
   }
 }
 
 .footer {
   border-top: 1px solid var(--border-strong);
-  padding: 56px 0 60px;
+  padding: 64px 0 60px;
 }
 
 .footer-inner {
@@ -1430,24 +1801,44 @@ body.site-revealed .hero-scroll {
 
 .footer-copy {
   font-family: var(--font-mono);
-  font-size: 12.5px;
-  letter-spacing: 0.08em;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
   color: var(--text-faint);
 }
 
 .footer-links {
   display: flex;
-  gap: 22px;
+  gap: 26px;
 }
 
 .footer-link {
+  position: relative;
   font-size: 13.5px;
+  letter-spacing: 0.04em;
   color: var(--text-dim);
   transition: color 0.25s ease;
 }
 
+.footer-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.4s var(--ease-out);
+}
+
 .footer-link:hover {
   color: var(--text);
+}
+
+.footer-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left center;
 }
 
 .reveal {
@@ -1485,11 +1876,10 @@ body.site-revealed .hero-scroll {
 .reveal .section-title::after {
   content: "";
   display: block;
-  height: 2px;
-  width: min(320px, 62%);
-  margin-top: 14px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, rgba(227, 217, 198, 0.85), rgba(201, 185, 152, 0.55), transparent);
+  height: 1px;
+  width: min(340px, 58%);
+  margin-top: 20px;
+  background: linear-gradient(90deg, rgba(227, 217, 198, 0.8), rgba(201, 185, 152, 0.4), transparent);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform 1s var(--ease-out) 0.35s;
@@ -1500,7 +1890,7 @@ body.site-revealed .hero-scroll {
 }
 
 .reveal .eyebrow {
-  letter-spacing: 0.4em;
+  letter-spacing: 0.46em;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.7s ease 0.1s, letter-spacing 0.9s var(--ease-out) 0.1s,
@@ -1508,7 +1898,7 @@ body.site-revealed .hero-scroll {
 }
 
 .reveal.is-visible .eyebrow {
-  letter-spacing: 0.26em;
+  letter-spacing: 0.32em;
   opacity: 1;
   transform: none;
 }
@@ -1533,15 +1923,16 @@ body.site-revealed .hero-scroll {
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
+  /* 宋体的下伸部（辶、亅、g/y）比黑体长，遮罩上下各留 0.12em 才不会切掉衬线 */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
 }
 
 .split-c {
   display: inline-block;
-  transform: translateY(118%);
+  transform: translateY(120%);
   opacity: 0;
-  transition: transform 0.85s var(--ease-out), opacity 0.5s ease;
+  transition: transform 0.9s var(--ease-out), opacity 0.5s ease;
 }
 
 .split-on .split-c {
@@ -1590,28 +1981,29 @@ body.site-revealed .hero-scroll {
 }
 
 .stat-cell {
-  padding: 40px 28px;
+  position: relative;
+  padding: clamp(34px, 4.5vw, 56px) clamp(20px, 2.4vw, 34px);
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   border-left: 1px solid var(--border-strong);
-  transition: transform 0.35s var(--ease-out);
+  transition: background 0.4s ease;
 }
 
 .stat-cell:hover {
-  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.022);
 }
 
-/* 悬停时数字底部亮起一条渐变短线，与 hover 抬升呼应 */
+/* 悬停时数字底部亮起一条渐变短线，与底色微亮呼应 */
 .stat-cell::after {
   content: "";
-  width: 34px;
-  height: 2px;
+  width: 38px;
+  height: 1px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.4s var(--ease-out);
+  transition: transform 0.45s var(--ease-out);
 }
 
 .stat-cell:hover::after {
@@ -1623,26 +2015,29 @@ body.site-revealed .hero-scroll {
   padding-left: 0;
 }
 
+/* 数字用衬线体的 oldstyle figures：大号数字在深色底上立刻有「印刷品」的密度 */
 .stat-num {
-  font-size: clamp(64px, 8.2vw, 132px);
-  font-weight: 200;
+  font-family: var(--font-display);
+  font-size: clamp(58px, 7.6vw, 124px);
+  font-weight: 400;
   letter-spacing: -0.03em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
+  line-height: 0.94;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .stat-num em {
   font-style: normal;
-  font-size: 0.42em;
+  font-size: 0.36em;
   color: var(--accent-2);
-  margin-left: 6px;
+  margin-left: 4px;
   font-weight: 400;
+  letter-spacing: 0;
 }
 
 .stat-label {
   font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: 0.2em;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
@@ -1652,7 +2047,7 @@ body.site-revealed .hero-scroll {
     grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   }
   .stat-cell {
-    padding: 22px 8px;
+    padding: 24px 8px;
   }
 }
 
@@ -1708,9 +2103,11 @@ body.site-revealed .hero-scroll {
   width: 380px;
   height: 380px;
   border-radius: 50%;
+  /* 暖沙色而非冷蓝：整站的色温是奶油 + 米黄，
+     冷蓝光晕会在黑底上显出一块脏青色 */
   background: radial-gradient(
     circle,
-    rgba(100, 150, 255, 0.1),
+    rgba(201, 185, 152, 0.1),
     transparent 62%
   );
   z-index: 2;
@@ -1767,16 +2164,23 @@ body.site-revealed .hero-scroll {
 }
 
 .marquee-item {
-  font-size: 14px;
-  letter-spacing: 0.22em;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text-faint);
   white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+/* 跑马灯：整条带子在滚动时才微微提亮，静止时退回幽灵状态不抢内容 */
+.marquee:hover .marquee-item {
+  color: var(--text-dim);
 }
 
 .marquee-sep {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   background: var(--border-strong);
   transform: rotate(45deg);
   flex: none;
@@ -1808,7 +2212,6 @@ body.site-revealed .hero-scroll {
   .hero-char,
   .hero-eyebrow,
   .hero-sub,
-  .hero-actions,
   .hero-scroll,
   .hero-midline,
   .hero-cta > *,
@@ -1897,12 +2300,14 @@ body.site-revealed .hero-scroll {
   }
 }
 /* ---------- sec-no / sec-rule ---------- */
+/* 序号用衬线斜体 + 等宽数字，像书籍章节号压在标题上方 */
 .sec-no {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #c9b998;
-  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  color: var(--accent-2);
+  margin-bottom: 12px;
 }
 .sec-rule {
   flex: 1;
@@ -1938,19 +2343,24 @@ body.site-revealed .hero-scroll {
 /* ---------- about ---------- */
 .about-grid {
   display: grid;
-  grid-template-columns: 6fr 5fr;
-  gap: 72px;
+  grid-template-columns: 7fr 5fr;
+  gap: clamp(48px, 6vw, 92px);
   align-items: start;
 }
+
+/* 宣言大字：宋体让这段话读起来像杂志导语，而不是一段加粗的说明文字 */
 .about-big {
-  font-size: clamp(22px, 2.6vw, 34px);
-  line-height: 1.55;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-serif-cjk);
+  font-size: clamp(24px, 2.7vw, 38px);
+  line-height: 1.72;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-wrap: pretty;
+  text-shadow: 0 14px 38px rgba(0, 0, 0, 0.34);
 }
-/* 逐字点亮：暗态 0.16，滚动擦洗时 JS 逐字写 opacity；transition 把逐帧步进抹成连续波 */
+/* 逐字点亮：暗态 0.14，滚动擦洗时 JS 逐字写 opacity；transition 把逐帧步进抹成连续波 */
 .about-big .aw {
-  opacity: 0.16;
+  opacity: 0.14;
   transition: opacity 0.18s linear;
 }
 .about-big.aw-all .aw {
@@ -1958,21 +2368,21 @@ body.site-revealed .hero-scroll {
 }
 .about-big em {
   font-style: normal;
-  /* 细条荧光笔：比整块高亮更接近手绘下划线，减少“误选中”观感 */
-  background: linear-gradient(transparent 71%, rgba(227, 217, 198, 0.32) 71%);
+  /* 细条荧光笔：比整块高亮更接近手绘下划线，减少「误选中」观感 */
+  background: linear-gradient(transparent 74%, rgba(227, 217, 198, 0.3) 74%);
 }
 .about-facts { border-top: 1px solid var(--border-strong); }
 .fact-row {
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  padding: 14px 4px;
+  padding: 16px 4px;
   border-bottom: 1px solid var(--border);
   font-size: 14.5px;
-  transition: background 0.2s ease, padding 0.25s var(--ease-out);
+  transition: background 0.25s ease, padding 0.3s var(--ease-out);
 }
-.fact-row b { font-weight: 600; }
-.fact-row span { color: var(--text-dim); }
+.fact-row b { font-weight: 500; color: var(--text-faint); font-size: 13px; letter-spacing: 0.06em; }
+.fact-row span { color: var(--text); }
 .fact-row:hover { background: rgba(255,255,255,0.03); padding-left: 14px; }
 /* 事实行级联入场（Reveal 可见后逐行浮现） */
 .reveal .fact-row { opacity: 0; transform: translateY(14px); }
@@ -1985,31 +2395,57 @@ body.site-revealed .hero-scroll {
   to { opacity: 1; transform: none; }
 }
 .about-note {
-  margin-top: 22px;
+  margin-top: 26px;
+  padding-left: 18px;
+  border-left: 1px solid var(--border-strong);
   font-size: 14px;
-  line-height: 1.9;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
   color: var(--text-dim);
+  text-wrap: pretty;
 }
 @media (max-width: 720px) {
-  .about-grid { grid-template-columns: 1fr; gap: 36px; }
+  .about-grid { grid-template-columns: 1fr; gap: 40px; }
 }
+
 /* ---------- awards 荣誉殿堂：年份水印 + 徽章（索引行陈列样式内嵌于组件） ---------- */
 .section--award {
   text-align: center;
 }
 
-/* 年份巨型水印：绝对居中、超大、超低存在感 */
+/* 居中排版意味着文字正压在视频最亮的一段上。
+   一层只覆盖内容区、不碰画面边缘的柔光暗角把对比度拉回来，
+   视频本身仍然是完整的背景素材，只是被「压暗了中间」。 */
+.section--award::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    68% 58% at 50% 46%,
+    rgba(4, 4, 4, 0.62) 0%,
+    rgba(4, 4, 4, 0.42) 52%,
+    rgba(4, 4, 4, 0) 82%
+  );
+}
+
+/* 年份巨型水印：绝对居中、超大、超低存在感。衬线斜体比黑体更像「烫金藏书票」。
+   用 mix-blend-mode:overlay 让它在山体高光上也留一道印纹，而不是直接消失 */
 .award-year-bg {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: clamp(100px, 18vw, 260px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  font-family: var(--font-display);
+  font-size: clamp(110px, 20vw, 300px);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.03em;
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.06);
+  -webkit-text-stroke: 1px rgba(236, 229, 216, 0.16);
+  mix-blend-mode: overlay;
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -2036,33 +2472,33 @@ body.site-revealed .hero-scroll {
   align-items: center;
   gap: 8px;
   margin-top: 24px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 500;
   letter-spacing: 0.06em;
-  padding: 8px 20px;
-  border-radius: 999px;
-  background: rgba(201, 185, 152, 0.1);
-  border: 1px solid rgba(201, 185, 152, 0.22);
+  padding: 8px 18px;
+  border-radius: 2px;
+  background: rgba(201, 185, 152, 0.08);
+  border: 1px solid rgba(201, 185, 152, 0.24);
   color: var(--accent-2);
-  /* 轻微发光 */
-  box-shadow: 0 0 20px rgba(201, 185, 152, 0.12);
 }
 
 .award-badge i {
   font-style: normal;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  opacity: 0.65;
+  letter-spacing: 0.16em;
+  opacity: 0.62;
 }
 /* ---------- contact section ---------- */
 .contact {
   position: relative;
+  /* 收尾用一层暖调压暗，把视线从上方栏目收到标题与邮箱上 */
   background: linear-gradient(
     180deg,
-    rgba(5, 5, 7, 0) 0%,
-    rgba(6, 12, 22, 0.38) 45%,
-    rgba(5, 5, 7, 0.6) 100%
+    rgba(3, 3, 3, 0) 0%,
+    rgba(14, 11, 7, 0.42) 45%,
+    rgba(3, 3, 3, 0.66) 100%
   );
   padding: clamp(100px, 12vw, 180px) 0 clamp(60px, 8vw, 100px);
   overflow: hidden;
@@ -2096,12 +2532,14 @@ body.site-revealed .hero-scroll {
 }
 .contact-kicker { margin-bottom: 20px; }
 .contact-title {
-  font-size: clamp(44px, 8vw, 110px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.04;
-  margin: 0 0 44px;
+  font-family: var(--font-serif-cjk);
+  font-size: clamp(46px, 8.4vw, 116px);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1.12;
+  margin: 0 0 48px;
   color: var(--text);
+  text-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
 }
 
 /* 逐行上升入场 */
@@ -2135,39 +2573,48 @@ body.site-revealed .hero-scroll {
 .contact-actions {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 40px;
+  margin-bottom: 44px;
 }
+
+/* 主按钮：奶油实底 + 近方角 + 深色字。悬停时下方错位一块暖色硬阴影，
+   像印刷品的一层套印偏移，比圆角发光更有实体感 */
 .contact-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 12px;
   font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  padding: 16px 34px;
-  background: #fff;
-  color: #0a1628;
-  border-radius: 8px;
-  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 17px 32px;
+  background: var(--text);
+  color: #0a0908;
+  border-radius: var(--radius-md);
+  transition: transform 0.28s var(--ease-out), box-shadow 0.28s var(--ease-out);
 }
 .contact-btn:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 6px 6px 0 rgba(227,217,198,0.45);
+  transform: translate(-3px, -3px);
+  box-shadow: 5px 5px 0 rgba(201, 185, 152, 0.55);
 }
 .contact-btn .arrow { transition: transform 0.25s ease; }
 .contact-btn:hover .arrow { transform: translateX(4px); }
+
+/* 次按钮：透明描边 + 悬停扫光，与主按钮共用近方角语言 */
 .contact-ghost {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
-  font-weight: 600;
-  padding: 15px 32px;
-  border: 1px solid rgba(255,255,255,0.25);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 16px 30px;
+  border: 1px solid var(--border-strong);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   transition: background 0.25s ease, border-color 0.25s ease;
   position: relative;
   overflow: hidden;
@@ -2181,6 +2628,7 @@ body.site-revealed .hero-scroll {
   bottom: 0;
   left: 0;
   width: 34%;
+  z-index: -1;
   background: linear-gradient(
     105deg,
     transparent,
@@ -2196,20 +2644,21 @@ body.site-revealed .hero-scroll {
   transform: translateX(420%) skewX(-18deg);
 }
 .contact-ghost:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.4);
 }
 .contact-meta {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   color: var(--text-faint);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
 }
 .contact-meta i {
   display: inline-block;
-  width: 4px; height: 4px;
+  width: 3px; height: 3px;
   border-radius: 50%;
   background: var(--text-faint);
 }
@@ -2286,10 +2735,12 @@ body.site-revealed .hero-scroll {
 .preloader-logo {
   display: inline-flex;
   align-items: baseline;
-  font-size: clamp(30px, 4.5vw, 44px);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  /* 600ms 后发一次蓝晕脉冲 */
+  font-family: var(--font-display);
+  font-size: clamp(38px, 5.4vw, 56px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  /* 600ms 后发一次暖色晕脉冲 */
   animation: preloader-glow-pulse 0.9s ease 0.6s both;
 }
 
@@ -2359,7 +2810,7 @@ body.site-revealed .hero-scroll {
   }
 
   .hero-roles,
-  .hero-actions > * {
+  .hero-cta > * {
     opacity: 1;
   }
 
@@ -2397,22 +2848,24 @@ body.site-revealed .hero-scroll {
   }
 }
 
-/* 区块幽灵水印字：超大描边，低存在感但不至于看不见 */
+/* 区块幽灵水印字：超大描边衬线斜体，像压在页底的一层半透明印纹。
+   视差漂移由 JS transform 驱动，提示合成层 */
 .sec-ghost {
   position: absolute;
-  top: 30px;
-  right: 30px;
+  top: 26px;
+  right: 26px;
   z-index: 0;
-  font-size: clamp(72px, 10.5vw, 148px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: clamp(72px, 10.5vw, 152px);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.01em;
   line-height: 1;
   white-space: nowrap;
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.11);
+  -webkit-text-stroke: 1px rgba(236, 229, 216, 0.13);
   pointer-events: none;
   user-select: none;
-  /* 视差漂移由 JS transform 驱动，提示合成层 */
   will-change: transform;
 }
 @media (max-width: 860px) {
@@ -2512,14 +2965,10 @@ body.site-revealed .hero-scroll {
   border-color: rgba(255, 255, 255, 0.42);
 }
 
-/* 关于：备注引导符与事实卡留白 */
+/* 关于：事实卡留白（引导符「—」已由 border-left 代替，去掉以免重复） */
 .about-card {
   position: relative;
-  padding: 26px 26px 22px;
-}
-.about-note::before {
-  content: "— ";
-  color: var(--accent-2);
+  padding: 4px 0 0;
 }
 
 /* 联系区 kicker 发丝线 */
@@ -2874,50 +3323,58 @@ input[type="color"].admin-input {
   }
 }
 
-/* ===== Blog 引语（博客关于页同款） ===== */
+/* ===== Blog 引语（博客关于页同款）===== */
 .blog-quote {
-  margin: 34px 0 0;
-  padding-left: 18px;
+  margin: 40px 0 0;
+  max-width: 34em;
+  padding-left: 22px;
   border-left: 1px solid var(--border-strong);
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 1.9vw, 27px);
+  font-weight: 400;
+  line-height: 1.72;
+  letter-spacing: 0.01em;
   color: var(--text-dim);
-  letter-spacing: 0.02em;
+  text-wrap: pretty;
 }
 .blog-quote .q-src {
   display: block;
-  margin-top: 6px;
+  margin-top: 12px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
   color: var(--text-faint);
 }
 
-/* ===== 旅行足迹（数据与博客关于页同步，样式随全站暖色编辑风） ===== */
+/* ===== 旅行足迹（数据与博客关于页同步）===== */
 .travel-block {
-  margin-top: 56px;
-  padding-top: 40px;
+  margin-top: clamp(56px, 7vw, 96px);
+  padding-top: clamp(36px, 4vw, 52px);
   border-top: 1px solid var(--border);
 }
 .travel-head {
   display: flex;
   align-items: baseline;
-  gap: 16px;
-  margin-bottom: 22px;
+  gap: 18px;
+  margin-bottom: 26px;
 }
 .travel-head .eyebrow {
   margin: 0;
 }
 .travel-title {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.6vw, 38px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--text);
 }
 .travel-sub {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
   color: var(--text-faint);
 }
 
@@ -2950,18 +3407,18 @@ input[type="color"].admin-input {
 }
 .tm-stat b {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 1.7rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  font-weight: 500;
   color: var(--accent-2);
   line-height: 1.1;
 }
 .tm-stat span {
   display: block;
-  margin-top: 4px;
+  margin-top: 6px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
   color: var(--text-faint);
 }
 
@@ -3116,5 +3573,1630 @@ input[type="color"].admin-input {
   .travel-sub {
     margin-left: 0;
     width: 100%;
+  }
+}
+
+/* =====================================================================
+   #/copy 文字排版副本 —— 以下整段仅在 .copy-page 下生效
+   （原为 copy-typography.css / copy-layout.css / copy-motion.css，
+     合并进主样式表，全站只维护一份 CSS）
+   ===================================================================== */
+
+/* #/copy：文字系统第二版。只影响副本的字形、字号、字重、字距和行距。 */
+
+.copy-page {
+  /* 副本沿用全站新装的 display / body 两层字体，只是比例更「书卷」一点；
+     原来的 Baskerville / Iowan Old Style 在多数系统上并不存在，会掉到 Georgia */
+  --copy-display: var(--font-display);
+  --copy-body: var(--font);
+  --copy-mono: var(--font-mono);
+  --accent: #e4b77f;
+  --accent-2: #c98b5b;
+  --text: #f1e9dc;
+  --text-dim: rgba(234, 226, 213, 0.74);
+  --text-faint: rgba(234, 226, 213, 0.56);
+}
+
+/* ---------- 导航：安静的刊头比例，减少原版的“按钮感”。 ---------- */
+.copy-page .nav-inner {
+  height: 76px;
+}
+
+.copy-page .logo {
+  font-family: var(--copy-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.copy-page .logo-mono {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+}
+
+.copy-page .nav-link {
+  font-family: var(--copy-body);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.copy-page .nav-idx {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+
+.copy-page .nav-cta {
+  font-family: var(--copy-display);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Hero：大标题退到编辑体，角色词成为第二层标题。 ---------- */
+.copy-page .hero-title-mask {
+  --title-size: clamp(56px, 15.5vw, 300px);
+  font-family: var(--copy-display);
+  font-weight: 500;
+  /* 与原版同一条底线：行高低于 1.06 会切掉衬线体的字腔 */
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+}
+
+.copy-page .hero-title {
+  font-family: var(--copy-display);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.copy-page .hero-char--outline {
+  -webkit-text-stroke-width: 0.014em;
+  -webkit-text-stroke-color: rgba(241, 233, 220, 0.52);
+}
+
+.copy-page .hero-roles {
+  font-family: var(--copy-display);
+  font-size: clamp(24px, 3vw, 44px);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: 0.04em;
+}
+
+.copy-page .word-roller {
+  --word-step: 1.18em;
+}
+
+.copy-page .hero-sub {
+  max-width: 500px;
+  font-family: var(--copy-body);
+  font-size: clamp(15px, 1.35vw, 18px);
+  line-height: 1.9;
+  letter-spacing: 0.045em;
+  text-wrap: pretty;
+}
+
+.copy-page .hero-midline,
+.copy-page .hero-copy,
+.copy-page .hero-scroll,
+.copy-page .eyebrow,
+.copy-page .sec-no,
+.copy-page .project-meta,
+.copy-page .post-idx,
+.copy-page .post-cat,
+.copy-page .post-date,
+.copy-page .stat-label,
+.copy-page .footer-copy,
+.copy-page .contact-meta,
+.copy-page .marquee-item,
+.copy-page .view-all,
+.copy-page .tag {
+  font-family: var(--copy-mono);
+}
+
+.copy-page .hero-midline {
+  font-size: 10.5px;
+  line-height: 1.7;
+  letter-spacing: 0.2em;
+}
+
+.copy-page .hero-mid-facts {
+  opacity: 0.84;
+}
+
+.copy-page .hero-copy {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+
+.copy-page .hero-scroll {
+  font-size: 10px;
+  letter-spacing: 0.32em;
+}
+
+.copy-page .btn,
+.copy-page .contact-btn,
+.copy-page .contact-ghost {
+  font-family: var(--copy-body);
+  letter-spacing: 0.1em;
+}
+
+.copy-page .btn {
+  height: 46px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+.copy-page .btn-primary {
+  font-weight: 600;
+}
+
+/* ---------- 区块标题：统一成一个超大号 display voice。 ---------- */
+.copy-page .section {
+  font-family: var(--copy-body);
+}
+
+.copy-page .eyebrow {
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.42em;
+  color: var(--accent-2);
+}
+
+.copy-page .sec-no {
+  font-family: var(--copy-display);
+  font-size: clamp(24px, 2.7vw, 44px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(241, 233, 220, 0.58);
+}
+
+.copy-page .section-title {
+  font-family: var(--copy-display);
+  font-size: clamp(64px, 9.5vw, 150px);
+  font-weight: 600;
+  line-height: 0.96;
+  letter-spacing: -0.025em;
+  text-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+
+.copy-page .section-title::after {
+  height: 1px;
+  width: min(360px, 58%);
+  margin-top: 24px;
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    rgba(201, 139, 91, 0.46),
+    transparent
+  );
+}
+
+.copy-page .section-desc,
+.copy-page .view-all,
+.copy-page .about-note,
+.copy-page .project-desc,
+.copy-page .post--status,
+.copy-page .footer-link,
+.copy-page .award-row-group,
+.copy-page .award-row-foot,
+.copy-page .skill-field,
+.copy-page .fact-row,
+.copy-page .fact-row b {
+  font-family: var(--copy-body);
+}
+
+.copy-page .section-desc {
+  max-width: 48ch;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.85;
+  letter-spacing: 0.04em;
+  text-wrap: pretty;
+}
+
+.copy-page .view-all {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+/* ---------- About：大段宣言更像杂志导语，事实信息更像注释栏。 ---------- */
+.copy-page .about-big {
+  font-family: var(--copy-display);
+  font-size: clamp(32px, 4vw, 62px);
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0.025em;
+  max-width: 15em;
+  text-wrap: pretty;
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+}
+
+.copy-page .about-big em {
+  font-style: normal;
+  background: none;
+  text-decoration: underline;
+  text-decoration-color: rgba(227, 217, 198, 0.52);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.copy-page .about-note {
+  font-size: 15px;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  text-wrap: pretty;
+}
+
+.copy-page .fact-row {
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.copy-page .fact-row b {
+  font-family: var(--copy-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------- Awards / Skills / Projects / Blog 的内容层级。 ---------- */
+.copy-page .award-row-idx,
+.copy-page .award-row-year,
+.copy-page .skill-idx,
+.copy-page .skill-score,
+.copy-page .skill-level,
+.copy-page .footer-top-hint,
+.copy-page .travel-sub {
+  font-family: var(--copy-mono);
+}
+
+.copy-page .award-row-year {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+}
+
+.copy-page .award-row-name,
+.copy-page .skill-name,
+.copy-page .project-title,
+.copy-page .post-title,
+.copy-page .travel-title,
+.copy-page .contact-title,
+.copy-page .footer-word {
+  font-family: var(--copy-display);
+  font-weight: 400;
+}
+
+.copy-page .award-row-name {
+  font-size: clamp(25px, 3vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.copy-page .award-row-group {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.copy-page .award-row-foot {
+  font-size: 13px;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+}
+
+.copy-page .skill-name {
+  font-size: clamp(25px, 3vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.copy-page .skill-field {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.copy-page .skill-level {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+
+.copy-page .project-title {
+  font-size: clamp(30px, 3.8vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.copy-page .project-meta {
+  font-size: 11px;
+  letter-spacing: 0.28em;
+}
+
+.copy-page .project-desc {
+  font-size: 15.5px;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  text-wrap: pretty;
+}
+
+.copy-page .project-index {
+  font-family: var(--copy-display);
+  font-size: clamp(96px, 11vw, 170px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.copy-page .post-title {
+  font-size: clamp(25px, 3vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.copy-page .post-idx,
+.copy-page .post-cat,
+.copy-page .post-date {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.copy-page .blog-quote {
+  font-family: var(--copy-display);
+  font-size: clamp(22px, 2.4vw, 34px);
+  line-height: 1.75;
+  letter-spacing: 0.03em;
+}
+
+.copy-page .blog-quote .q-src {
+  font-family: var(--copy-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+
+.copy-page .travel-title {
+  font-size: clamp(30px, 4vw, 58px);
+  line-height: 1.1;
+}
+
+.copy-page .travel-sub {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+
+/* ---------- 数据、联系页、落幕字标。 ---------- */
+.copy-page .stat-num {
+  font-family: var(--copy-display);
+  font-size: clamp(76px, 10vw, 160px);
+  font-weight: 300;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+
+.copy-page .stat-label {
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.3em;
+}
+
+.copy-page .marquee-item {
+  font-size: 13px;
+  letter-spacing: 0.38em;
+}
+
+.copy-page .contact-title {
+  font-size: clamp(64px, 10vw, 160px);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+}
+
+.copy-page .contact-btn {
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.copy-page .contact-ghost {
+  font-size: 14px;
+  letter-spacing: 0.16em;
+}
+
+.copy-page .contact-meta {
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+}
+
+.copy-page .fin-band-cell {
+  font-family: var(--copy-display);
+  font-size: clamp(64px, 12vw, 180px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.copy-page .footer-copy {
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.18em;
+}
+
+.copy-page .footer-word {
+  font-size: clamp(96px, 20vw, 300px);
+  font-weight: 400;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+}
+
+.copy-page .footer-top-hint {
+  font-size: 10px;
+  letter-spacing: 0.4em;
+}
+
+.copy-page .sec-ghost,
+.copy-page .award-year-bg {
+  font-family: var(--copy-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+.copy-page .sec-ghost {
+  font-size: clamp(90px, 13vw, 190px);
+}
+
+.copy-page .award-year-bg {
+  font-size: clamp(130px, 22vw, 320px);
+}
+
+.copy-page .preloader-logo {
+  font-family: var(--copy-display);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.copy-page .tag,
+.copy-page .award-badge {
+  border-radius: 2px;
+  font-family: var(--copy-mono);
+  letter-spacing: 0.12em;
+}
+
+.copy-mode-exit {
+  position: fixed;
+  right: 24px;
+  bottom: 22px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(241, 233, 220, 0.3);
+  background: rgba(3, 3, 3, 0.4);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s var(--ease-out);
+}
+
+.copy-mode-exit:hover {
+  color: var(--text);
+  border-color: rgba(241, 233, 220, 0.6);
+  transform: translateY(-2px);
+}
+
+/* =====================================================================
+   #/copy 文字排版副本 —— 以下整段仅在 .copy-page 下生效
+   （原为 copy-typography.css / copy-layout.css / copy-motion.css，
+     合并进主样式表，全站只维护一份 CSS）
+   ===================================================================== */
+
+/* #/copy：排版布局第二版。只在副本改变栅格、留白、文字位置和阅读节奏。 */
+
+/* ---------- 全局容器：给大标题更多横向呼吸空间。 ---------- */
+.copy-page .container,
+.copy-page .page-grid {
+  max-width: 1320px;
+  padding-inline: clamp(24px, 5vw, 72px);
+}
+
+.copy-page .section {
+  padding-block: clamp(120px, 17vh, 220px);
+}
+
+.copy-page .rule-reveal {
+  width: calc(100% - 2 * clamp(24px, 5vw, 72px));
+}
+
+/* ---------- Hero：标题、meta、落款形成三段式阅读，不再被平均分布。 ---------- */
+.copy-page .hero-content {
+  justify-content: flex-start;
+  gap: 0;
+  padding-top: clamp(96px, 12vh, 140px);
+  padding-bottom: clamp(72px, 9vh, 104px);
+}
+
+.copy-page .hero-word-tl {
+  width: fit-content;
+  max-width: 92vw;
+  margin-top: clamp(54px, 11vh, 140px);
+}
+
+.copy-page .hero-mid {
+  max-width: 1040px;
+  margin-top: clamp(56px, 9vh, 112px);
+}
+
+.copy-page .hero-midline {
+  padding-top: 16px;
+}
+
+.copy-page .hero-sub {
+  margin-top: 24px;
+}
+
+.copy-page .hero-foot {
+  margin-top: auto;
+  align-items: flex-end;
+}
+
+.copy-page .hero-cta {
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.copy-page .hero-scroll {
+  bottom: 28px;
+}
+
+/* ---------- 区块标题：编号、eyebrow、标题和规则线重新排队。 ---------- */
+.copy-page .section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: 28px;
+  margin-bottom: clamp(70px, 9vw, 130px);
+}
+
+.copy-page .section-head > div {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: start;
+  padding-left: 18px;
+  border-left: 1px solid rgba(228, 183, 127, 0.52);
+}
+
+.copy-page .section-head .sec-no {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0 0 4px;
+}
+
+.copy-page .section-head .eyebrow {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+}
+
+.copy-page .section-head .section-title {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: 16px;
+}
+
+.copy-page .section-head .section-desc {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin-top: 18px;
+}
+
+.copy-page .section-head .sec-rule {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  min-width: 180px;
+  margin: 0 0 6px;
+}
+
+.copy-page .section-head .view-all {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  align-self: end;
+  margin-bottom: 6px;
+}
+
+/* 装饰性大字在副本里错位摆放，让不同区块有不同的视觉重心。 */
+.copy-page #about .sec-ghost {
+  right: auto;
+  left: 3vw;
+}
+
+.copy-page #skills .sec-ghost {
+  right: auto;
+  left: 38vw;
+}
+
+.copy-page #blog .sec-ghost {
+  right: auto;
+  left: 5vw;
+}
+
+/* ---------- About：宣言占据左侧长栏，事实变成右侧注释栏。 ---------- */
+.copy-page .about-grid {
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: clamp(56px, 10vw, 160px);
+}
+
+.copy-page .about-big-wrap {
+  padding-top: clamp(4px, 3vw, 36px);
+}
+
+.copy-page .about-card {
+  padding: 26px 26px 22px;
+  border: none;
+  background: none;
+}
+
+.copy-page .about-facts {
+  border-top: 1px solid var(--border-strong);
+}
+
+.copy-page .fact-row {
+  padding: 16px 0;
+  gap: 24px;
+}
+
+.copy-page .fact-row b {
+  min-width: 64px;
+}
+
+.copy-page .about-note {
+  margin-top: 30px;
+  padding-left: 18px;
+  border-left: 1px solid var(--border-strong);
+}
+
+.copy-page .about-note::before {
+  content: none;
+}
+
+/* ---------- Awards：从居中殿堂改为左对齐的长条目录。 ---------- */
+.copy-page .award-honor {
+  align-items: stretch;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-top: 0;
+}
+
+.copy-page .award-head {
+  align-items: start;
+  text-align: left;
+}
+
+.copy-page .award-list {
+  margin-top: 64px;
+}
+
+.copy-page .award-row-in {
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 24px;
+  padding: 32px 0;
+}
+
+.copy-page .award-name-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.copy-page .award-row-foot {
+  max-width: 54ch;
+  margin-left: 78px;
+  text-align: left;
+}
+
+.copy-page .award-year-bg {
+  right: -3%;
+  left: auto;
+  transform: translateY(-50%);
+}
+
+/* ---------- Skills：表格变成长短交错的编辑式索引。 ---------- */
+.copy-page .skill-sw {
+  margin-top: 58px;
+}
+
+.copy-page .skill-row {
+  grid-template-columns: 54px minmax(180px, 1.2fr) minmax(180px, 1fr) 180px 90px;
+  gap: 18px;
+  padding: 30px 0;
+}
+
+.copy-page .skill-field {
+  align-self: center;
+}
+
+.copy-page .skill-level {
+  padding: 7px 12px;
+}
+
+/* ---------- Projects：卡片文字区加宽，编号退到更大的边缘位置。 ---------- */
+.copy-page .gallery-viewport {
+  padding-top: 64px;
+}
+
+.copy-page .gallery-track {
+  gap: clamp(30px, 4vw, 64px);
+  padding-inline: max(36px, calc((100vw - 1320px) / 2 + 36px));
+}
+
+/* 卡片宽度沿用原版的 clamp 公式：原来这里另写了一份
+   min(60vw, 860px, (100vh - 560px) * 1.95)，矮窗口下同样会塌成一条缝 */
+.copy-page .project-body {
+  padding: 34px 38px 38px;
+}
+
+.copy-page .project-index {
+  right: 26px;
+  bottom: -18px;
+}
+
+.copy-page .gallery-hud {
+  margin-top: 26px;
+}
+
+.copy-page .gallery-count {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+
+/* ---------- Blog：引语与文章列表拉开层次，足迹标题单独成行。 ---------- */
+.copy-page .blog-quote {
+  margin-top: 52px;
+  padding: 22px 0 22px 24px;
+  border-left: 2px solid var(--accent-2);
+}
+
+.copy-page .blog-list {
+  margin-top: 34px;
+}
+
+.copy-page .post {
+  grid-template-columns: 76px 108px 112px minmax(0, 1fr) auto;
+  gap: 26px;
+  padding: 34px 0;
+}
+
+.copy-page .post:hover {
+  padding-left: 16px;
+  padding-right: 0;
+}
+
+.copy-page .travel-block {
+  margin-top: 72px;
+  padding-top: 56px;
+}
+
+.copy-page .travel-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.copy-page .travel-head .eyebrow {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.copy-page .travel-title {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.copy-page .travel-sub {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+/* ---------- Contact：文字主轴变成左对齐的大字，按钮变成一条清楚的路径。 ---------- */
+.copy-page .contact {
+  padding-top: clamp(120px, 18vh, 220px);
+}
+
+.copy-page .contact-inner {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.copy-page .contact-kicker-row {
+  max-width: 760px;
+}
+
+.copy-page .contact-title {
+  max-width: 940px;
+}
+
+.copy-page .contact-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.copy-page .contact-btn {
+  width: 100%;
+  height: 62px;
+  justify-content: space-between;
+  padding-inline: 26px;
+}
+
+.copy-page .contact-ghost {
+  width: 100%;
+  height: 56px;
+  justify-content: space-between;
+  padding-inline: 26px;
+}
+
+.copy-page .contact-meta {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.copy-page .contact-meta i {
+  display: none;
+}
+
+.copy-page .fin-band {
+  margin-top: clamp(70px, 10vw, 140px);
+  padding-block: 34px;
+}
+
+/* ---------- Footer：版权信息与大字标形成结束页的上下两段。 ---------- */
+.copy-page .footer {
+  padding: 78px 0 76px;
+}
+
+.copy-page .footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 30px;
+}
+
+.copy-page .footer-links {
+  justify-content: flex-end;
+  gap: 26px;
+}
+
+.copy-page .footer-word {
+  margin-top: 78px;
+}
+
+.copy-page .footer-top-hint {
+  margin-top: 20px;
+}
+
+/* ---------- 数据条与跑马灯：更大的数字，更轻的说明文字。 ---------- */
+.copy-page .stats-strip .container {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.copy-page .stat-cell {
+  padding: 52px 30px;
+}
+
+.copy-page .marquee {
+  padding-block: 28px;
+}
+
+/* ---------- 响应式：大标题在窄屏保持比例，栅格主动收束。 ---------- */
+@media (max-width: 860px) {
+  .copy-page .section {
+    padding-block: clamp(96px, 13vh, 150px);
+  }
+
+  .copy-page .section-head {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 18px;
+    margin-bottom: 64px;
+  }
+
+  .copy-page .section-head > div {
+    grid-template-columns: 46px minmax(0, 1fr);
+    column-gap: 12px;
+    padding-left: 14px;
+  }
+
+  .copy-page .section-head .sec-rule {
+    display: none;
+  }
+
+  .copy-page .section-head .view-all {
+    grid-column: 1;
+    grid-row: 4;
+    justify-self: start;
+    margin-top: 4px;
+  }
+
+  .copy-page .about-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 54px;
+  }
+
+  .copy-page .about-card {
+    padding: 26px 0 0;
+    border-left: none;
+  }
+
+  .copy-page .about-note {
+    padding-left: 16px;
+  }
+
+  .copy-page .award-row-in {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 16px;
+    padding: 24px 0;
+  }
+
+  .copy-page .award-row-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .copy-page .award-row-foot {
+    margin-left: 60px;
+  }
+
+  .copy-page .skill-row {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "idx name level"
+      "idx field field"
+      "idx gauge gauge";
+    gap: 8px 14px;
+    padding: 22px 0;
+  }
+
+  .copy-page .skill-idx {
+    grid-area: idx;
+  }
+
+  .copy-page .skill-name {
+    grid-area: name;
+  }
+
+  .copy-page .skill-field {
+    grid-area: field;
+  }
+
+  .copy-page .skill-level {
+    grid-area: level;
+    justify-self: end;
+  }
+
+  .copy-page .skill-gauge {
+    grid-area: gauge;
+  }
+
+  .copy-page .gallery-track {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding-inline: 0;
+  }
+
+  .copy-page .gallery-track .project-card {
+    width: auto;
+  }
+
+  .copy-page .project-body {
+    padding: 26px 24px 28px;
+  }
+
+  .copy-page .post {
+    grid-template-columns: 1fr auto;
+    gap: 10px 16px;
+    padding: 26px 0;
+  }
+
+  .copy-page .post-idx,
+  .copy-page .post-date {
+    display: none;
+  }
+
+  .copy-page .post-cat {
+    grid-column: 1 / -1;
+    order: -1;
+    margin-bottom: -6px;
+  }
+
+  .copy-page .travel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .copy-page .travel-sub {
+    margin-left: auto;
+  }
+
+  .copy-page .contact-actions {
+    max-width: none;
+  }
+
+  .copy-page .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .copy-page .footer-links {
+    justify-content: flex-start;
+  }
+
+  .copy-page .stats-strip .container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .copy-page .stat-cell {
+    padding: 34px 18px;
+  }
+
+  .copy-page .copy-mode-exit {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .copy-page .hero-content {
+    padding-top: 92px;
+    padding-bottom: 64px;
+  }
+
+  .copy-page .hero-word-tl {
+    margin-top: 48px;
+  }
+
+  .copy-page .hero-mid {
+    margin-top: 58px;
+  }
+
+  .copy-page .section-title {
+    font-size: clamp(52px, 17vw, 92px);
+  }
+
+  .copy-page .contact-title {
+    font-size: clamp(56px, 17vw, 92px);
+  }
+
+  .copy-page .stat-cell {
+    padding: 28px 14px;
+  }
+}
+
+/* =====================================================================
+   #/copy 文字排版副本 —— 以下整段仅在 .copy-page 下生效
+   （原为 copy-typography.css / copy-layout.css / copy-motion.css，
+     合并进主样式表，全站只维护一份 CSS）
+   ===================================================================== */
+
+/* #/copy：动效与交互第二版。原版动画逻辑保持不变，副本只改表现层。 */
+
+/* ---------- Reveal：从“淡入+模糊”改成有方向的遮罩上升。 ---------- */
+.copy-page .reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  filter: none;
+  transition:
+    opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .reveal--left {
+  transform: translateX(-42px);
+}
+
+.copy-page .reveal--right {
+  transform: translateX(42px);
+}
+
+.copy-page .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.copy-page .reveal .section-title::after {
+  transform-origin: left center;
+  transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.18s;
+}
+
+.copy-page .reveal.is-visible .section-title::after {
+  transform: scaleX(1);
+}
+
+.copy-page .reveal .eyebrow {
+  transition:
+    opacity 0.55s ease 0.06s,
+    letter-spacing 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.06s,
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
+}
+
+.copy-page .reveal.is-visible .eyebrow {
+  letter-spacing: 0.42em;
+  transform: none;
+}
+
+/* ---------- SplitText：字符从下方遮罩中升起，延迟更长，像排版印刷。 ---------- */
+.copy-page .split-c {
+  transform: translateY(116%);
+  opacity: 0;
+  transition:
+    transform 0.78s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s ease;
+}
+
+.copy-page .split-on .split-c {
+  transform: none;
+  opacity: 1;
+}
+
+.copy-page .split-on .split-m:hover .split-c {
+  color: var(--accent);
+  transform: translateY(-14%);
+}
+
+/* ---------- Hero 入场：标题字符采用更克制的翻升，meta 行依次进场。 ---------- */
+body.site-revealed .copy-page .hero-char {
+  animation: copy-char-rise 0.86s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--d);
+}
+
+@keyframes copy-char-rise {
+  0% {
+    transform: translateY(116%) rotateX(-38deg);
+    opacity: 0;
+    filter: none;
+  }
+  72% {
+    transform: translateY(-4%) rotateX(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+    filter: none;
+  }
+}
+
+body.site-revealed .copy-page .hero-midline {
+  animation: copy-rise-fade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+}
+
+body.site-revealed .copy-page .hero-roles {
+  animation: copy-rise-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+}
+
+body.site-revealed .copy-page .hero-sub {
+  animation: copy-rise-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.05s forwards;
+}
+
+body.site-revealed .copy-page .hero-cta > *:nth-child(1) {
+  animation: copy-rise-fade 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.25s forwards;
+}
+
+body.site-revealed .copy-page .hero-cta > *:nth-child(2) {
+  animation: copy-rise-fade 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.38s forwards;
+}
+
+body.site-revealed .copy-page .hero-copy {
+  animation: copy-rise-fade 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.45s forwards;
+}
+
+body.site-revealed .copy-page .hero-scroll {
+  animation: copy-rise-fade 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.55s forwards;
+}
+
+@keyframes copy-rise-fade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- 分隔线与幽灵字：线条从左向右扫描，水印只做轻微位移。 ---------- */
+.copy-page .rule-reveal {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .rule-reveal.is-inview {
+  transform: scaleX(1);
+}
+
+.copy-page .sec-ghost {
+  opacity: 0.7;
+}
+
+/* ---------- 导航：活动线变成长短线组合，hover 时文字向右轻推。 ---------- */
+.copy-page .nav-link {
+  position: relative;
+  transition: color 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .nav-link:hover {
+  transform: translateX(4px);
+}
+
+.copy-page .nav-link.is-active {
+  color: var(--text);
+}
+
+.copy-page .nav-link.is-active .nav-idx {
+  color: var(--accent-2);
+}
+
+.copy-page .nav-indicator {
+  border-radius: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), width 0.45s ease,
+    opacity 0.35s ease;
+}
+
+.copy-page .nav-cta {
+  transition: color 0.25s ease, border-color 0.25s ease, letter-spacing 0.45s ease;
+}
+
+.copy-page .nav-cta:hover {
+  letter-spacing: 0.14em;
+  border-color: var(--accent);
+}
+
+/* ---------- 按钮：从胶囊按钮变成带扫描线的编辑式 CTA。 ---------- */
+.copy-page .btn,
+.copy-page .contact-btn,
+.copy-page .contact-ghost {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.copy-page .btn::after,
+.copy-page .contact-btn::after,
+.copy-page .contact-ghost::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .btn:hover,
+.copy-page .contact-btn:hover,
+.copy-page .contact-ghost:hover {
+  transform: translateY(-3px);
+}
+
+.copy-page .btn:hover::after,
+.copy-page .contact-btn:hover::after,
+.copy-page .contact-ghost:hover::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.copy-page .btn .arrow,
+.copy-page .contact-btn .arrow {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .btn:hover .arrow,
+.copy-page .contact-btn:hover .arrow {
+  transform: translateX(7px);
+}
+
+/* ---------- Facts / Awards / Skills：悬停时用一条光带代替整行反白。 ---------- */
+.copy-page .fact-row {
+  transition:
+    color 0.25s ease,
+    background 0.3s ease,
+    padding 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .fact-row:hover {
+  background: linear-gradient(90deg, rgba(241, 233, 220, 0.08), transparent 72%);
+  padding-left: 14px;
+}
+
+.copy-page .award-row-in {
+  transition:
+    opacity 0.35s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    padding 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .award-row:hover .award-row-in {
+  background: linear-gradient(90deg, rgba(241, 233, 220, 0.08), transparent 78%);
+  box-shadow: inset 3px 0 0 rgba(241, 233, 220, 0.72);
+  padding-left: 16px;
+  transform: translateX(6px);
+}
+
+.copy-page .award-list.has-active .award-row:not(.is-active) .award-row-in {
+  opacity: 0.42;
+  transform: translateX(10px);
+}
+
+.copy-page .skill-row {
+  transition:
+    background 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    padding 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .skill-row:hover {
+  background: linear-gradient(90deg, rgba(241, 233, 220, 0.09), transparent 82%);
+  box-shadow: inset 3px 0 0 rgba(241, 233, 220, 0.8);
+  padding-left: 16px;
+}
+
+.copy-page .skill-rail {
+  transition: background 0.3s ease;
+}
+
+.copy-page .skill-rail-fill {
+  background: linear-gradient(90deg, rgba(241, 233, 220, 0.95), rgba(201, 185, 152, 0.8));
+  transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- Project cards：保留原版的圆角卡片骨架，只强化层级与反馈。 ---------- */
+.copy-page .project-card {
+  border-color: var(--border);
+  background: var(--surface);
+  box-shadow: none;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease,
+    background 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.copy-page .project-card:hover {
+  transform: translateY(-5px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    scale(var(--focus-scale, 1));
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+  box-shadow: none;
+}
+
+.copy-page .project-card::after {
+  content: none;
+}
+
+.copy-page .project-thumb {
+  transition: filter 0.55s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .project-card:hover .project-thumb {
+  filter: saturate(1.14) contrast(1.04);
+}
+
+.copy-page .thumb-orb {
+  transition: opacity 0.55s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .project-card:hover .thumb-orb {
+  opacity: 1;
+  transform: scale(1.06) translate(-4%, 4%);
+}
+
+.copy-page .thumb-glyph {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+}
+
+.copy-page .project-card:hover .thumb-glyph {
+  transform: translateY(-5px) scale(1.12);
+}
+
+.copy-page .project-go {
+  transition: background 0.4s ease, color 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .project-card:hover .project-go {
+  background: var(--text);
+  color: var(--bg);
+  transform: translateX(5px);
+}
+
+.copy-page .project-title {
+  transition: color 0.3s ease, letter-spacing 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .project-card:hover .project-title {
+  letter-spacing: 0.01em;
+}
+
+.copy-page .tag {
+  transition: color 0.3s ease, border-color 0.3s ease, transform 0.4s ease;
+}
+
+.copy-page .project-card:hover .tag {
+  border-color: rgba(241, 233, 220, 0.54);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+/* ---------- Blog / Travel：行悬停时整条向右推进，箭头做延迟响应。 ---------- */
+.copy-page .post {
+  transition: background 0.35s ease, padding 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .post:hover {
+  background: linear-gradient(90deg, rgba(241, 233, 220, 0.07), transparent 78%);
+}
+
+.copy-page .post::before {
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .post-title {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.55s ease;
+}
+
+.copy-page .post:hover .post-title {
+  transform: translateX(14px);
+  letter-spacing: 0.01em;
+}
+
+.copy-page .post .arrow {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+}
+
+.copy-page .post:hover .arrow {
+  transform: translateX(9px) rotate(-45deg);
+  color: var(--text);
+}
+
+.copy-page .travel-block {
+  transition: border-color 0.4s ease;
+}
+
+.copy-page .travel-block:hover {
+  border-top-color: rgba(241, 233, 220, 0.46);
+}
+
+/* ---------- Contact / Footer：大字条带与链接的最后回应。 ---------- */
+.copy-page .contact-btn:hover {
+  box-shadow: 7px 7px 0 rgba(241, 233, 220, 0.3);
+}
+
+.copy-page .contact-ghost::after {
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgba(241, 233, 220, 0.34),
+    transparent
+  );
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .fin-band {
+  transition: border-color 0.4s ease;
+}
+
+.copy-page .fin-band:hover {
+  border-color: rgba(241, 233, 220, 0.56);
+}
+
+.copy-page .fin-band-track {
+  animation-duration: 26s;
+}
+
+.copy-page .marquee-track {
+  animation-duration: 44s;
+}
+
+.copy-page .marquee-item {
+  transition: color 0.3s ease, letter-spacing 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .marquee:hover .marquee-item {
+  letter-spacing: 0.48em;
+  color: var(--text);
+}
+
+.copy-page .footer-word {
+  transition: letter-spacing 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+}
+
+.copy-page .footer-word:hover {
+  letter-spacing: -0.02em;
+}
+
+.copy-page .footer-link {
+  position: relative;
+  transition: color 0.3s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.copy-page .footer-link:hover {
+  color: var(--text);
+  transform: translateY(-3px);
+}
+
+/* ---------- 光标：副本使用更像取景框的方环，交互反馈更明确。 ---------- */
+.copy-page .cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.copy-page .cursor-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 4px;
+  border-color: rgba(241, 233, 220, 0.44);
+}
+
+.copy-page .cursor-ring.is-active {
+  border-color: rgba(241, 233, 220, 0.9);
+}
+
+.copy-page .cursor-glow {
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(
+    circle,
+    rgba(241, 233, 220, 0.08),
+    transparent 62%
+  );
+}
+
+/* ---------- 减少动效：副本也遵循系统偏好，但仍保留静态层次。 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .copy-page .reveal,
+  .copy-page .split-c,
+  .copy-page .hero-char {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .copy-page .rule-reveal {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+
+  .copy-page .marquee-track,
+  .copy-page .fin-band-track,
+  .copy-page .thumb-orb {
+    animation: none !important;
   }
 }

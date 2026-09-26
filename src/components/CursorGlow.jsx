@@ -25,6 +25,7 @@ export default function CursorGlow() {
     let down = false
     let visible = false
     let raf = 0
+    const copyMode = !!document.querySelector('.copy-page')
 
     const HOT = 'a, button, input, textarea, select, label, [role="button"], .skill-row, .fact-row, .post'
 
@@ -43,12 +44,15 @@ export default function CursorGlow() {
     const onOver = (e) => {
       hot = !!(e.target && e.target.closest && e.target.closest(HOT))
       ring.classList.toggle('is-active', hot)
+      if (visible && !raf) raf = requestAnimationFrame(loop)
     }
     const onDown = () => {
       down = true
+      if (visible && !raf) raf = requestAnimationFrame(loop)
     }
     const onUp = () => {
       down = false
+      if (visible && !raf) raf = requestAnimationFrame(loop)
     }
     const onLeave = () => {
       visible = false
@@ -62,13 +66,21 @@ export default function CursorGlow() {
       ry += (y - ry) * 0.16
       gx += (x - gx) * 0.08
       gy += (y - gy) * 0.08
-      const target = down ? 0.75 : hot ? 1.6 : 1
+      const target = copyMode
+        ? down ? 0.78 : hot ? 2.15 : 1.18
+        : down ? 0.75 : hot ? 1.6 : 1
       scale += (target - scale) * 0.2
       dot.style.transform = `translate(${x}px, ${y}px)`
       ring.style.transform = `translate(${rx}px, ${ry}px) scale(${scale.toFixed(3)})`
       glow.style.transform = `translate(${gx}px, ${gy}px)`
-      // 已隐藏且拖尾追上鼠标：空闲自停，省掉常驻 rAF
-      if (!visible && Math.abs(x - rx) < 0.5 && Math.abs(y - ry) < 0.5) {
+      // 光标停在原地且缩放已收敛：空闲自停，省掉常驻 rAF。
+      const settled =
+        Math.abs(x - rx) < 0.5 &&
+        Math.abs(y - ry) < 0.5 &&
+        Math.abs(x - gx) < 0.5 &&
+        Math.abs(y - gy) < 0.5 &&
+        Math.abs(target - scale) < 0.01
+      if (settled) {
         raf = 0
         return
       }

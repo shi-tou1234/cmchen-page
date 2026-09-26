@@ -15,12 +15,13 @@ export default function ParticleField() {
     const ctx = canvas.getContext('2d')
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5)
     const LINK = 110 // 连线阈值（px）
-    const N = Math.min(80, Math.max(36, Math.round(window.innerWidth / 24)))
+    const N = Math.min(32, Math.max(18, Math.round(window.innerWidth / 42)))
 
     let w = 0
     let h = 0
     const particles = []
     let raf = 0
+    let lastDraw = 0
 
     const resize = () => {
       w = window.innerWidth
@@ -59,8 +60,12 @@ export default function ParticleField() {
       color = tint()
     }, 4000)
 
-    const frame = () => {
+    const frame = (timestamp = 0) => {
       raf = requestAnimationFrame(frame)
+      if (document.hidden) return
+      // 粒子只需要稳定的 30fps 视觉反馈，静止时把 CPU 让给背景和文字动画。
+      if (lastDraw && timestamp - lastDraw < 33) return
+      lastDraw = timestamp
       const smooth = Number.isFinite(window.__smoothY) ? window.__smoothY : 0
       ctx.clearRect(0, 0, w, h)
 
@@ -79,13 +84,13 @@ export default function ParticleField() {
       ctx.fillStyle = color
       ctx.strokeStyle = color
       for (const p of particles) {
-        ctx.globalAlpha = 0.55
+        ctx.globalAlpha = 0.22
         ctx.beginPath()
         ctx.arc(p.dx, p.dy, p.r, 0, Math.PI * 2)
         ctx.fill()
       }
 
-      ctx.globalAlpha = 0.12
+      ctx.globalAlpha = 0.035
       ctx.lineWidth = 0.6
       ctx.beginPath()
       for (let i = 0; i < particles.length; i++) {

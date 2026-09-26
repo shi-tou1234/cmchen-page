@@ -17,7 +17,11 @@ export default function WordRotator({ words }) {
       <span
         className="word-track"
         aria-hidden="true"
-        style={{ transform: `translateY(${-Math.min(index, words.length - 1) * 1.4}em)` }}
+        // 步长走 CSS 变量，和 .word-track span 的 height 必须一致，
+        // 否则换词时整列会错位半行（不同字体的 em 高度不同，硬编码不可靠）
+        style={{
+          transform: `translateY(calc(${-Math.min(index, words.length - 1)} * var(--word-step, 1.24em)))`,
+        }}
       >
         {words.map((w) => (
           <span key={w}>{w}</span>

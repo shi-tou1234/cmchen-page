@@ -1,6 +1,6 @@
 # cmchen · 个人主页
 
-实拍影像驱动的个人作品集网站 —— 蓝调山谷雾海视频背景随滚动呼吸推进，参考 [eladiodieste.com](https://www.eladiodieste.com/) 的滚动编排：暖奶油编辑色板、滚动跑道式 Hero、全站发丝分隔线与逐字入场，配合电影级滚动动效。内容全部外置为 JSON，内置 `#/admin` 可视化后台，改完提交到 GitHub 即自动重新部署。
+实拍影像驱动的个人作品集网站 —— 五段夜景视频按栏目接力成为连续背景，栏目交界让真实视频帧动态溶解，参考 [eladiodieste.com](https://www.eladiodieste.com/) 的滚动编排：暖奶油编辑色板、滚动跑道式 Hero、全站发丝分隔线与逐字入场，配合电影级滚动动效。内容全部外置为 JSON，内置 `#/admin` 可视化后台，改完提交到 GitHub 即自动重新部署。
 
 **在线访问**：<https://shi-tou1234.github.io/cmchen-page/>
 
@@ -12,12 +12,25 @@
 
 **开场与全局运动系统**
 
-- **实拍视频背景（混合驱动）**：蓝调山谷雾海一镜到底素材，全关键帧编码（任意位置 seek 不跨关键帧）。播放头由 rAF 手动推——**0.45× 环境自播 ping-pong**（页面静止时雾也在流动，到片尾自动折返不做硬切）＋ **滚轮速度实时推拉**（下滚推进旅程、上滚倒回，单帧限幅防甩滚跳帧）；压暗/下沉/放大/微旋转的滚动编舞由 App.jsx 对 `.bg-canvas` 的既有编排层驱动。静态暗角遮罩为视频兄弟层（不参与运镜变换）；`prefers-reduced-motion` 降为单帧静态；iOS/Safari 首次交互解锁 seek 渲染
+- **整页副本**：`#/copy` 保留原版背景视频与全部可见文案，独立重做字号、行距、字体、区块栅格、卡片形态、入场动画、悬停反馈和光标交互；右下角可返回原版。
+- **五段实拍视频背景（栏目接力）**：`星空星轨微尘 → 静谧月夜山溪 → 雪山流星竞赛 → 月夜河流 → 银河云海 → 星空星轨微尘 → 静谧月夜山溪`，按七个栏目循环分配，避免后半段一直停在同一段视频。视频均为 1600×900、24fps、无音轨、全关键帧编码，并经过 `nlmeans` 降噪、`delogo` 左上角水印清理与轻度锐化。每个栏目轨道把滚动进度映射到该原视频的 `0 → 结尾`，不再 ping-pong 回放；静止时暂停视频解码，改用 CSS 合成层做轻微漂移。栏目交界处让两条真实视频在约 0.46 屏的短窗口内继续运动并动态溶解，尾/首关键帧作为减少动效模式的静帧锚点与加载兜底。`prefers-reduced-motion` 降为对应静帧，移动端保留同一栏目时间轴。
 - **Preloader 电影开场**：logo 逐字打出 → 蓝晕发光脉冲 → 副标题淡入 → 遮罩揭幕背景（2.2s，减少动效秒进）
 - **平滑滚动 lerp 层**：rAF 插值循环让所有滚动驱动效果共享有"重量感"的插值源（`window.__smoothY`，背景刷帧同源消费）；lerp 层同时输出速度信号（`--scroll-vel`），快滚时全站运动带速度反馈
 - **滚动色温旅程**：`@property` 驱动 `--accent`/`--accent-2` 过渡，7 个区块的色温收窄为暖色同族微差（奶油→暖沙→琥珀），导航/进度条/芯片全站跟着变
 - **自定义光标**：白点即时 + 细环滞后追踪（0.16 lerp），悬停可交互元素时环放大变色；系统箭头仅在组件挂载时隐藏（`#/admin` 不受影响）
 - **滚动视差深度层**：ghost 水印以 section-relative 方式漂移（±150px），制造景深
+
+**背景视频映射**
+
+| 栏目 | 背景视频 | 交界处理 |
+|------|----------|----------|
+| Hero / 首屏 | 星空星轨微尘 | 尾帧 → 静谧月夜山溪首帧 |
+| 关于 | 静谧月夜山溪 | 尾帧 → 雪山流星竞赛首帧 |
+| 竞赛 | 雪山流星竞赛 | 尾帧 → 月夜河流首帧 |
+| 技能 | 个人网页视差滚动背景视频AI提示词生成 | 尾帧 → 银河云海项目首帧 |
+| 项目 | 银河云海项目 | 尾帧 → 星空星轨微尘首帧 |
+| 博客 | 星空星轨微尘 | 尾帧 → 静谧月夜山溪首帧 |
+| 联系 | 静谧月夜山溪 | — |
 
 **各屏编排**
 
@@ -47,7 +60,7 @@
 | 层 | 选择 |
 |----|------|
 | 框架 | React 19 + Vite 8 |
-| 背景 | 实拍视频（全关键帧 mp4，懒解码不进首屏包）＋ rAF 播放头混合驱动 |
+| 背景 | 五段实拍视频（全关键帧 mp4）＋栏目滚动进度映射与尾/首帧关键帧溶解，rAF 同步刷新 |
 | 地图 | ECharts 按需分包（`echarts/core` + MapChart，进视口才加载），边界资源本地自持（`public/maps`） |
 | 字体 | @fontsource/noto-sans-sc + @fontsource/jetbrains-mono（按 unicode-range 分片按需加载） |
 | 动效 | 纯 CSS + rAF（弹性缓动 / clip-path / @property 过渡 / IntersectionObserver 级联 / lerp 平滑滚动 / scroll-scrub） |
@@ -80,7 +93,8 @@ npm run preview    # 本地预览构建结果
 ├── public/
 │   ├── admin-security.json     # 后台密码的 PBKDF2 哈希配置
 │   ├── maps/                   # 中国地图边界（china.full.json + 34 省份，拷贝自博客站点）
-│   ├── videos/                 # 背景视频（全关键帧编码版）
+│   ├── videos/                 # 五段背景视频（全关键帧编码版）
+│   ├── images/background-keyframes/ # 栏目交界的尾帧/首帧关键帧
 │   ├── og-image.png            # 社交分享图
 │   └── favicon.svg
 ├── scripts/
@@ -89,9 +103,9 @@ npm run preview    # 本地预览构建结果
 │   └── gen-admin-hash.mjs      # 生成/重置后台密码哈希
 ├── src/
 │   ├── App.jsx                 # hash 路由 + 共享 scroll lerp/速度信号 + 色温切换
-│   ├── main.jsx / index.css
+│   ├── main.jsx / index.css / copy-typography.css / copy-layout.css / copy-motion.css
 │   ├── admin/                  # 后台（懒加载 chunk）
-│   ├── components/             # 前台组件（VideoBackground 混合驱动背景 / TravelMap 足迹地图；旧 NebulaBackground 着色器保留未挂载，可一键回滚）
+│   ├── components/             # 前台组件（VideoBackground 栏目接力视频背景 / TravelMap 足迹地图；旧 NebulaBackground 着色器保留未挂载，可一键回滚）
 │   ├── data/
 │   │   ├── content/*.json      # 全部站点文案（后台可编辑）
 │   │   └── generated/travel.json  # 旅行数据快照（脚本生成，勿手改）

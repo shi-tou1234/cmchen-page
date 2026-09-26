@@ -86,7 +86,10 @@ export default function Projects() {
     if (!space || !stage || !track) return undefined
     const bar = barRef.current
     const idx = idxRef.current
-    const desktop = window.matchMedia('(min-width: 861px)')
+    // 桌面推轨的启用条件必须和 index.css 里 sticky 舞台的媒体查询逐字对齐：
+    // 视口太矮时 CSS 已经解除 sticky、解除裁切、卡片按内容定高，
+    // 此时若 JS 还按「轨道总宽 - 舞台宽」推轨，滚动这一段就会把卡片甩出画面。
+    const desktop = window.matchMedia('(min-width: 861px) and (min-height: 641px)')
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
     let raf = 0
 
@@ -109,13 +112,14 @@ export default function Projects() {
       const x = -p * max
       track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`
       if (bar) bar.style.transform = `scaleX(${0.08 + p * 0.92})`
-      // 焦点卡：越靠近视口中线越完整，远处的卡轻微缩小变暗，制造纵深感
+      // 焦点卡：越靠近视口中线越完整，远处的卡轻微缩小、压暗封面与正文，
+      // 制造纵深。注意不给整卡降 opacity——半透明卡片会让底下的视频透上来。
       const mid = stage.clientWidth / 2
       cards.forEach((el) => {
         const c = el.offsetLeft + el.offsetWidth / 2 + x
         const d = Math.min(1, Math.abs(c - mid) / (stage.clientWidth * 0.62))
-        el.style.setProperty('--focus-scale', (1 - d * 0.09).toFixed(3))
-        el.style.setProperty('--focus-dim', (1 - d * 0.5).toFixed(3))
+        el.style.setProperty('--focus-scale', (1 - d * 0.07).toFixed(3))
+        el.style.setProperty('--focus-dim', (1 - d * 0.35).toFixed(3))
       })
       if (idx) {
         // 当前卡 = 中心离视口中线最近的那张

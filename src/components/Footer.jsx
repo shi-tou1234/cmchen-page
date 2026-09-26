@@ -9,14 +9,14 @@ import { showToast } from '../lib/toast'
 // 上方保留原有 copy＋四链接一行不减；悬停字距松开，小字提示与巨字构成大小对比
 // 样式内嵌于组件，避免改动全局 index.css（.footer/.footer-link 等全局样式继续复用）
 const STYLE = `
-.footer-word{display:block;text-align:center;margin-top:58px;text-decoration:none;
-  font-size:clamp(78px,16vw,240px);font-weight:800;line-height:.92;letter-spacing:-.045em;
-  user-select:none;transition:letter-spacing .5s var(--ease-out)}
-.footer-word:hover{letter-spacing:-.018em}
+.footer-word{display:block;text-align:center;margin-top:64px;text-decoration:none;
+  font-family:var(--font-display);font-size:clamp(70px,15vw,230px);font-weight:500;line-height:.94;
+  letter-spacing:-.02em;user-select:none;transition:letter-spacing .55s var(--ease-out)}
+.footer-word:hover{letter-spacing:.004em}
 /* 每个字母自带渐变裁剪：字母动、渐变跟着动，悬停不再「消失」；
    --i 驱动色带连续偏移与整词波浪延迟 */
 .fw-ch{display:inline-block;
-  background:linear-gradient(110deg,var(--accent) 8%,#f2f2f2 38%,var(--accent-2) 62%,var(--accent) 92%);
+  background:linear-gradient(108deg,var(--accent-2) 6%,#f4efe4 40%,var(--accent) 66%,var(--accent-2) 94%);
   background-size:260% 100%;
   background-position-x:calc(-40% + var(--i)*16%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
@@ -27,15 +27,15 @@ const STYLE = `
 /* 单字悬停：更深的跳起 + 提亮 */
 .fw-ch:hover{transform:translateY(-20%) scale(1.04);filter:brightness(1.5);transition-delay:0ms}
 @keyframes word-sheen{to{background-position-x:calc(-40% + var(--i)*16% + 55%)}}
-.footer-word-dot{color:var(--text-faint);transition:color .3s ease}
-.footer-word:hover .footer-word-dot{color:var(--accent-2)}
-.footer-top-hint{margin-top:16px;text-align:center;font-family:var(--font-mono);
-  font-size:11px;letter-spacing:.32em;color:var(--text-faint)}
+.footer-word-dot{color:var(--accent-2);transition:color .3s ease}
+.footer-word:hover .footer-word-dot{color:var(--accent)}
+.footer-top-hint{margin-top:18px;text-align:center;font-family:var(--font-mono);
+  font-size:10.5px;letter-spacing:.34em;color:var(--text-faint)}
 @media (prefers-reduced-motion: reduce){
   .fw-ch{animation:none}
 }
 @media (max-width:760px){
-  .footer-word{margin-top:42px}
+  .footer-word{margin-top:44px}
 }
 `
 

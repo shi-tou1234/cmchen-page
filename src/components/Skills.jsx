@@ -12,37 +12,39 @@ import skills from '../data/content/skills.json'
 const LEVEL_CLASS = { 主力: 'is-core', 熟练: '', 在学: 'is-learning' }
 const LEVEL_POS = { 主力: 90, 熟练: 70, 在学: 35 }
 const STYLE = `
-.skill-sw{border-top:1px solid rgba(255,255,255,.16)}
-.skill-row{display:grid;grid-template-columns:88px 1.1fr 1fr 180px 118px;align-items:center;gap:12px;
-  padding:22px 10px;border-bottom:1px solid var(--border);
+.skill-sw{border-top:1px solid var(--border-strong)}
+.skill-row{display:grid;grid-template-columns:92px 1.15fr 1fr 180px 116px;align-items:center;gap:14px;
+  padding:24px 12px;border-bottom:1px solid var(--border);
   translate:var(--pull,0) 0;
   box-shadow:inset 2px 0 0 rgba(227,217,198,0);
-  transition:background .18s ease,color .18s ease,box-shadow .25s ease,padding-left .25s var(--ease-out)}
-.skill-row:hover{background:#f2f2f2;color:#0b0b0e;box-shadow:inset 3px 0 0 rgba(52,80,214,.9);padding-left:16px}
-.skill-idx{font-size:13px;font-weight:600;color:#5a78ff;letter-spacing:.08em;font-variant-numeric:tabular-nums}
-.skill-row:hover .skill-idx{color:#3450d6}
-.skill-name{font-size:clamp(17px,1.8vw,24px);font-weight:700;letter-spacing:-.02em}
-.skill-field{font-size:13px;color:var(--text-dim);transition:color .18s ease}
-.skill-row:hover .skill-field{color:rgba(11,11,14,.62)}
+  transition:background .25s ease,color .25s ease,box-shadow .3s ease,padding-left .3s var(--ease-out)}
+/* 悬停反白成奶油实底：整行变成一张「卡片」，与导航/按钮同一套实体语言 */
+.skill-row:hover{background:var(--text);color:#0b0b0e;box-shadow:inset 3px 0 0 rgba(201,185,152,.9);padding-left:22px}
+.skill-idx{font-family:var(--font-mono);font-size:11px;font-weight:400;color:var(--accent-2);
+  letter-spacing:.1em;font-variant-numeric:tabular-nums;transition:color .25s ease}
+.skill-row:hover .skill-idx{color:rgba(11,11,14,.55)}
+/* 技能名多为中文/英文混排，衬线体让它像「能力清单」而不是表格数据 */
+.skill-name{font-family:var(--font-display);font-size:clamp(19px,2.15vw,28px);font-weight:500;
+  letter-spacing:.005em;line-height:1.3;transition:color .25s ease}
+.skill-field{font-size:14px;letter-spacing:.02em;color:var(--text-dim);transition:color .25s ease}
+.skill-row:hover .skill-field{color:rgba(11,11,14,.66)}
 .skill-gauge{display:flex;align-items:center;gap:10px;min-width:0}
-.skill-rail{position:relative;flex:1;height:2px;background:rgba(255,255,255,.09);transition:background .18s ease}
+.skill-rail{position:relative;flex:1;height:1px;background:var(--border-strong);transition:background .25s ease}
 .skill-rail-fill{position:absolute;top:0;bottom:0;left:0;width:100%;transform-origin:left;
-  transform:scaleX(0);background:linear-gradient(90deg,rgba(227,217,198,.9),rgba(201,185,152,.9));
+  transform:scaleX(0);background:linear-gradient(90deg,var(--accent),var(--accent-2));
   transition:transform 1s var(--ease-out);transition-delay:calc(var(--i)*70ms + 150ms)}
 .reveal.is-visible .skill-rail-fill{transform:scaleX(calc(var(--score)/100))}
-.skill-row:hover .skill-rail{background:rgba(11,11,14,.14)}
-.skill-row:hover .skill-rail-fill{background:linear-gradient(90deg,#3450d6,#0f6f66)}
-.skill-score{font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;
-  color:var(--text-dim);min-width:26px;text-align:right;transition:color .18s ease}
-.skill-row:hover .skill-score{color:rgba(11,11,14,.62)}
-.skill-level{justify-self:end;font-size:12px;font-weight:600;letter-spacing:.18em;
-  color:var(--accent);border:1px solid rgba(227,217,198,.38);border-radius:999px;padding:5px 14px 5px 16px;
-  transition:color .18s ease,border-color .18s ease}
-.skill-level.is-core{color:var(--accent-2);border-color:rgba(201,185,152,.45)}
+.skill-row:hover .skill-rail{background:rgba(11,11,14,.16)}
+.skill-row:hover .skill-rail-fill{background:linear-gradient(90deg,#0a0908,#4a4136)}
+.skill-score{font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums;
+  color:var(--text-faint);min-width:26px;text-align:right;transition:color .25s ease}
+.skill-row:hover .skill-score{color:rgba(11,11,14,.6)}
+.skill-level{justify-self:end;font-family:var(--font-mono);font-size:10.5px;font-weight:400;letter-spacing:.2em;
+  color:var(--accent);border:1px solid rgba(227,217,198,.38);border-radius:2px;padding:6px 12px;
+  transition:color .25s ease,border-color .25s ease}
+.skill-level.is-core{color:var(--accent-2);border-color:rgba(201,185,152,.5)}
 .skill-level.is-learning{color:var(--text-faint);border-color:var(--border-strong)}
-.skill-row:hover .skill-level{color:#3450d6;border-color:rgba(52,80,214,.55)}
-.skill-row:hover .skill-level.is-core{color:#0f6f66;border-color:rgba(15,111,102,.55)}
-.skill-row:hover .skill-level.is-learning{color:rgba(11,11,14,.5);border-color:rgba(11,11,14,.3)}
+.skill-row:hover .skill-level{color:#0b0b0e;border-color:rgba(11,11,14,.42)}
 .reveal .skill-row{opacity:0;transform:translateY(18px)}
 .reveal.is-visible .skill-row{animation:skill-in .6s var(--ease-out) both;animation-delay:calc(var(--i)*70ms)}
 @keyframes skill-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -51,8 +53,8 @@ const STYLE = `
   .skill-rail-fill{transition:none}
 }
 @media(max-width:760px){
-  .skill-row{grid-template-columns:56px 1fr 96px;
-    grid-template-areas:"idx name level" "idx field field" "idx gauge gauge";row-gap:8px;padding:18px 6px}
+  .skill-row{grid-template-columns:58px 1fr 92px;
+    grid-template-areas:"idx name level" "idx field field" "idx gauge gauge";row-gap:9px;padding:20px 6px}
   .skill-idx{grid-area:idx}.skill-name{grid-area:name}.skill-field{grid-area:field}
   .skill-level{grid-area:level}.skill-gauge{grid-area:gauge}
 }
