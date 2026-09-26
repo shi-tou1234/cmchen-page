@@ -39,11 +39,11 @@
   ],
   "sections": {
     "top": "starfield",
-    "about": "starfield",
+    "about": "snow",
     "awards": "snow",
     "skills": "moon-river",
     "projects": "galaxy",
-    "blog": "galaxy",
+    "blog": "night-stream",
     "contact": "night-stream"
   },
   "transitions": [
