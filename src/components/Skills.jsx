@@ -16,37 +16,37 @@ const STYLE = `
 .skill-row{display:grid;grid-template-columns:92px 1.15fr 1fr 180px 116px;align-items:center;gap:14px;
   padding:24px 12px;border-bottom:1px solid var(--border);
   translate:var(--pull,0) 0;
-  box-shadow:inset 2px 0 0 rgba(227,217,198,0);
+  box-shadow:inset 2px 0 0 rgba(201,171,116,0);
   transition:background .25s ease,color .25s ease,box-shadow .3s ease,padding-left .3s var(--ease-out)}
 /* 悬停反白成奶油实底：整行变成一张「卡片」，与导航/按钮同一套实体语言 */
-.skill-row:hover{background:var(--text);color:#0b0b0e;box-shadow:inset 3px 0 0 rgba(201,185,152,.9);padding-left:22px}
+.skill-row:hover{background:var(--text);color:#0b0c10;box-shadow:inset 3px 0 0 rgba(201,171,116,.9);padding-left:22px}
 .skill-idx{font-family:var(--font-mono);font-size:11px;font-weight:400;color:var(--accent-2);
   letter-spacing:.1em;font-variant-numeric:tabular-nums;transition:color .25s ease}
-.skill-row:hover .skill-idx{color:rgba(11,11,14,.55)}
+.skill-row:hover .skill-idx{color:rgba(11,12,16,.55)}
 /* 技能名多为中文/英文混排，衬线体让它像「能力清单」而不是表格数据 */
 .skill-name{font-family:var(--font-display);font-size:clamp(19px,2.15vw,28px);font-weight:500;
   letter-spacing:.005em;line-height:1.3;transition:color .25s ease}
 .skill-field{font-size:14px;letter-spacing:.02em;color:var(--text-dim);transition:color .25s ease}
-.skill-row:hover .skill-field{color:rgba(11,11,14,.66)}
+.skill-row:hover .skill-field{color:rgba(11,12,16,.66)}
 .skill-gauge{display:flex;align-items:center;gap:10px;min-width:0}
 .skill-rail{position:relative;flex:1;height:1px;background:var(--border-strong);transition:background .25s ease}
 .skill-rail-fill{position:absolute;top:0;bottom:0;left:0;width:100%;transform-origin:left;
   transform:scaleX(0);background:linear-gradient(90deg,var(--accent),var(--accent-2));
   transition:transform 1s var(--ease-out);transition-delay:calc(var(--i)*70ms + 150ms)}
 .reveal.is-visible .skill-rail-fill{transform:scaleX(calc(var(--score)/100))}
-.skill-row:hover .skill-rail{background:rgba(11,11,14,.16)}
-.skill-row:hover .skill-rail-fill{background:linear-gradient(90deg,#0a0908,#4a4136)}
+.skill-row:hover .skill-rail{background:rgba(11,12,16,.16)}
+.skill-row:hover .skill-rail-fill{background:linear-gradient(90deg,#0b0c10,#5a4c36)}
 .skill-score{font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums;
   color:var(--text-faint);min-width:26px;text-align:right;transition:color .25s ease}
-.skill-row:hover .skill-score{color:rgba(11,11,14,.6)}
+.skill-row:hover .skill-score{color:rgba(11,12,16,.6)}
 .skill-level{justify-self:end;font-family:var(--font-mono);font-size:10.5px;font-weight:400;letter-spacing:.2em;
-  color:var(--accent);border:1px solid rgba(227,217,198,.38);border-radius:2px;padding:6px 12px;
+  color:var(--accent);border:1px solid rgba(230,217,189,.4);border-radius:2px;padding:6px 12px;
   transition:color .25s ease,border-color .25s ease}
-.skill-level.is-core{color:var(--accent-2);border-color:rgba(201,185,152,.5)}
+.skill-level.is-core{color:var(--accent-2);border-color:rgba(201,171,116,.5)}
 .skill-level.is-learning{color:var(--text-faint);border-color:var(--border-strong)}
-.skill-row:hover .skill-level{color:#0b0b0e;border-color:rgba(11,11,14,.42)}
+.skill-row:hover .skill-level{color:#0b0c10;border-color:rgba(11,12,16,.42)}
 .reveal .skill-row{opacity:0;transform:translateY(18px)}
-.reveal.is-visible .skill-row{animation:skill-in .6s var(--ease-out) both;animation-delay:calc(var(--i)*70ms)}
+.reveal.is-visible .skill-row{opacity:1;transform:none;animation:skill-in .6s var(--ease-out) both;animation-delay:calc(var(--i)*70ms)}
 @keyframes skill-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){
   .reveal .skill-row{opacity:1;transform:none;animation:none}

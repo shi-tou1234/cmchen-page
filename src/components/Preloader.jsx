@@ -23,10 +23,30 @@ function markSeen() {
   }
 }
 
+// ?static=1：截图/调试钩子——跳过开场编排，冻结全部动画直出终态
+const STATIC_MODE = (() => {
+  try {
+    return new URLSearchParams(window.location.search).has('static')
+  } catch {
+    return false
+  }
+})()
+
 export default function Preloader() {
-  const [done, setDone] = useState(hasShownThisLoad || seenThisSession())
+  const [done, setDone] = useState(() => STATIC_MODE || hasShownThisLoad || seenThisSession())
 
   useEffect(() => {
+    if (STATIC_MODE) {
+      document.body.classList.add('site-revealed', 'is-static')
+      // ?y=1234：静态模式下瞬时滚到指定位置，供分段截图/调试
+      const y = Number(new URLSearchParams(window.location.search).get('y'))
+      if (Number.isFinite(y) && y > 0) {
+        const jump = () => window.scrollTo({ top: y, behavior: 'instant' })
+        requestAnimationFrame(jump)
+        document.fonts?.ready.then(jump).catch(() => {})
+      }
+      return
+    }
     if (done) {
       document.body.classList.add('site-revealed')
       return

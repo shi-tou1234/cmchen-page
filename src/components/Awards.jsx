@@ -9,20 +9,22 @@ import awards from '../data/content/awards.json'
 const STYLE = `
 .award-list{width:100%;margin-top:48px;border-top:1px solid var(--border-strong);
   /* 背景视频会滚到山体这类高亮段落，纯文字直接压在上面就读不清了。
-     给名单一块半透明「纸」：底色 + 背景模糊，不改视频素材本身，
-     文字的可读性由这一层保证（对比度从随视频起伏变成恒定）。 */
-  background:rgba(9,8,7,.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+     给名单一块恒定的「纸」：实底渐变而不是背景模糊——全站 backdrop-filter
+     预算留给后台，可读性由 alpha 底保证，合成成本为零。 */
+  background:linear-gradient(180deg,rgba(10,11,16,.78),rgba(10,11,16,.6));
+  border:1px solid var(--border);border-top:1px solid var(--border-strong);
   border-radius:var(--radius-lg);overflow:hidden}
 .award-row{position:relative;opacity:0;transform:translateY(18px)}
-.reveal.is-visible .award-row{animation:award-row-in .65s var(--ease-out) both;animation-delay:calc(var(--i)*110ms)}
+.reveal.is-visible .award-row{opacity:1;transform:none;animation:award-row-in .65s var(--ease-out) both;animation-delay:calc(var(--i)*110ms)}
 @keyframes award-row-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .award-row-in{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:24px;
-  padding:30px 24px;border-bottom:1px solid var(--border);
+  padding:32px 26px;border-bottom:1px solid var(--border);
   transition:opacity .35s ease,background .3s ease,box-shadow .3s ease,padding-left .35s var(--ease-out)}
+.award-row:last-child .award-row-in{border-bottom:0}
 .award-list.has-active .award-row:not(.is-active) .award-row-in{opacity:.32}
 @media (hover:hover){
-  .award-row:hover .award-row-in{background:rgba(255,255,255,.04);
-    box-shadow:inset 1px 0 0 rgba(227,217,198,.8);padding-left:36px}
+  .award-row:hover .award-row-in{background:var(--surface);
+    box-shadow:inset 2px 0 0 var(--accent-2);padding-left:38px}
 }
 .award-row-idx{font-family:var(--font-mono);font-size:11px;font-weight:400;letter-spacing:.14em;
   color:var(--text-faint);font-variant-numeric:tabular-nums;transition:color .3s ease}
@@ -31,9 +33,9 @@ const STYLE = `
 .award-row-year{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.28em;
   color:var(--accent-2);opacity:.85;transition:opacity .3s ease}
 /* 奖名走衬线：中文奖名在宋体下的重量感远超黑体加粗 */
-.award-row-name{font-family:var(--font-serif-cjk);font-size:clamp(19px,2.2vw,30px);font-weight:600;
-  letter-spacing:.01em;line-height:1.36;color:var(--text)}
-.award-row-group{font-size:13.5px;line-height:1.7;letter-spacing:.02em;color:var(--text-dim)}
+.award-row-name{font-family:var(--font-serif-cjk);font-size:clamp(20px,2.3vw,32px);font-weight:620;
+  letter-spacing:.02em;line-height:1.36;color:var(--text)}
+.award-row-group{font-size:13.5px;line-height:1.7;letter-spacing:.03em;color:var(--text-dim)}
 .award-row-badge{justify-self:end}
 .award-row-badge .award-badge{margin-top:0}
 .award-row-foot{margin-top:32px;font-size:14px;line-height:1.85;color:var(--text-dim);text-align:center}
@@ -41,8 +43,8 @@ const STYLE = `
 @keyframes award-year-in{from{opacity:0;transform:translate(-50%,-50%) scale(.965)}
   to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @media (max-width:760px){
-  .award-row-in{grid-template-columns:44px 1fr;gap:14px;padding:22px 14px}
-  .award-row:hover .award-row-in{padding-left:14px}
+  .award-row-in{grid-template-columns:44px 1fr;gap:14px;padding:22px 16px}
+  .award-row:hover .award-row-in{padding-left:16px}
   .award-row-name{font-size:17px}
   .award-row-badge{grid-column:2;justify-self:start}
   .award-row-badge .award-badge{padding:6px 12px;font-size:12px}

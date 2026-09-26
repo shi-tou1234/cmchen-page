@@ -16,7 +16,7 @@ const STYLE = `
 /* 每个字母自带渐变裁剪：字母动、渐变跟着动，悬停不再「消失」；
    --i 驱动色带连续偏移与整词波浪延迟 */
 .fw-ch{display:inline-block;
-  background:linear-gradient(108deg,var(--accent-2) 6%,#f4efe4 40%,var(--accent) 66%,var(--accent-2) 94%);
+  background:linear-gradient(108deg,var(--accent-2) 6%,#f6f1e6 40%,var(--accent) 66%,var(--accent-2) 94%);
   background-size:260% 100%;
   background-position-x:calc(-40% + var(--i)*16%);
   -webkit-background-clip:text;background-clip:text;color:transparent;

@@ -15,9 +15,9 @@ const STYLE = `
 .fin-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-2);opacity:.85;flex:none;
   animation:fin-pulse 2.4s ease-out infinite}
 @keyframes fin-pulse{
-  0%{box-shadow:0 0 0 0 rgba(201,185,152,.4)}
-  70%{box-shadow:0 0 0 10px rgba(201,185,152,0)}
-  100%{box-shadow:0 0 0 0 rgba(201,185,152,0)}
+  0%{box-shadow:0 0 0 0 rgba(201,171,116,.4)}
+  70%{box-shadow:0 0 0 10px rgba(201,171,116,0)}
+  100%{box-shadow:0 0 0 0 rgba(201,171,116,0)}
 }
 .fin-clock{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:.08em;color:var(--text)}
 .fin-band{display:block;width:100%;margin-top:clamp(56px,8vw,110px);padding:30px 0;
@@ -31,7 +31,7 @@ const STYLE = `
 /* 巨型描边邮箱：等宽字体的连排字符在 130px 下像一条打字机纸带 */
 .fin-band-cell{display:flex;align-items:center;gap:56px;white-space:nowrap;
   font-family:var(--font-mono);font-size:clamp(40px,7.2vw,104px);font-weight:500;letter-spacing:-.01em;
-  line-height:1.2;color:transparent;-webkit-text-stroke:1px rgba(236,229,216,.28);
+  line-height:1.2;color:transparent;-webkit-text-stroke:1px rgba(240,235,226,.3);
   transition:color .45s ease,-webkit-text-stroke-color .45s ease}
 .fin-band:hover .fin-band-cell{color:var(--text);-webkit-text-stroke-color:transparent}
 .fin-band-sep{width:9px;height:9px;background:var(--border-strong);transform:rotate(45deg);flex:none}
