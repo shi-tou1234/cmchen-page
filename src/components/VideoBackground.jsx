@@ -1,21 +1,22 @@
 import { useEffect, useRef } from 'react'
 import backgrounds from '../data/content/backgrounds.json'
 
-// 每个视频只对应一个连续轨道：栏目滚动进度直接映射到 0 → 结尾，
-// 不再使用 ping-pong 循环。跨栏目时两个轨道在重叠窗口内自然交叉溶解。
+// 背景放映（v3）：
+// · 滚动即播放头——每组连续同片区块的滚动区间线性映射片长，静止即停住；
+// · 唯一例外：首页（sectionOrder 首屏）命中的片子，静止时以原生倍速自动
+//   播放，滚动立刻暂停回刮擦态（领导指定：首页流星片自动播放，其余纯滚动）；
+// · 换场：跨组那一刻把透明度交给 CSS 交叉溶解（0.95s），与滚动速度彻底
+//   解耦——快滚慢滚溶解节奏恒定，这是「丝滑」的来源。旧版的滚动映射
+//   透明度权重、暗场 veil 闪烁、转场动态 blur 是发闷/发卡的三个来源，全拆；
+// · 清晰度：视频层不挂任何常驻 filter；Ken Burns 压到 1.02 防放大糊化
+//   （画质本体由素材重编码解决：轻降噪 + 自适应锐化 + 密集关键帧）。
 const BASE_URL = import.meta.env.BASE_URL
 const START_TIME = 0.02
 const END_EPSILON = 0.08
-const TRANSITION_SPAN_RATIO = 0.46
-const TRANSITION_MIN = 220
-const TRANSITION_MAX = 520
 const PLAYBACK_EPSILON = 0.12
 const IDLE_SETTLE_MS = 650
-// 静止时让当前可见的视频真正播放起来（而不是冻帧）。
-// 倍速必须是 1：素材是 24fps，0.3 倍速等于每 139ms 才换一帧——那是 7Hz 的
-// 幻灯片，正是「背景卡顿」的真正来源。1 倍速就是素材本来的 24fps，播放器
-// 直接按原生节奏送帧，反而最稳。循环靠 loop 属性，首尾硬切对氛围片无感。
-const IDLE_PLAYBACK_RATE = 1
+
+const AUTOPLAY_CLIP = backgrounds.sections[backgrounds.sectionOrder[0]]
 
 const clipMap = new Map(backgrounds.clips.map((clip) => [clip.id, clip]))
 
@@ -23,14 +24,8 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value))
 const smoothstep = (value) => value * value * (3 - 2 * value)
 const asset = (path) => `${BASE_URL}${path}`
 
-const transitionSpan = (viewportHeight) =>
-  clamp(
-    viewportHeight * TRANSITION_SPAN_RATIO,
-    TRANSITION_MIN,
-    TRANSITION_MAX,
-  )
-
-const buildTrackRanges = (sectionClipIds, boundaries, viewportHeight, maxScroll) => {
+// 每组 = 一段连续映射同一视频的区块；组的滚动区间映射到片长首尾
+const buildTrackRanges = (sectionClipIds, boundaries, maxScroll) => {
   const groups = []
 
   sectionClipIds.forEach((clipId, sectionIndex) => {
@@ -42,14 +37,13 @@ const buildTrackRanges = (sectionClipIds, boundaries, viewportHeight, maxScroll)
     }
   })
 
-  const span = transitionSpan(viewportHeight)
   const ranges = groups.map((group, groupIndex) => {
     const startY =
-      groupIndex === 0 ? 0 : boundaries[group.startIndex] - span / 2
+      groupIndex === 0 ? 0 : boundaries[group.startIndex]
     const endY =
       groupIndex === groups.length - 1
         ? Math.max(maxScroll, startY + 1)
-        : boundaries[group.endIndex + 1] + span / 2
+        : boundaries[group.endIndex + 1]
 
     return {
       ...group,
@@ -71,9 +65,6 @@ const buildTrackRanges = (sectionClipIds, boundaries, viewportHeight, maxScroll)
 export default function VideoBackground() {
   const reelRef = useRef(null)
   const videoRefs = useRef({})
-  const outRefs = useRef({})
-  const inRefs = useRef({})
-  const veilRef = useRef(null)
 
   useEffect(() => {
     const reel = reelRef.current
@@ -85,15 +76,6 @@ export default function VideoBackground() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const sectionIds = sectionEls.map((el) => el.id)
     const sectionClipIds = sectionIds.map((id) => backgrounds.sections[id])
-    const transitionMap = new Map()
-    for (let i = 1; i < sectionIds.length; i += 1) {
-      const from = sectionClipIds[i - 1]
-      const to = sectionClipIds[i]
-      const transition = backgrounds.transitions.find(
-        (item) => item.from === from && item.to === to,
-      )
-      if (transition) transitionMap.set(i, transition)
-    }
 
     const metrics = []
     const boundaries = []
@@ -106,16 +88,19 @@ export default function VideoBackground() {
     const styleState = new Map(
       backgrounds.clips.map((clip) => [
         clip.id,
-        { opacity: '', visibility: '', filter: '', visible: '' },
+        {
+          opacity: videoRefs.current[clip.id]?.style.opacity ?? '',
+          visible: videoRefs.current[clip.id]?.dataset.visible ?? '',
+        },
       ]),
     )
     const motion = { lastY: null, velocity: 0 }
     let lastMappedY = null
+    let lastActiveId = null
     let lastActivity = performance.now()
     let raf = 0
 
     const measure = () => {
-      const viewportHeight = Math.max(1, window.innerHeight)
       metrics.splice(
         0,
         metrics.length,
@@ -129,18 +114,13 @@ export default function VideoBackground() {
       boundaries.splice(
         0,
         boundaries.length,
-        ...metrics.map((metric) => metric.top - viewportHeight * 0.5),
+        ...metrics.map((metric) => metric.top - window.innerHeight * 0.5),
       )
       maxScroll = Math.max(
         0,
         document.documentElement.scrollHeight - window.innerHeight,
       )
-      const built = buildTrackRanges(
-        sectionClipIds,
-        boundaries,
-        viewportHeight,
-        maxScroll,
-      )
+      const built = buildTrackRanges(sectionClipIds, boundaries, maxScroll)
       rangeBySection = built.rangeBySection
     }
 
@@ -183,92 +163,50 @@ export default function VideoBackground() {
       video.load()
     }
 
-    // 静止时不再冻帧：让当前可见的视频以原生倍速继续播放，画面始终在动。
-    // 流畅性靠三件事保证——
-    //   ① 只播权重最高的那一条，其余保持暂停（最多 1 条在解码）；
-    //   ② 1 倍速即素材原生 24fps，不做慢放（慢放会把 24fps 压成 7Hz 幻灯片）；
-    //   ③ 视频层上没有任何 filter / transform，全部交给合成器直接贴图。
-    // 滚轮一动就 pause() 回到纯 seek 驱动，rAF 随即停摆。
-    // forceIdle：rAF 静止窗口到期时补跑的那一帧。此刻滚动速度早已归零，
-    // 但 seekRequested / velocity 还留着上一帧的残值，必须显式覆盖。
-    const syncIdleState = (weights, scrollMotion, seekRequested, forceIdle) => {
-      const moving = !forceIdle && (seekRequested || scrollMotion > PLAYBACK_EPSILON)
-
-      if (reduced || moving) {
-        // 滚动接管（或减少动效）：全部暂停，回到纯 seek 驱动
-        for (const clip of backgrounds.clips) {
-          const video = videoRefs.current[clip.id]
-          if (video && !video.paused) video.pause()
-        }
-        return
-      }
-
-      // 只有权重最高的那一条参与解码播放
-      let leadId = null
-      let leadWeight = 0
-      for (const clip of backgrounds.clips) {
-        const weight = weights.get(clip.id) || 0
-        if (weight > leadWeight) {
-          leadWeight = weight
-          leadId = clip.id
-        }
-      }
-      // 交叉溶解的中段：两条各占一半，此时谁都算不上「主角」，
-      // 与其猜一个不如都冻住，等溶解结束再交给新的主角
-      const lead = leadWeight > 0.55 ? leadId : null
-
+    // 换场：只改透明度/可见性两个状态位，渐变本身交给 CSS transition——
+    // 无论滚轮多快，溶解都以恒定节奏走完
+    const applyGroup = (clipId) => {
       for (const clip of backgrounds.clips) {
         const video = videoRefs.current[clip.id]
         if (!video) continue
-        const weight = weights.get(clip.id) || 0
-        const visible = weight > 0.01 ? '1' : '0'
+        const active = clip.id === clipId
         const state = styleState.get(clip.id)
+        const opacity = active ? '1' : '0'
+        const visible = active ? '1' : '0'
+        if (state && state.opacity !== opacity) {
+          video.style.opacity = opacity
+          state.opacity = opacity
+        }
         if (state && state.visible !== visible) {
           video.dataset.visible = visible
           state.visible = visible
         }
-        if (clip.id === lead && video.readyState >= 2) {
-          if (video.playbackRate !== IDLE_PLAYBACK_RATE) {
-            video.playbackRate = IDLE_PLAYBACK_RATE
+        if (active) requestAutoLoad(clip.id)
+      }
+    }
+
+    // 播放闸门：只有「首页那段」且静止时允许自动播放；其余一律暂停，
+    // 画面完全由滚动位置驱动
+    const syncPlayback = (activeId, moving) => {
+      for (const clip of backgrounds.clips) {
+        const video = videoRefs.current[clip.id]
+        if (!video) continue
+        const shouldPlay =
+          !reduced &&
+          !document.hidden &&
+          !moving &&
+          clip.id === activeId &&
+          activeId === AUTOPLAY_CLIP
+        if (shouldPlay) {
+          if (video.readyState >= 2 && video.paused) {
+            video.play().catch(() => {})
           }
-          if (video.paused) video.play().catch(() => {})
         } else if (!video.paused) {
-          // 不是主角却还在播（例如刚跨过栏目，主角刚换人）：停掉
           video.pause()
         }
       }
     }
 
-    const getTimeline = (y, viewportHeight) => {
-      let active = 0
-      let transitionIndex = -1
-      let progress = 0
-      const span = transitionSpan(viewportHeight)
-
-      for (let i = 1; i < boundaries.length; i += 1) {
-        if (y >= boundaries[i]) active = i
-        const start = boundaries[i] - span / 2
-        const end = boundaries[i] + span / 2
-        if (y >= start && y < end) {
-          transitionIndex = i
-          progress = smoothstep((y - start) / span)
-          break
-        }
-      }
-
-      return { active, transitionIndex, progress }
-    }
-
-    // 滚动映射：把 y 换算成播放头时间。
-    //
-    // 这里不做「idle 漂移补偿」。试过把静止期走过的距离并入映射（MAP_OFFSET），
-    // 结果是偏移会在多次 idle↔滚动往返里不断累积，越滚越偏——因为补偿的基准
-    // assigned 本身已经是上一次补偿后的值，反推误差被放大了好几轮。
-    //
-    // 不补偿反而是对的：idle 只按 0.3 倍速播，滚轮一动就掐掉，一轮往返最多
-    // 攒 1s 左右的播放头差，落在 10s 的氛围片里根本看不出接缝；
-    // 而映射保持「滚动位置 → 时间」这条干净的纯函数，任何时候都可复现、
-    // 可测试，滚回顶部也一定回到片头。
     const timeAt = (id, range, y, force = false) => {
       if (!range) return
       const distance = Math.max(1, range.endY - range.startY)
@@ -277,7 +215,7 @@ export default function VideoBackground() {
       setVideoTime(id, START_TIME + progress * (end - START_TIME), force)
     }
 
-    const update = (forceIdle = false) => {
+    const update = () => {
       if (!metrics.length) return
       const smoothY = window.__smoothY
       // 后台标签可能冻结 lerp 值；此时直接跟随原生滚动，避免视频停在错误栏目。
@@ -287,14 +225,14 @@ export default function VideoBackground() {
         Math.abs(smoothY - window.scrollY) < window.innerHeight * 1.5
           ? smoothY
           : window.scrollY
-      const viewportHeight = Math.max(1, window.innerHeight)
-      const timeline = getTimeline(y, viewportHeight)
-      const activeTransition =
-        timeline.transitionIndex >= 0
-          ? transitionMap.get(timeline.transitionIndex)
-          : null
-      const seekRequested =
-        lastMappedY === null || Math.abs(y - lastMappedY) > 0.05
+
+      let activeIndex = 0
+      for (let i = 1; i < boundaries.length; i += 1) {
+        if (y >= boundaries[i]) activeIndex = i
+      }
+      const activeId = sectionClipIds[activeIndex]
+
+      const seekRequested = lastMappedY === null || Math.abs(y - lastMappedY) > 0.05
       lastMappedY = y
 
       if (motion.lastY !== null) {
@@ -302,106 +240,22 @@ export default function VideoBackground() {
       }
       motion.lastY = y
 
-      const scrollMotion = Math.abs(motion.velocity)
-      if (seekRequested || scrollMotion > 0.02) {
+      const moving =
+        seekRequested || Math.abs(motion.velocity) > PLAYBACK_EPSILON
+      if (moving) {
         lastActivity = performance.now()
       }
-      const transitionBlur = activeTransition && scrollMotion > 0.08
-        ? Math.sin(Math.PI * timeline.progress) * 0.18
-        : 0
-      const weights = new Map()
 
-      if (activeTransition) {
-        const fromId = activeTransition.from
-        const toId = activeTransition.to
-        weights.set(fromId, Math.max(weights.get(fromId) || 0, 1 - timeline.progress))
-        weights.set(toId, Math.max(weights.get(toId) || 0, timeline.progress))
-      } else {
-        weights.set(sectionClipIds[timeline.active], 1)
+      if (lastActiveId !== activeId) {
+        applyGroup(activeId)
+        lastActiveId = activeId
       }
 
-      for (const clip of backgrounds.clips) {
-        const video = videoRefs.current[clip.id]
-        const weight = weights.get(clip.id) || 0
-        if (!video) continue
-        const state = styleState.get(clip.id)
-        const opacity = weight.toFixed(3)
-        const visibility = weight > 0.01 ? 'visible' : 'hidden'
-        const filter = transitionBlur > 0.01 ? `blur(${transitionBlur.toFixed(2)}px)` : ''
-        if (state) {
-          if (state.opacity !== opacity) {
-            video.style.opacity = opacity
-            state.opacity = opacity
-          }
-          if (state.visibility !== visibility) {
-            video.style.visibility = visibility
-            state.visibility = visibility
-          }
-          if (state.filter !== filter) {
-            video.style.filter = filter
-            state.filter = filter
-          }
-        } else {
-          video.style.opacity = opacity
-          video.style.visibility = visibility
-          video.style.filter = filter
-        }
-        if (weight > 0.01) requestAutoLoad(clip.id)
+      // 自动播放片例外：自由播放，不被滚动改写播放头
+      if (activeId !== AUTOPLAY_CLIP) {
+        timeAt(activeId, rangeBySection[activeIndex], y, seekRequested)
       }
-
-      for (const transition of backgrounds.transitions) {
-        const out = outRefs.current[transition.id]
-        const incoming = inRefs.current[transition.id]
-        const isCurrent = activeTransition?.id === transition.id
-        // 正常模式让真实视频完成过渡；减少动效模式才用首尾静帧。
-        const keyframeMix = reduced && isCurrent ? 1 : 0
-        const nextOut = keyframeMix ? (1 - timeline.progress).toFixed(3) : '0'
-        const nextIn = keyframeMix ? timeline.progress.toFixed(3) : '0'
-        if (out && out.dataset.opacity !== nextOut) {
-          out.dataset.opacity = nextOut
-          out.style.opacity = nextOut
-        }
-        if (incoming && incoming.dataset.opacity !== nextIn) {
-          incoming.dataset.opacity = nextIn
-          incoming.style.opacity = nextIn
-        }
-      }
-
-      if (veilRef.current) {
-        const veilOpacity = activeTransition ? Math.sin(Math.PI * timeline.progress) * 0.06 : 0
-        const nextVeil = veilOpacity.toFixed(3)
-        if (veilRef.current.dataset.opacity !== nextVeil) {
-          veilRef.current.dataset.opacity = nextVeil
-          veilRef.current.style.opacity = nextVeil
-        }
-      }
-
-      if (activeTransition) {
-        const fromRange = rangeBySection[timeline.transitionIndex - 1]
-        const toRange = rangeBySection[timeline.transitionIndex]
-        if (reduced) {
-          setVideoTime(
-            activeTransition.from,
-            Math.max(START_TIME, clipDuration(activeTransition.from) - END_EPSILON),
-            seekRequested,
-          )
-          setVideoTime(activeTransition.to, START_TIME, seekRequested)
-        } else {
-          timeAt(activeTransition.from, fromRange, y, seekRequested)
-          timeAt(activeTransition.to, toRange, y, seekRequested)
-        }
-        syncIdleState(weights, scrollMotion, seekRequested, forceIdle)
-        return
-      }
-
-      const activeId = sectionClipIds[timeline.active]
-      const activeRange = rangeBySection[timeline.active]
-      if (reduced) {
-        setVideoTime(activeId, clipDuration(activeId) * 0.18, seekRequested)
-      } else {
-        timeAt(activeId, activeRange, y, seekRequested)
-      }
-      syncIdleState(weights, scrollMotion, seekRequested, forceIdle)
+      syncPlayback(activeId, moving)
     }
 
     const frame = () => {
@@ -411,16 +265,14 @@ export default function VideoBackground() {
       if (performance.now() - lastActivity < IDLE_SETTLE_MS) {
         raf = requestAnimationFrame(frame)
       } else {
-        // 静止窗口到期：补跑一帧并强制走「无人滚动」分支，
-        // 把当前主角交给慢速播放。之后 rAF 完全停下——
-        // 播放本身由浏览器的视频管线驱动，不需要我们每帧参与。
-        update(true)
+        // 静止窗口到期：补跑一帧收尾（首页片在此刻接管为自动播放），
+        // 之后 rAF 完全停下——播放由浏览器视频管线驱动，不需要我们参与
+        update()
       }
     }
 
     const wake = () => {
       lastActivity = performance.now()
-      if (reduced) return
       if (document.hidden) {
         update()
         return
@@ -472,20 +324,6 @@ export default function VideoBackground() {
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('pointerdown', unlock, { once: true })
 
-    if (reduced) {
-      const onScroll = () => update()
-      window.addEventListener('scroll', onScroll, { passive: true })
-      update()
-      return () => {
-        window.removeEventListener('resize', onResize)
-        window.removeEventListener('scroll', onScroll)
-        document.removeEventListener('visibilitychange', onVisible)
-        window.removeEventListener('pointerdown', unlock)
-        layoutObserver?.disconnect()
-        videos.forEach((video) => video.removeEventListener('loadedmetadata', onMetadata))
-      }
-    }
-
     const onScrollWake = () => wake()
     window.addEventListener('scroll', onScrollWake, { passive: true })
     update()
@@ -505,8 +343,6 @@ export default function VideoBackground() {
   return (
     <>
       <div ref={reelRef} className="bg-canvas bg-reel" aria-hidden="true">
-        {/* 视频层单独包一层：固定的降噪 / 锐化滤镜挂在这一层，
-            视频元素自己的 inline filter（转场瞬间的动态模糊）就不会覆盖掉它 */}
         <div className="bg-stage">
           {backgrounds.clips.map((clip, index) => (
             <video
@@ -527,29 +363,6 @@ export default function VideoBackground() {
             />
           ))}
         </div>
-        {backgrounds.transitions.map((transition) => (
-          <div className="bg-transition" key={transition.id} data-transition={transition.id}>
-            <img
-              ref={(el) => {
-                outRefs.current[transition.id] = el
-              }}
-              className="bg-transition-frame"
-              src={asset(transition.out)}
-              alt=""
-              decoding="async"
-            />
-            <img
-              ref={(el) => {
-                inRefs.current[transition.id] = el
-              }}
-              className="bg-transition-frame"
-              src={asset(transition.in)}
-              alt=""
-              decoding="async"
-            />
-          </div>
-        ))}
-        <div ref={veilRef} className="bg-transition-veil" aria-hidden="true" />
         <div className="bg-reel-vignette" aria-hidden="true" />
         <div className="bg-veil" aria-hidden="true" />
       </div>

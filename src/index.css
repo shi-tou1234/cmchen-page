@@ -234,7 +234,7 @@ h3 {
   border-color: var(--accent-2);
 }
 .view-all:hover .arrow {
-  transform: translateX(4px);
+  animation: arrow-pass 0.5s var(--ease-out) both;
 }
 
 /* 全宽发丝分隔线：进视口从左向右展开（scaleX 0→1），一次性触发 */
@@ -341,56 +341,38 @@ h3 {
   overflow: hidden;
 }
 
-.bg-video-layer,
-.bg-transition-frame {
+.bg-video-layer {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-/* 运镜：可见层缓慢推近（Ken Burns）。transform 走合成器，
-   视频层本身就是合成表面，缩放不触发重解码 */
-.bg-video-layer {
-  visibility: hidden;
   opacity: 0;
-  animation: bg-kenburns 36s var(--ease-swift) infinite alternate;
-  will-change: transform;
+  animation: bg-kenburns 44s linear infinite alternate;
+  will-change: transform, opacity;
+  /* 交叉溶解：透明度交给 CSS 恒定节奏走完（VideoBackground 只切状态位），
+     出场的层等溶解走完再隐藏（visibility 延迟 = 溶解时长） */
+  transition:
+    opacity 0.95s cubic-bezier(0.45, 0, 0.2, 1),
+    visibility 0s linear 0s;
 }
 
-/* VideoBackground 按权重写 data-visible：只有可见层参与合成 */
-.bg-video-layer[data-visible='1'] {
-  visibility: visible;
+.bg-video-layer[data-visible='0'] {
+  visibility: hidden;
+  transition:
+    opacity 0.95s cubic-bezier(0.45, 0, 0.2, 1),
+    visibility 0s linear 0.95s;
 }
 
+/* 运镜：可见层缓慢推近。上限 1.02——超过它会放大采样、把细节焐糊 */
 @keyframes bg-kenburns {
   from {
     transform: scale(1) translate3d(0, 0, 0);
   }
   to {
-    transform: scale(1.055) translate3d(-1.2%, 1%, 0);
+    transform: scale(1.02) translate3d(-0.7%, 0.6%, 0);
   }
-}
-
-.bg-transition {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.bg-transition-frame {
-  opacity: 0;
-}
-
-.bg-transition-veil {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: rgba(4, 5, 8, 0.7);
-  opacity: 0;
-  mix-blend-mode: multiply;
 }
 
 /* 压底层：纯 alpha 遮罩，压住星点高频、抬正文对比、盖素材水印角 */
@@ -952,7 +934,12 @@ body.site-revealed .hero-scroll {
   background: transparent;
   overflow: hidden;
   isolation: isolate;
-  transition: color 0.4s ease, border-color 0.4s ease;
+  cursor: pointer;
+  transition:
+    color 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.45s var(--ease-out),
+    transform 0.3s var(--ease-out);
 }
 
 .btn::before {
@@ -969,10 +956,41 @@ body.site-revealed .hero-scroll {
 .btn:hover {
   color: #0b0c10;
   border-color: var(--accent);
+  box-shadow: 0 10px 28px rgba(201, 171, 116, 0.16);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 0.12s;
 }
 
 .btn:hover::before {
   transform: scaleX(1);
+}
+
+/* 箭头穿梭：驶出右缘、从左缘再入场，落点右移 4px */
+.btn:hover .arrow {
+  animation: arrow-pass 0.5s var(--ease-out) both;
+}
+
+@keyframes arrow-pass {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(12px);
+    opacity: 0;
+  }
+  55% {
+    transform: translateX(-12px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(4px);
+    opacity: 1;
+  }
 }
 
 /* 主按钮：金字 + 亮一档的描边，与次按钮拉开层级 */
@@ -1574,6 +1592,10 @@ body.site-revealed .hero-scroll {
   color: #0b0c10;
 }
 
+.project-card:hover .project-go .arrow {
+  animation: arrow-pass 0.5s var(--ease-out) both;
+}
+
 
 
 /* =====================================================================
@@ -1822,10 +1844,21 @@ body.site-revealed .hero-scroll {
 .contact-btn:hover {
   color: #0b0c10;
   border-color: var(--accent);
+  box-shadow: 0 10px 28px rgba(201, 171, 116, 0.16);
+  transform: translateY(-1px);
+}
+
+.contact-btn:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 0.12s;
 }
 
 .contact-btn:hover::before {
   transform: scaleX(1);
+}
+
+.contact-btn:hover .arrow {
+  animation: arrow-pass 0.5s var(--ease-out) both;
 }
 
 .contact-ghost {
@@ -2164,6 +2197,9 @@ body.is-static *::after {
   .marquee-track,
   .hero-scroll-line::after {
     animation: none !important;
+  }
+  .bg-video-layer {
+    transition: none;
   }
   .reveal,
   .reveal--right,

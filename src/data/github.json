@@ -1,1 +1,1 @@
-{"repos":11,"updatedAt":"2026-09-26T07:25:16.318Z","error":"Error: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca"}
+{"repos":11,"updatedAt":"2026-09-26T07:46:25.471Z","error":"Error: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca"}
