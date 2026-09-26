@@ -953,102 +953,60 @@ body.site-revealed .hero-scroll {
    按钮（Magnetic 容器 .magnetic 不设样式，只做位移宿主）
    ===================================================================== */
 
-/* 全站按钮：颜色统一香槟金一族，交互人格一对一——
-   主按钮「金面掠光」/ 次按钮「底线描画」/ 导航「晕染」/
-   邮箱「硬阴影错位」（线上同款）/ GITHUB「边角括号聚拢」/
-   view-all「金线盖写」/ 项目卡圆钮「箭头转向」 */
+/* hero 按钮对：与邮箱按钮同族的「硬阴影实体键」——
+   常驻右下硬阴影让按钮静态就有体积感，悬停整体滑向左上、
+   阴影加深（像被指尖按住一角）；次按钮同形，换香槟金描边 */
 .btn {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.3em;
-  padding: 16px 30px;
-  border-radius: var(--radius-md);
-  color: var(--text-dim);
-  background: transparent;
-  transition:
-    color 0.35s ease,
-    border-color 0.35s ease,
-    background 0.35s ease,
-    transform 0.3s var(--ease-out);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 15px 30px;
+  border-radius: 8px;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.btn .arrow {
+  transition: transform 0.25s ease;
 }
 
 .btn:active {
-  transform: translateY(1px) scale(0.985);
-  transition-duration: 0.12s;
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  transition-duration: 0.1s;
 }
 
-/* 主按钮：香槟金实底，悬停一道斜向掠光扫过面板 */
+/* 主按钮：象牙白实底 + 常驻香槟金硬阴影 */
 .btn-primary {
-  overflow: hidden;
-  isolation: isolate;
-  background: var(--accent);
+  background: #f4efe4;
   color: #0b0c10;
-  font-weight: 500;
-  border: 1px solid rgba(230, 217, 189, 0.7);
-}
-
-.btn-primary::after {
-  content: "";
-  position: absolute;
-  top: -30%;
-  bottom: -30%;
-  left: 0;
-  width: 34%;
-  z-index: -1;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(255, 252, 244, 0.55) 50%,
-    transparent 100%
-  );
-  transform: translateX(-160%) skewX(-18deg);
+  box-shadow: 4px 4px 0 rgba(201, 171, 116, 0.38);
 }
 
 .btn-primary:hover {
-  background: #efe2c2;
-  transform: translateY(-1px);
-}
-
-.btn-primary:hover::after {
-  transform: translateX(420%) skewX(-18deg);
-  transition: transform 0.7s var(--ease-out);
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 rgba(201, 171, 116, 0.5);
 }
 
 .btn-primary:hover .arrow {
   transform: translateX(4px);
 }
 
-/* 次按钮：无边框文字键，悬停一条香槟金底线从左向右描画 */
+/* 次按钮：同形香槟金描边版，阴影更轻一档 */
 .btn-outline {
-  color: var(--text-dim);
-  border: 0;
-  border-bottom: 1px solid rgba(240, 235, 226, 0.2);
-  border-radius: 0;
-}
-
-.btn-outline::after {
-  content: "";
-  position: absolute;
-  left: 30px;
-  right: 30px;
-  bottom: -1px;
-  height: 1px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.5s var(--ease-out);
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid rgba(230, 217, 189, 0.6);
 }
 
 .btn-outline:hover {
-  color: var(--text);
-}
-
-.btn-outline:hover::after {
-  transform: scaleX(1);
+  transform: translate(-4px, -4px);
+  background: rgba(230, 217, 189, 0.1);
+  box-shadow: 6px 6px 0 rgba(201, 171, 116, 0.26);
 }
 
 .btn-outline:hover .arrow {
