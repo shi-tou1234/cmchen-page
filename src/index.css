@@ -212,7 +212,9 @@ h3 {
   background: linear-gradient(90deg, var(--border-strong), transparent);
 }
 
+/* view-all：永久发丝线上，悬停一条金线从左盖写过去 */
 .view-all {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -224,17 +226,31 @@ h3 {
   color: var(--text-dim);
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-strong);
-  transition: color 0.35s ease, border-color 0.35s ease;
+  transition: color 0.35s ease;
+}
+.view-all::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease-out);
 }
 .view-all .arrow {
   transition: transform 0.35s var(--ease-out);
 }
 .view-all:hover {
   color: var(--text);
-  border-color: var(--accent-2);
+}
+.view-all:hover::after {
+  transform: scaleX(1);
 }
 .view-all:hover .arrow {
-  animation: arrow-pass 0.5s var(--ease-out) both;
+  transform: translateX(4px);
 }
 
 /* 全宽发丝分隔线：进视口从左向右展开（scaleX 0→1），一次性触发 */
@@ -341,38 +357,56 @@ h3 {
   overflow: hidden;
 }
 
-.bg-video-layer {
+.bg-video-layer,
+.bg-transition-frame {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0;
-  animation: bg-kenburns 44s linear infinite alternate;
-  will-change: transform, opacity;
-  /* 交叉溶解：透明度交给 CSS 恒定节奏走完（VideoBackground 只切状态位），
-     出场的层等溶解走完再隐藏（visibility 延迟 = 溶解时长） */
-  transition:
-    opacity 0.95s cubic-bezier(0.45, 0, 0.2, 1),
-    visibility 0s linear 0s;
 }
 
-.bg-video-layer[data-visible='0'] {
+/* 运镜：可见层缓慢推近（Ken Burns）。transform 走合成器，
+   视频层本身就是合成表面，缩放不触发重解码 */
+.bg-video-layer {
   visibility: hidden;
-  transition:
-    opacity 0.95s cubic-bezier(0.45, 0, 0.2, 1),
-    visibility 0s linear 0.95s;
+  opacity: 0;
+  animation: bg-kenburns 36s var(--ease-swift) infinite alternate;
+  will-change: transform;
 }
 
-/* 运镜：可见层缓慢推近。上限 1.02——超过它会放大采样、把细节焐糊 */
+/* VideoBackground 按权重写 data-visible：只有可见层参与合成 */
+.bg-video-layer[data-visible='1'] {
+  visibility: visible;
+}
+
 @keyframes bg-kenburns {
   from {
     transform: scale(1) translate3d(0, 0, 0);
   }
   to {
-    transform: scale(1.02) translate3d(-0.7%, 0.6%, 0);
+    transform: scale(1.055) translate3d(-1.2%, 1%, 0);
   }
+}
+
+.bg-transition {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bg-transition-frame {
+  opacity: 0;
+}
+
+.bg-transition-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(4, 5, 8, 0.7);
+  opacity: 0;
+  mix-blend-mode: multiply;
 }
 
 /* 压底层：纯 alpha 遮罩，压住星点高频、抬正文对比、盖素材水印角 */
@@ -516,6 +550,7 @@ h3 {
   will-change: transform;
 }
 
+/* 导航按钮：悬停一圈淡金晕染进来，安静不抢戏 */
 .nav-cta {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -525,12 +560,13 @@ h3 {
   border: 1px solid rgba(230, 217, 189, 0.4);
   border-radius: var(--radius-md);
   padding: 8px 16px;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  transition: color 0.35s ease, border-color 0.35s ease, background 0.35s ease;
 }
 
 .nav-cta:hover {
   color: var(--text);
   border-color: var(--accent-2);
+  background: rgba(230, 217, 189, 0.16);
 }
 
 /* 滚动进度发丝线：header 底边一条 scaleX 的金线 */
@@ -917,8 +953,10 @@ body.site-revealed .hero-scroll {
    按钮（Magnetic 容器 .magnetic 不设样式，只做位移宿主）
    ===================================================================== */
 
-/* 按钮统一「描边字幕式」：透明底 + 细描边 + 等宽小字大字距；
-   悬停时香槟金从左向右充填（::before scaleX，合成层属性），文字转深色 */
+/* 全站按钮：颜色统一香槟金一族，交互人格一对一——
+   主按钮「金面掠光」/ 次按钮「底线描画」/ 导航「晕染」/
+   邮箱「硬阴影错位」（线上同款）/ GITHUB「边角括号聚拢」/
+   view-all「金线盖写」/ 项目卡圆钮「箭头转向」 */
 .btn {
   position: relative;
   display: inline-flex;
@@ -928,36 +966,14 @@ body.site-revealed .hero-scroll {
   font-size: 13px;
   letter-spacing: 0.3em;
   padding: 16px 30px;
-  border: 1px solid rgba(240, 235, 226, 0.3);
   border-radius: var(--radius-md);
   color: var(--text-dim);
   background: transparent;
-  overflow: hidden;
-  isolation: isolate;
-  cursor: pointer;
   transition:
-    color 0.4s ease,
-    border-color 0.4s ease,
-    box-shadow 0.45s var(--ease-out),
+    color 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease,
     transform 0.3s var(--ease-out);
-}
-
-.btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.5s var(--ease-out);
-}
-
-.btn:hover {
-  color: #0b0c10;
-  border-color: var(--accent);
-  box-shadow: 0 10px 28px rgba(201, 171, 116, 0.16);
-  transform: translateY(-1px);
 }
 
 .btn:active {
@@ -965,42 +981,78 @@ body.site-revealed .hero-scroll {
   transition-duration: 0.12s;
 }
 
-.btn:hover::before {
+/* 主按钮：香槟金实底，悬停一道斜向掠光扫过面板 */
+.btn-primary {
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--accent);
+  color: #0b0c10;
+  font-weight: 500;
+  border: 1px solid rgba(230, 217, 189, 0.7);
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 34%;
+  z-index: -1;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 252, 244, 0.55) 50%,
+    transparent 100%
+  );
+  transform: translateX(-160%) skewX(-18deg);
+}
+
+.btn-primary:hover {
+  background: #efe2c2;
+  transform: translateY(-1px);
+}
+
+.btn-primary:hover::after {
+  transform: translateX(420%) skewX(-18deg);
+  transition: transform 0.7s var(--ease-out);
+}
+
+.btn-primary:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* 次按钮：无边框文字键，悬停一条香槟金底线从左向右描画 */
+.btn-outline {
+  color: var(--text-dim);
+  border: 0;
+  border-bottom: 1px solid rgba(240, 235, 226, 0.2);
+  border-radius: 0;
+}
+
+.btn-outline::after {
+  content: "";
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  bottom: -1px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease-out);
+}
+
+.btn-outline:hover {
+  color: var(--text);
+}
+
+.btn-outline:hover::after {
   transform: scaleX(1);
 }
 
-/* 箭头穿梭：驶出右缘、从左缘再入场，落点右移 4px */
-.btn:hover .arrow {
-  animation: arrow-pass 0.5s var(--ease-out) both;
-}
-
-@keyframes arrow-pass {
-  0% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  45% {
-    transform: translateX(12px);
-    opacity: 0;
-  }
-  55% {
-    transform: translateX(-12px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(4px);
-    opacity: 1;
-  }
-}
-
-/* 主按钮：金字 + 亮一档的描边，与次按钮拉开层级 */
-.btn-primary {
-  color: var(--accent);
-  border-color: rgba(230, 217, 189, 0.55);
-}
-
-.btn-outline {
-  color: var(--text-dim);
+.btn-outline:hover .arrow {
+  transform: translateX(4px);
 }
 
 .arrow {
@@ -1586,6 +1638,7 @@ body.site-revealed .hero-scroll {
   transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
 }
 
+/* 项目卡圆钮：悬停填色 + 箭头 -45° 转向（右→右上，「打开外链」的手势） */
 .project-card:hover .project-go {
   background: var(--text);
   border-color: var(--text);
@@ -1593,7 +1646,11 @@ body.site-revealed .hero-scroll {
 }
 
 .project-card:hover .project-go .arrow {
-  animation: arrow-pass 0.5s var(--ease-out) both;
+  transform: rotate(-45deg);
+}
+
+.project-go .arrow {
+  transition: transform 0.4s var(--ease-out);
 }
 
 
@@ -1810,58 +1867,39 @@ body.site-revealed .hero-scroll {
   flex-wrap: wrap;
 }
 
-/* 邮箱主按钮：与全站同款描边字幕式，悬停金色充填 */
+/* 邮箱主按钮：线上仓库同款「硬阴影错位」——悬停按钮滑向左上，
+   右下浮出一块香槟金硬阴影；按下时压进阴影里 */
 .contact-btn {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  font-family: var(--font-mono);
-  font-size: clamp(15px, 1.7vw, 19px);
-  letter-spacing: 0.08em;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid rgba(230, 217, 189, 0.55);
-  border-radius: var(--radius-md);
-  padding: 18px 30px;
+  gap: 12px;
+  font-family: var(--font);
+  font-size: clamp(15px, 1.7vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 16px 32px;
+  background: #f4efe4;
+  color: #0b0c10;
+  border: 0;
+  border-radius: 8px;
   cursor: pointer;
-  overflow: hidden;
-  isolation: isolate;
-  transition: color 0.4s ease, border-color 0.4s ease;
-}
-
-.contact-btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.5s var(--ease-out);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease;
 }
 
 .contact-btn:hover {
-  color: #0b0c10;
-  border-color: var(--accent);
-  box-shadow: 0 10px 28px rgba(201, 171, 116, 0.16);
-  transform: translateY(-1px);
+  transform: translate(-4px, -4px);
+  box-shadow: 6px 6px 0 rgba(201, 171, 116, 0.45);
 }
 
 .contact-btn:active {
-  transform: translateY(1px) scale(0.985);
-  transition-duration: 0.12s;
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  transition-duration: 0.1s;
 }
 
-.contact-btn:hover::before {
-  transform: scaleX(1);
-}
-
-.contact-btn:hover .arrow {
-  animation: arrow-pass 0.5s var(--ease-out) both;
-}
-
+/* GITHUB 按钮：悬停时边框淡出，两枚香槟金边角括号从外侧聚拢收编 */
 .contact-ghost {
+  position: relative;
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.28em;
@@ -1873,9 +1911,42 @@ body.site-revealed .hero-scroll {
   transition: color 0.35s ease, border-color 0.35s ease;
 }
 
+.contact-ghost::before,
+.contact-ghost::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--accent-2);
+  opacity: 0;
+  transition: transform 0.4s var(--ease-out), opacity 0.4s ease;
+}
+
+.contact-ghost::before {
+  top: -5px;
+  left: -5px;
+  border-right: 0;
+  border-bottom: 0;
+  transform: translate(8px, 8px);
+}
+
+.contact-ghost::after {
+  bottom: -5px;
+  right: -5px;
+  border-left: 0;
+  border-top: 0;
+  transform: translate(-8px, -8px);
+}
+
 .contact-ghost:hover {
-  border-color: var(--accent-2);
-  color: var(--text);
+  color: var(--accent);
+  border-color: rgba(230, 217, 189, 0.55);
+}
+
+.contact-ghost:hover::before,
+.contact-ghost:hover::after {
+  opacity: 1;
+  transform: translate(0, 0);
 }
 
 .contact-meta {
