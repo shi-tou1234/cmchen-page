@@ -59,7 +59,7 @@
 | 层 | 选择 |
 |----|------|
 | 框架 | React 19 ＋ Vite 8（hash 路由，Pages 子路径 `/cmchen-page/`） |
-| 背景 | 五段实拍视频（全关键帧 mp4）＋ 轨道滚动映射 ＋ 刮擦/自动播放混合驱动 ＋ 尾/首帧溶解，rAF 同步 |
+| 背景 | 五段实拍视频（720p/CRF26，合计 ~4.1MB，慢网可秒开）＋ 轨道滚动映射 ＋ 刮擦/自动播放混合驱动 ＋ 尾/首帧溶解，rAF 同步，非当前段 `preload=none` 滚到前 1.2 屏才预热 |
 | 地图 | ECharts 按需分包（`echarts/core` ＋ MapChart，进视口才加载），边界资源本地自持（`public/maps`） |
 | 字体 | Cormorant Garamond（拉丁巨字/数字）＋ 思源宋体可变字重（中文标题）＋ 思源黑体可变字重（正文）＋ JetBrains Mono（编号/meta），全部 @fontsource 本地打包 |
 | 动效 | 纯 CSS ＋ rAF（曲线三族 / clip-path / @property 过渡 / IntersectionObserver 级联 / lerp 平滑滚动 / scroll-scrub） |
@@ -95,6 +95,7 @@ npm run preview    # 本地预览构建结果
 | `probe-scrub.mjs` | idle 自动播放与滚动刮擦交接的播放头回跳 | backwardJumps=0 |
 | `probe-bg.mjs` | 逐段读背景主导视频与溶解窗 | 与映射表一致、段中心 veil=0 |
 | `probe-intro.mjs` | 同一会话连刷两次的开场编排 | 两次 preloader 均在 DOM |
+| `probe-lazyload.mjs` | 首屏与滚动中的 mp4 请求数取证（懒加载） | 首屏 ≤2 条、滚一段 ≤3 条且主导视频在播 |
 
 ## 目录结构
 
@@ -104,7 +105,7 @@ npm run preview    # 本地预览构建结果
 ├── public/
 │   ├── admin-security.json     # 后台密码的 PBKDF2 哈希配置
 │   ├── maps/                   # 中国地图边界（china.full.json ＋ 34 省份，拷贝自博客站点）
-│   ├── videos/                 # 五段背景视频（全关键帧编码版）
+│   ├── videos/                 # 五段背景视频（720p/CRF26，源自 素材/ 的单代重编码）
 │   ├── images/background-keyframes/ # 栏目交界的尾帧/首帧关键帧
 │   ├── og-image.png
 │   └── favicon.svg

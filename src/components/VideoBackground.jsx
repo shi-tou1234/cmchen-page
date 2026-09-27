@@ -16,6 +16,9 @@ const IDLE_SETTLE_MS = 650
 // 幻灯片，正是「背景卡顿」的真正来源。1 倍速就是素材本来的 24fps，播放器
 // 直接按原生节奏送帧，反而最稳。循环靠 loop 属性，首尾硬切对氛围片无感。
 const IDLE_PLAYBACK_RATE = 1
+// 视口前方多少屏开始预热下一条轨道：给慢网留出缓冲，
+// 又不至于把还没读到的栏目一次性全下载下来
+const WARM_AHEAD_RATIO = 1.2
 
 const clipMap = new Map(backgrounds.clips.map((clip) => [clip.id, clip]))
 
@@ -196,6 +199,23 @@ export default function VideoBackground() {
       video.load()
     }
 
+    // 按需预热：只提前拉「视口下方 1.2 屏内」的轨道（当前段由权重逻辑负责），
+    // 其余 clip 一律 preload=none。线上（GitHub Pages）带宽极差，
+    // 一进页面 5 条 mp4 并发全量请求会互相拖死——实测每条跑 100s+
+    // 才就绪，画面只能停在 poster 上；单条串行拉取则首屏秒开。
+    // 下界用来兜住「直接跳到页脚」这类跳跃：跳过的段落不追着下载，
+    // 等真滚到它们附近再拉。
+    const warmAhead = (y, viewportHeight) => {
+      const horizon = y + viewportHeight * WARM_AHEAD_RATIO
+      const floor = y - viewportHeight * 0.5
+      for (let i = 0; i < boundaries.length; i += 1) {
+        if (boundaries[i] > horizon) break
+        if (boundaries[i] < floor) continue
+        const id = sectionClipIds[i]
+        if (id) requestAutoLoad(id)
+      }
+    }
+
     // 静止时不再冻帧：让当前可见的视频以原生倍速继续播放，画面始终在动。
     // 流畅性靠三件事保证——
     //   ① 只播权重最高的那一条，其余保持暂停（最多 1 条在解码）；
@@ -319,6 +339,7 @@ export default function VideoBackground() {
           ? smoothY
           : window.scrollY
       const viewportHeight = Math.max(1, window.innerHeight)
+      warmAhead(y, viewportHeight)
       const timeline = getTimeline(y, viewportHeight)
       const activeTransition =
         timeline.transitionIndex >= 0
@@ -570,7 +591,7 @@ export default function VideoBackground() {
               muted
               loop
               playsInline
-              preload={index === 0 ? 'auto' : 'metadata'}
+              preload={index === 0 ? 'auto' : 'none'}
               disablePictureInPicture
               style={{ opacity: index === 0 ? 1 : 0 }}
             />
