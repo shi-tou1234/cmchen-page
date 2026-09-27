@@ -1,27 +1,12 @@
 import { useEffect, useState } from 'react'
 
 // 开场加载遮罩：4 阶段电影编排（逐字打出 → 发光脉冲 → 副标题 → 揭幕）
-// 同一会话刷新跳过（sessionStorage 记忆）；减少动效环境秒进
+// 领导拍板：每次刷新都完整播放（2026-09-27，去掉原 sessionStorage 跳过记忆）。
+// hasShownThisLoad 只防 React 重挂载导致同一次加载里重复开演；整页刷新会归零。
+// 减少动效环境秒进。
 let hasShownThisLoad = false
 
-const SEEN_KEY = 'cmchen-page:preloaded'
 const LOGO = 'cmchen'
-
-function seenThisSession() {
-  try {
-    return sessionStorage.getItem(SEEN_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-function markSeen() {
-  try {
-    sessionStorage.setItem(SEEN_KEY, '1')
-  } catch {
-    /* 隐私模式等写入失败可忽略 */
-  }
-}
 
 // ?static=1：截图/调试钩子——跳过开场编排，冻结全部动画直出终态
 const STATIC_MODE = (() => {
@@ -33,7 +18,7 @@ const STATIC_MODE = (() => {
 })()
 
 export default function Preloader() {
-  const [done, setDone] = useState(() => STATIC_MODE || hasShownThisLoad || seenThisSession())
+  const [done, setDone] = useState(() => STATIC_MODE || hasShownThisLoad)
 
   useEffect(() => {
     if (STATIC_MODE) {
@@ -52,7 +37,6 @@ export default function Preloader() {
       return
     }
     hasShownThisLoad = true
-    markSeen()
 
     const finish = () => {
       document.body.classList.add('site-revealed')

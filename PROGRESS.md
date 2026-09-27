@@ -61,6 +61,13 @@ contact→footer 偏弱的说明：contact 是最后一个整段，maxScroll 前
 - 修复路上两笔返工，如实记：第一版捕获条件误带 `!force`（timeAt 的 force 形参就是 seekRequested，唤醒帧恰为 true，捕获被跳过）；clamp ±1.2s 裁掉了首段长静止攒的 drift 残留一次 1.22s 回跳。两处修正后回跳清零。
 - 复验：修复后同探针 0 次回跳（before 3 次/max 2.39s → after 0 次/max 0），lint 0/0、build ✓。
 
+## 反馈轮 2（2026-09-27 领导第二项：开场编排每次刷新都播）
+
+- 原状：Preloader 有 sessionStorage 记忆（cmchen-page:preloaded），同一会话刷新跳过开场。
+- 改动：删掉跳过记忆——每次整页刷新都完整播放「逐字打出 cmchen → 幕布揭幕 → 巨字弹入」；保留 ?static=1 截图跳过、reduced-motion 秒进；hasShownThisLoad 仅防 React 重挂载重复开演，整页刷新归零（Preloader.jsx）。
+- 复验：shots/probe-intro.mjs 同一会话连续两次加载，两次 preloader 均在 DOM、加载后揭幕、sessionStorage 标记为 null ✓。
+- 本地端口清理：4177/5173/5174/5175 旧实例全部杀掉，重起单一 preview（4177，生产构建）。
+
 ## 交付清单（任务 5）
 
 - 区块终态截图（改造后）：shots/01-hero.png … shots/08-footer.png（8 张，node shots/capture.mjs 复跑可再现）
