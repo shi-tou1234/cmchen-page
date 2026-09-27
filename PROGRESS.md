@@ -54,6 +54,13 @@ contact→footer 偏弱的说明：contact 是最后一个整段，maxScroll 前
 
 另外记录一个结构性发现：Footer 没有 .container 直子（结构是 footer > Reveal），相机宿主不含 footer——与片尾卡豁免正好一致。
 
+## 反馈轮（2026-09-27 领导实测反馈：滚动时背景抽搐）
+
+- 机制定位：静止 650ms 后背景以 1 倍速自动播放，播放头前进；滚轮唤醒「滚动刮擦」时，纯函数映射把播放头瞬间拽回映射位置——间歇滚轮形成「播放→拽回」循环。探针实测修复前 3 次回跳、最大 2.39s（shots/probe-scrub.mjs，三手势×900ms 间隙）。
+- 修复：① 唤醒帧把播放头差记成一次性 drift（clamp ±3.5s 只防异常），随滚动每帧 ×0.96 衰减归零——播放头平滑滑回映射，不回跳；drift 每轮实测、不进映射基线，不复现旧 MAP_OFFSET 的累积漂移（VideoBackground.jsx timeAt/update/syncIdleState）。② seek 在途（video.seeking）不再重启解码＋阈值 0.015→0.03s，砍一半 seek 次数，帧按序显示。③ App.jsx 相机容器的 will-change 改动态升降级（临近视口且非恒等才占 GPU 层，归位即还），削掉 8 个常驻大平面层的解码竞争。
+- 修复路上两笔返工，如实记：第一版捕获条件误带 `!force`（timeAt 的 force 形参就是 seekRequested，唤醒帧恰为 true，捕获被跳过）；clamp ±1.2s 裁掉了首段长静止攒的 drift 残留一次 1.22s 回跳。两处修正后回跳清零。
+- 复验：修复后同探针 0 次回跳（before 3 次/max 2.39s → after 0 次/max 0），lint 0/0、build ✓。
+
 ## 交付清单（任务 5）
 
 - 区块终态截图（改造后）：shots/01-hero.png … shots/08-footer.png（8 张，node shots/capture.mjs 复跑可再现）

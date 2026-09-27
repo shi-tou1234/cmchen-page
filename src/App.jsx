@@ -178,10 +178,8 @@ export default function App() {
           el,
           top: r.top + y,
           lastT: '',
+          promoted: false,
         }
-      })
-      camEls.forEach((el) => {
-        el.style.willChange = 'transform'
       })
     }
     measureAll()
@@ -256,6 +254,19 @@ export default function App() {
         if (t !== c.lastT) {
           c.el.style.transform = t
           c.lastT = t
+          // 合成层动态升降级：只在真的动起来且临近视口时占一层 GPU 内存，
+          // 回到恒等（阅读区/远屏外）就还回去——常驻 8 层大平面会跟视频解码抢预算
+          const near = Math.abs(topVis) < vh * 2
+          const identity = pIn >= 1 && pOut <= 0
+          if (identity || !near) {
+            if (c.promoted) {
+              c.el.style.willChange = ''
+              c.promoted = false
+            }
+          } else if (!c.promoted) {
+            c.el.style.willChange = 'transform'
+            c.promoted = true
+          }
         }
       }
       raf = requestAnimationFrame(loop)

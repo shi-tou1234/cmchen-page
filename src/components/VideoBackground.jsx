@@ -113,6 +113,15 @@ export default function VideoBackground() {
     let lastMappedY = null
     let lastActivity = performance.now()
     let raf = 0
+    // idle 播放与滚动刮擦的「播放头差」：静止时视频以 1 倍速前进，滚轮一 wakes
+    // 刮擦映射会把播放头瞬间拽回映射位置——最多回跳一秒素材，间歇滚轮时
+    // 播放→拽回→播放循环，就是背景抽搐的来源。修法：唤醒瞬间把差值记成
+    // drift，随滚动指数衰减归零（平滑追赶，不回跳；每次唤醒重新实测，
+    // 不叠加进映射基线，不会复现旧 MAP_OFFSET 的累积漂移）
+    const driftMap = new Map(backgrounds.clips.map((clip) => [clip.id, 0]))
+    let idlePlaying = false
+    // update() 算出的当帧滚动状态，供 timeAt() 在唤醒帧做 drift 捕捉
+    let wakeInfo = { requested: false, motion: 0 }
 
     const measure = () => {
       const viewportHeight = Math.max(1, window.innerHeight)
@@ -161,11 +170,15 @@ export default function VideoBackground() {
       const end = Math.max(START_TIME, duration - END_EPSILON)
       const next = clamp(value, START_TIME, end)
       const reference = force ? video.currentTime : (assigned[id] ?? -1)
-      const threshold = force ? 0.03 : 0.015
+      // 0.03s ≈ 24fps 素材的 0.7 帧，肉眼不可分；把 seek 频率砍半，刮擦更稳
+      const threshold = force ? 0.03 : 0.03
       if (Math.abs(reference - next) < threshold) {
         assigned[id] = next
         return
       }
+      // seek 还在解码途中就不重启：一次只让解码器追一个目标，
+      // 密集改 currentTime 会反复取消解码——帧 burst 显示就是「抽」
+      if (video.seeking && !force) return
       try {
         video.currentTime = next
         assigned[id] = next
@@ -196,6 +209,7 @@ export default function VideoBackground() {
 
       if (reduced || moving) {
         // 滚动接管（或减少动效）：全部暂停，回到纯 seek 驱动
+        idlePlaying = false
         for (const clip of backgrounds.clips) {
           const video = videoRefs.current[clip.id]
           if (video && !video.paused) video.pause()
@@ -236,6 +250,7 @@ export default function VideoBackground() {
             video.playbackRate = IDLE_PLAYBACK_RATE
           }
           if (video.paused) video.play().catch(() => {})
+          idlePlaying = true
         } else if (!video.paused) {
           // 不是主角却还在播（例如刚跨过栏目，主角刚换人）：停掉
           video.pause()
@@ -265,20 +280,32 @@ export default function VideoBackground() {
 
     // 滚动映射：把 y 换算成播放头时间。
     //
-    // 这里不做「idle 漂移补偿」。试过把静止期走过的距离并入映射（MAP_OFFSET），
-    // 结果是偏移会在多次 idle↔滚动往返里不断累积，越滚越偏——因为补偿的基准
-    // assigned 本身已经是上一次补偿后的值，反推误差被放大了好几轮。
-    //
-    // 不补偿反而是对的：idle 只按 0.3 倍速播，滚轮一动就掐掉，一轮往返最多
-    // 攒 1s 左右的播放头差，落在 10s 的氛围片里根本看不出接缝；
-    // 而映射保持「滚动位置 → 时间」这条干净的纯函数，任何时候都可复现、
-    // 可测试，滚回顶部也一定回到片头。
+    // 这里不做「idle 漂移补偿」的旧方案（MAP_OFFSET 把补偿并进映射基线，
+    // 多轮 idle↔滚动后误差叠加越滚越偏——已弃）。现在的做法见 timeAt()：
+    // 唤醒帧把播放头差记成一次性的 drift，随滚动指数衰减归零。
+    // 每轮的 drift 都是唤醒瞬间实测值，不进基线、不跨轮累积；
+    // 映射本身保持「滚动位置 → 时间」这条干净纯函数，任何时候可复现。
     const timeAt = (id, range, y, force = false) => {
       if (!range) return
       const distance = Math.max(1, range.endY - range.startY)
       const progress = smoothstep(clamp((y - range.startY) / distance, 0, 1))
       const end = Math.max(START_TIME, clipDuration(id) - END_EPSILON)
-      setVideoTime(id, START_TIME + progress * (end - START_TIME), force)
+      const pure = START_TIME + progress * (end - START_TIME)
+      // 唤醒帧：idle 播放把播放头推前了，把差值记成 drift（clamp ±1.2s 防异常），
+      // 之后每帧衰减——播放头从当前位置平滑滑回映射，不再 snap 回跳。
+      // 注意 timeAt 的 force 形参就是 seekRequested：唤醒帧它为 true，
+      // 捕获必须发生在这一帧，不能用 !force 拦（否则回跳照旧）
+      if (idlePlaying && (wakeInfo.requested || wakeInfo.motion > 0.02)) {
+        const video = videoRefs.current[id]
+        if (video && Number.isFinite(video.currentTime)) {
+          // clamp 只防 currentTime 异常，不裁行为：首次长静止攒的 drift
+          // 可以到 2-3s，裁小了就会残留一次回跳
+          const d = clamp(video.currentTime - pure, -3.5, 3.5)
+          driftMap.set(id, Math.abs(d) > 0.04 ? d : 0)
+        }
+        idlePlaying = false
+      }
+      setVideoTime(id, pure + (driftMap.get(id) || 0), force)
     }
 
     const update = (forceIdle = false) => {
@@ -307,6 +334,11 @@ export default function VideoBackground() {
       motion.lastY = y
 
       const scrollMotion = Math.abs(motion.velocity)
+      // 供 timeAt 的唤醒帧捕捉用；同时让 drift 每帧向 0 衰减（约 1s 归零）
+      wakeInfo = { requested: seekRequested, motion: scrollMotion }
+      driftMap.forEach((value, id) => {
+        if (value !== 0) driftMap.set(id, Math.abs(value) < 0.02 ? 0 : value * 0.96)
+      })
       if (seekRequested || scrollMotion > 0.02) {
         lastActivity = performance.now()
       }
@@ -451,6 +483,8 @@ export default function VideoBackground() {
       motion.lastY = null
       motion.velocity = 0
       lastMappedY = null
+      // 布局重算会整体平移映射，旧 drift 作废
+      driftMap.forEach((value, id) => driftMap.set(id, 0))
       measure()
       update()
       wake()
