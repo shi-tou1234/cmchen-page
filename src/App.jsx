@@ -142,14 +142,51 @@ export default function App() {
     let currentY = targetY
     let raf = 0
 
-    // ghost 视差：每个 ghost 按各自 section 位置做相对漂移（±150px 限制，不会飞出区块）
-    const ghostData = ghosts.map((g) => {
-      const section = g.parentElement
-      const sectionTop = section
-        ? section.getBoundingClientRect().top + currentY
-        : 0
-      return { el: g, sectionTop }
-    })
+    const clamp01 = (v) => Math.min(1, Math.max(0, v))
+    const sstep = (t) => t * t * (3 - 2 * t)
+
+    // ghost 边界交接：幽灵水印字是贯穿 7 个边界的那件「活过去的元素」——
+    // 下一节的 ghost 以放大+低透明从上一节的散场里浮出，落位中线时归位（scale 1 / opacity 1），
+    // 离场再放大淡出。承载判据同 onetake：活过边界、位移或缩放可见。
+    let ghostData = []
+    // 内容层滚动运镜（领导拍板「明显」）：进场 0.96→1 推近 + 26px 升沉，
+    // 出场 1→1.03 继续推离；区块停进阅读区后必须 dead still（scale/ty 全等于恒等）。
+    // 只写 transform；hero 不参与（有自己的跑道运镜）；copy 阅读模式不参与。
+    const camEls = isCopy
+      ? []
+      : [
+          ...document.querySelectorAll('.section > .container'),
+          document.querySelector('.stats-strip > .container'),
+          document.querySelector('.marquee'),
+          document.querySelector('.contact > .container'),
+          document.querySelector('.footer > .container'),
+        ].filter(Boolean)
+    let camData = []
+
+    // 度量缓存：只在开工/尺寸变化/异步内容把页面撑高时重算（每帧读 rect 会抖动布局）
+    const measureAll = () => {
+      const y = window.scrollY
+      ghostData = ghosts.map((g) => {
+        const host = g.parentElement
+        const r = host ? host.getBoundingClientRect() : { top: 0 }
+        return { el: g, top: r.top + y, lastT: '', lastO: -1 }
+      })
+      camData = camEls.map((el) => {
+        const host = el.closest('.section, .contact, .footer, .stats-strip') || el
+        const r = host.getBoundingClientRect()
+        return {
+          el,
+          top: r.top + y,
+          lastT: '',
+        }
+      })
+      camEls.forEach((el) => {
+        el.style.willChange = 'transform'
+      })
+    }
+    measureAll()
+    const ro = new ResizeObserver(() => measureAll())
+    if (camEls.length) ro.observe(document.body)
 
     // 星空→可读夜景的滚动过渡：保留视频细节，只做轻微压暗，避免背景吞掉栏目内容。
     // 读 lerp 值（currentY）驱动，过渡自带"重量感"；只在变化时写样式。
@@ -176,11 +213,11 @@ export default function App() {
         document.documentElement.style.setProperty('--scroll-vel', velSm.toFixed(1))
         velWritten = velSm
       }
+      const vh = window.innerHeight
       if (bgCanvas) {
         // 滚轮响应：smoothstep 缓动 + 下沉 + 轻微放大 + 压暗。
         // 只写 opacity/transform（合成器属性）——旧版的 hue-rotate / 惯性 blur
         // 是整屏每帧重跑一次滤镜通道的性能黑洞，运镜交给 CSS Ken Burns 后这里全部撤掉。
-        const vh = window.innerHeight
         const raw = Math.min(1, currentY / (vh * 1.6))
         const t = raw * raw * (3 - 2 * raw) // smoothstep：两端慢、中段快
         const op = 1 - t * 0.2
@@ -192,11 +229,35 @@ export default function App() {
           bgOpWritten = op
         }
       }
-      ghostData.forEach(({ el, sectionTop }) => {
-        const relative = currentY - sectionTop
-        const offset = Math.max(-150, Math.min(150, relative * -0.06))
-        el.style.transform = `translateY(${offset.toFixed(1)}px)`
-      })
+      for (const g of ghostData) {
+        const topVis = g.top - currentY
+        const pIn = sstep(clamp01((vh - topVis) / (vh * 0.9)))
+        const pOut = sstep(clamp01(-topVis / (vh * 0.9)))
+        const scale = 1 + 0.14 * (1 - pIn) + 0.1 * pOut
+        const op = (0.35 + 0.65 * pIn) * (1 - 0.35 * pOut)
+        const offset = Math.max(-150, Math.min(150, (currentY - g.top) * -0.06))
+        const t = `translateY(${offset.toFixed(1)}px) scale(${scale.toFixed(4)})`
+        if (t !== g.lastT) {
+          g.el.style.transform = t
+          g.lastT = t
+        }
+        if (Math.abs(op - g.lastO) > 0.01) {
+          g.el.style.opacity = op.toFixed(3)
+          g.lastO = op
+        }
+      }
+      for (const c of camData) {
+        const topVis = c.top - currentY
+        const pIn = sstep(clamp01((vh * 0.96 - topVis) / (vh * 0.85)))
+        const pOut = sstep(clamp01(-topVis / (vh * 0.7)))
+        const scale = (0.96 + 0.04 * pIn) * (1 + 0.03 * pOut)
+        const ty = 26 * (1 - pIn) - 16 * pOut
+        const t = `translate3d(0, ${ty.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        if (t !== c.lastT) {
+          c.el.style.transform = t
+          c.lastT = t
+        }
+      }
       raf = requestAnimationFrame(loop)
     }
 
@@ -209,18 +270,22 @@ export default function App() {
         currentY = targetY
       }
     }
+    const onResize = () => measureAll()
     document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('resize', onResize)
     raf = requestAnimationFrame(loop)
 
     return () => {
       observer.disconnect()
+      ro.disconnect()
       window.removeEventListener('scroll', onScrollRaw)
+      window.removeEventListener('resize', onResize)
       document.removeEventListener('visibilitychange', onVisible)
       cancelAnimationFrame(raf)
       setAccent(ACCENT_DEFAULT, 'default')
       window.__smoothY = 0
     }
-  }, [isAdmin])
+  }, [isAdmin, isCopy])
 
   if (isAdmin) {
     return (

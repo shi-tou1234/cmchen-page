@@ -46,7 +46,16 @@
   /* 近方角：衬线编辑语言里，大圆角像消费级 App */
   --radius-lg: 4px;
   --radius-md: 3px;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- 曲线三族（onetake：一条 S 曲线走天下 = 每个动作一个手感）----------
+     snap   急停落地：入场/微交互，快起近乎瞬达、末端无声收住（t80≈.23）
+     spring 回弹：滚筒换词、色球呼吸、括号聚拢——过冲一点再弹回，像有重量
+     settle 缓落：大位移与收尾呼吸段（rest），长时长慢 曲线，读作「沉下来」
+     分配原则见 PROGRESS.md 节拍表；--ease-out 仅作旧语义别名保留 */
+  --ease-snap: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: var(--ease-settle);
   --ease-swift: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
@@ -210,6 +219,15 @@ h3 {
   align-self: center;
   max-width: 260px;
   background: linear-gradient(90deg, var(--border-strong), transparent);
+  /* 承载链：全宽发丝线展开后，区块头的金线从同一侧「接着长出来」——
+     边界处线是活过边界并继续运动的元素（onetake：carried） */
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.1s var(--ease-settle) 0.2s;
+}
+
+.reveal.is-visible .sec-rule {
+  transform: scaleX(1);
 }
 
 /* view-all：永久发丝线上，悬停一条金线从左盖写过去 */
@@ -238,10 +256,10 @@ h3 {
   background: var(--accent);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.5s var(--ease-out);
+  transition: transform 0.45s var(--ease-snap);
 }
 .view-all .arrow {
-  transition: transform 0.35s var(--ease-out);
+  transition: transform 0.3s var(--ease-snap);
 }
 .view-all:hover {
   color: var(--text);
@@ -261,28 +279,39 @@ h3 {
   background: linear-gradient(90deg, transparent, var(--border-strong) 18%, var(--border-strong) 82%, transparent);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 1.4s var(--ease-out);
+  transition: transform 1.4s var(--ease-settle);
 }
 .rule-reveal.is-inview {
   transform: scaleX(1);
 }
 
-/* Reveal 入场容器：只在 transform/opacity 上做动画 */
+/* Reveal 入场容器：只在 transform/opacity 上做动画。
+   默认 snap（落地急停）；--spring / --settle 按节拍表分配给滚筒感和收尾段 */
 .reveal {
   opacity: 0;
   transform: translateY(26px);
   transition:
-    opacity 0.9s var(--ease-out),
-    transform 0.9s var(--ease-out);
+    opacity 0.45s ease,
+    transform 0.7s var(--ease-snap);
 }
 .reveal--right {
   transform: translateX(36px);
+}
+.reveal-ease-spring {
+  transition:
+    opacity 0.4s ease,
+    transform 0.8s var(--ease-spring);
+}
+.reveal-ease-settle {
+  transition:
+    opacity 0.7s ease,
+    transform 1.05s var(--ease-settle);
 }
 .reveal--clip-up {
   opacity: 1;
   transform: none;
   clip-path: inset(100% 0 0 0);
-  transition: clip-path 1.1s var(--ease-out);
+  transition: clip-path 0.8s var(--ease-snap);
 }
 .reveal.is-visible {
   opacity: 1;
@@ -600,7 +629,7 @@ h3 {
   width: 22px;
   margin: 0 auto;
   background: var(--text);
-  transition: transform 0.35s var(--ease-out), opacity 0.25s ease;
+  transition: transform 0.3s var(--ease-snap), opacity 0.25s ease;
 }
 .nav-toggle.open span:nth-child(1) {
   transform: translateY(6.5px) rotate(45deg);
@@ -631,7 +660,7 @@ h3 {
     opacity: 0;
     background: rgba(7, 8, 11, 0.96);
     border-bottom: 1px solid transparent;
-    transition: max-height 0.5s var(--ease-out), opacity 0.4s ease, border-color 0.4s ease;
+    transition: max-height 0.5s var(--ease-settle), opacity 0.4s ease, border-color 0.4s ease;
   }
   .mobile-menu.open {
     max-height: 340px;
@@ -730,8 +759,8 @@ h3 {
   opacity: 0;
   transform: translateY(110%);
   transition:
-    transform 1.1s var(--ease-out) var(--d, 0ms),
-    opacity 0.7s ease var(--d, 0ms);
+    transform 0.65s var(--ease-snap) var(--d, 0ms),
+    opacity 0.45s ease var(--d, 0ms);
 }
 
 body.site-revealed .hero-char {
@@ -763,7 +792,7 @@ body.site-revealed .hero-char {
   color: var(--text-faint);
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 0.8s ease 0.55s, transform 0.8s var(--ease-out) 0.55s;
+  transition: opacity 0.5s ease 0.5s, transform 0.7s var(--ease-spring) 0.5s;
 }
 
 body.site-revealed .hero-midline {
@@ -817,7 +846,7 @@ body.site-revealed .hero-roles {
 .word-track {
   display: flex;
   flex-direction: column;
-  transition: transform 0.85s var(--ease-out);
+  transition: transform 0.8s var(--ease-spring);
   will-change: transform;
 }
 
@@ -852,7 +881,7 @@ body.site-revealed .hero-sub {
   gap: 24px;
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity 0.8s ease 1.05s, transform 0.8s var(--ease-out) 1.05s;
+  transition: opacity 0.5s ease 0.95s, transform 0.6s var(--ease-snap) 0.95s;
 }
 
 body.site-revealed .hero-foot {
@@ -966,7 +995,7 @@ body.site-revealed .hero-scroll {
   letter-spacing: 0.04em;
   padding: 15px 30px;
   border-radius: 8px;
-  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease,
+  transition: transform 0.22s var(--ease-snap), box-shadow 0.25s ease,
     background 0.25s ease;
 }
 
@@ -1015,7 +1044,7 @@ body.site-revealed .hero-scroll {
 
 .arrow {
   display: inline-flex;
-  transition: transform 0.35s var(--ease-out);
+  transition: transform 0.3s var(--ease-snap);
 }
 
 .btn:hover .arrow,
@@ -1127,7 +1156,7 @@ body.site-revealed .hero-scroll {
   background: var(--gold-line);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.45s var(--ease-out);
+  transition: transform 0.4s var(--ease-snap);
 }
 
 .stat-cell:hover::after {
@@ -1219,7 +1248,7 @@ body.site-revealed .hero-scroll {
   background: var(--gold-line);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.8s var(--ease-out) 0.15s;
+  transition: transform 0.9s var(--ease-settle) 0.15s;
 }
 
 .aw-all .about-big em::after,
@@ -1259,8 +1288,8 @@ body.site-revealed .hero-scroll {
   border-bottom: 1px solid var(--border);
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 0.6s ease calc(var(--i) * 110ms + 150ms),
-    transform 0.6s var(--ease-out) calc(var(--i) * 110ms + 150ms);
+  transition: opacity 0.45s ease calc(var(--i) * 140ms + 150ms),
+    transform 0.55s var(--ease-snap) calc(var(--i) * 140ms + 150ms);
 }
 
 .reveal.is-visible .fact-row {
@@ -1408,7 +1437,7 @@ body.site-revealed .hero-scroll {
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: linear-gradient(170deg, rgba(244, 240, 232, 0.04), rgba(244, 240, 232, 0.012));
-  transition: border-color 0.45s ease, box-shadow 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+  transition: border-color 0.45s ease, box-shadow 0.55s var(--ease-settle), transform 0.35s var(--ease-snap);
 }
 
 .project-card:hover {
@@ -1454,7 +1483,7 @@ body.site-revealed .hero-scroll {
   );
   opacity: 0.85;
   transform: scale(1);
-  transition: transform 0.9s var(--ease-out), opacity 0.6s ease;
+  transition: transform 0.95s var(--ease-spring), opacity 0.6s ease;
 }
 
 .project-card:hover .thumb-orb {
@@ -1608,7 +1637,7 @@ body.site-revealed .hero-scroll {
 }
 
 .project-go .arrow {
-  transition: transform 0.4s var(--ease-out);
+  transition: transform 0.45s var(--ease-spring);
 }
 
 
@@ -1662,7 +1691,7 @@ body.site-revealed .hero-scroll {
   padding: 24px 6px;
   border-bottom: 1px solid var(--border);
   position: relative;
-  transition: background 0.3s ease, padding-left 0.35s var(--ease-out);
+  transition: background 0.3s ease, padding-left 0.3s var(--ease-snap);
 }
 
 .post:hover {
@@ -1801,6 +1830,14 @@ body.site-revealed .hero-scroll {
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, var(--border-strong), transparent);
+  /* 同 .sec-rule 的承载链：金线接在全宽发丝线后面长出来 */
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.1s var(--ease-settle) 0.2s;
+}
+
+.reveal.is-visible .contact-kicker-row .line {
+  transform: scaleX(1);
 }
 
 .contact-title {
@@ -1841,7 +1878,7 @@ body.site-revealed .hero-scroll {
   border: 0;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease;
+  transition: transform 0.22s var(--ease-snap), box-shadow 0.25s ease;
 }
 
 .contact-btn:hover {
@@ -1877,7 +1914,7 @@ body.site-revealed .hero-scroll {
   height: 11px;
   border: 1px solid var(--accent-2);
   opacity: 0;
-  transition: transform 0.4s var(--ease-out), opacity 0.4s ease;
+  transition: transform 0.45s var(--ease-spring), opacity 0.4s ease;
 }
 
 .contact-ghost::before {
@@ -2010,7 +2047,7 @@ body.site-revealed .hero-scroll {
   letter-spacing: 0.06em;
   color: var(--text);
   box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5);
-  animation: toast-in 0.35s var(--ease-out);
+  animation: toast-in 0.5s var(--ease-spring);
   pointer-events: none;
 }
 
@@ -2073,7 +2110,7 @@ body.site-revealed .hero-scroll {
   display: inline-block;
   opacity: 0;
   transform: translateY(0.6em);
-  animation: preloader-char-in 0.7s var(--ease-out) var(--d, 0ms) both;
+  animation: preloader-char-in 0.6s var(--ease-snap) var(--d, 0ms) both;
 }
 
 @keyframes preloader-char-in {
@@ -2250,6 +2287,11 @@ body.is-static *::after {
     transform: scaleX(1);
     transition: none;
   }
+  .sec-rule,
+  .contact-kicker-row .line {
+    transform: scaleX(1);
+    transition: none;
+  }
 }
 
 /* =====================================================================
@@ -2273,7 +2315,7 @@ body.is-static *::after {
   display: inline-block;
   transform: translateY(120%);
   opacity: 0;
-  transition: transform 0.9s var(--ease-out), opacity 0.5s ease;
+  transition: transform 0.7s var(--ease-snap), opacity 0.4s ease;
 }
 
 .split-on .split-c {
@@ -2281,12 +2323,13 @@ body.is-static *::after {
   opacity: 1;
 }
 
-/* 标题逐字可玩：入场完成后，悬停哪个字哪个字轻轻跳起 */
+/* 标题逐字可玩：入场完成后，悬停哪个字哪个字轻轻跳起（spring 过冲像按下琴键） */
 .split-on .split-m:hover .split-c {
   transform: translateY(-12%);
   color: var(--accent);
   transition-delay: 0ms;
-  transition-duration: 0.25s;
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-spring);
 }
 
 .type-caret {

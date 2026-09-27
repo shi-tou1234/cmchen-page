@@ -11,7 +11,7 @@ import { showToast } from '../lib/toast'
 const STYLE = `
 .footer-word{display:block;text-align:center;margin-top:64px;text-decoration:none;
   font-family:var(--font-display);font-size:clamp(70px,15vw,230px);font-weight:500;line-height:.94;
-  letter-spacing:-.02em;user-select:none;transition:letter-spacing .55s var(--ease-out)}
+  letter-spacing:-.02em;user-select:none;transition:letter-spacing .6s var(--ease-settle)}
 .footer-word:hover{letter-spacing:.004em}
 /* 每个字母自带渐变裁剪：字母动、渐变跟着动，悬停不再「消失」；
    --i 驱动色带连续偏移与整词波浪延迟 */
@@ -20,7 +20,7 @@ const STYLE = `
   background-size:260% 100%;
   background-position-x:calc(-40% + var(--i)*16%);
   -webkit-background-clip:text;background-clip:text;color:transparent;
-  transition:transform .5s var(--ease-out),filter .4s ease;
+  transition:transform .5s var(--ease-spring),filter .4s ease;
   animation:word-sheen 9s ease-in-out infinite alternate}
 /* 整词悬停：从左到右的波浪抬升 */
 .footer-word:hover .fw-ch{transform:translateY(-12%);transition-delay:calc(var(--i)*32ms)}
@@ -82,7 +82,7 @@ export default function Footer() {
           </div>
         </div>
       </Reveal>
-      <Reveal delay={90}>
+      <Reveal delay={120} ease="settle">
         <a className="footer-word" href="#top" aria-label="回到顶部">
           {/* 逐字 span：自带渐变裁剪 + --i 序号（色带偏移/波浪延迟），悬停单字深跳 */}
           {site.logo.split('').map((ch, i) => (

@@ -83,7 +83,7 @@ export default function Contact() {
             <span className="line" aria-hidden="true" />
           </div>
         </Reveal>
-        <Reveal delay={90}>
+        <Reveal delay={70} ease="settle">
           <h2 className="contact-title">
             {contact.titleLines.map((line) => (
               <span key={line} className="contact-line">
@@ -92,7 +92,7 @@ export default function Contact() {
             ))}
           </h2>
         </Reveal>
-        <Reveal delay={180}>
+        <Reveal delay={150} ease="settle">
           <div className="contact-actions">
             <Magnetic>
               <button
@@ -117,7 +117,7 @@ export default function Contact() {
             </a>
           </div>
         </Reveal>
-        <Reveal delay={260}>
+        <Reveal delay={240} ease="settle">
           <div className="contact-meta">
             <span>{contact.metaLeft}</span>
             <i />

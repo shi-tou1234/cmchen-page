@@ -17,7 +17,7 @@ const STYLE = `
   padding:24px 12px;border-bottom:1px solid var(--border);
   translate:var(--pull,0) 0;
   box-shadow:inset 2px 0 0 rgba(201,171,116,0);
-  transition:background .25s ease,color .25s ease,box-shadow .3s ease,padding-left .3s var(--ease-out)}
+  transition:background .25s ease,color .25s ease,box-shadow .3s ease,padding-left .3s var(--ease-snap)}
 /* 悬停反白成奶油实底：整行变成一张「卡片」，与导航/按钮同一套实体语言 */
 .skill-row:hover{background:var(--text);color:#0b0c10;box-shadow:inset 3px 0 0 rgba(201,171,116,.9);padding-left:22px}
 .skill-idx{font-family:var(--font-mono);font-size:11px;font-weight:400;color:var(--accent-2);
@@ -32,7 +32,7 @@ const STYLE = `
 .skill-rail{position:relative;flex:1;height:1px;background:var(--border-strong);transition:background .25s ease}
 .skill-rail-fill{position:absolute;top:0;bottom:0;left:0;width:100%;transform-origin:left;
   transform:scaleX(0);background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  transition:transform 1s var(--ease-out);transition-delay:calc(var(--i)*70ms + 150ms)}
+  transition:transform .9s var(--ease-snap);transition-delay:calc(var(--i)*70ms + 150ms)}
 .reveal.is-visible .skill-rail-fill{transform:scaleX(calc(var(--score)/100))}
 .skill-row:hover .skill-rail{background:rgba(11,12,16,.16)}
 .skill-row:hover .skill-rail-fill{background:linear-gradient(90deg,#0b0c10,#5a4c36)}
@@ -46,7 +46,8 @@ const STYLE = `
 .skill-level.is-learning{color:var(--text-faint);border-color:var(--border-strong)}
 .skill-row:hover .skill-level{color:#0b0c10;border-color:rgba(11,12,16,.42)}
 .reveal .skill-row{opacity:0;transform:translateY(18px)}
-.reveal.is-visible .skill-row{opacity:1;transform:none;animation:skill-in .6s var(--ease-out) both;animation-delay:calc(var(--i)*70ms)}
+/* 整组 spring 一次到位（节拍表：skills 段不逐个报数），熟练轨再按行错位画入 */
+.reveal.is-visible .skill-row{opacity:1;transform:none;animation:skill-in .7s var(--ease-spring) both}
 @keyframes skill-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){
   .reveal .skill-row{opacity:1;transform:none;animation:none}

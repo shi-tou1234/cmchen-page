@@ -15,11 +15,11 @@ const STYLE = `
   border:1px solid var(--border);border-top:1px solid var(--border-strong);
   border-radius:var(--radius-lg);overflow:hidden}
 .award-row{position:relative;opacity:0;transform:translateY(18px)}
-.reveal.is-visible .award-row{opacity:1;transform:none;animation:award-row-in .65s var(--ease-out) both;animation-delay:calc(var(--i)*110ms)}
+.reveal.is-visible .award-row{opacity:1;transform:none;animation:award-row-in .45s var(--ease-snap) both;animation-delay:calc(var(--i)*60ms)}
 @keyframes award-row-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .award-row-in{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:24px;
   padding:32px 26px;border-bottom:1px solid var(--border);
-  transition:opacity .35s ease,background .3s ease,box-shadow .3s ease,padding-left .35s var(--ease-out)}
+  transition:opacity .35s ease,background .3s ease,box-shadow .3s ease,padding-left .3s var(--ease-snap)}
 .award-row:last-child .award-row-in{border-bottom:0}
 .award-list.has-active .award-row:not(.is-active) .award-row-in{opacity:.32}
 @media (hover:hover){
@@ -39,7 +39,7 @@ const STYLE = `
 .award-row-badge{justify-self:end}
 .award-row-badge .award-badge{margin-top:0}
 .award-row-foot{margin-top:32px;font-size:14px;line-height:1.85;color:var(--text-dim);text-align:center}
-.award-year-morph{animation:award-year-in .7s var(--ease-out) both}
+.award-year-morph{animation:award-year-in .8s var(--ease-settle) both}
 @keyframes award-year-in{from{opacity:0;transform:translate(-50%,-50%) scale(.965)}
   to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @media (max-width:760px){
@@ -85,7 +85,7 @@ export default function Awards() {
           </div>
         </Reveal>
 
-        <Reveal delay={120}>
+        <Reveal delay={100}>
           <div
             className={`award-list${active >= 0 ? ' has-active' : ''}`}
             onMouseLeave={() => setActive(-1)}
@@ -116,7 +116,7 @@ export default function Awards() {
           </div>
         </Reveal>
 
-        <Reveal delay={220}>
+        <Reveal delay={260} ease="settle">
           <p className="award-row-foot">{awards.footNote}</p>
         </Reveal>
       </div>

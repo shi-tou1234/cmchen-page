@@ -102,7 +102,12 @@ export default function Projects() {
         </Reveal>
         <div className="work-grid">
           {projects.items.map((p, i) => (
-            <Reveal key={p.index} delay={(i % 2) * 90} variant="up">
+            <Reveal
+              key={p.index}
+              delay={(i % 2) * 90}
+              variant="up"
+              ease={i % 2 ? 'spring' : 'snap'}
+            >
               <TiltCard>
                 <a
                   className="project-card"

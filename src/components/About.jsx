@@ -126,7 +126,7 @@ export default function About() {
 
         <div className="about-grid">
           <div className="about-big-wrap">
-            <Reveal delay={90}>
+            <Reveal delay={60}>
               <p className="about-big" ref={bigRef}>
                 {tokens.map((tk, i) => {
                   if (tk.br) return <br key={i} />
@@ -144,7 +144,7 @@ export default function About() {
             </Reveal>
           </div>
 
-          <Reveal delay={180} variant="right">
+          <Reveal delay={160} variant="right" ease="spring">
             <div className="about-card">
               <ul className="about-facts">
                 {about.facts.map((f, i) => (

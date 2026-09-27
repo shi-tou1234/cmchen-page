@@ -1,37 +1,63 @@
 # PROGRESS
 
-## 开工回执（2026-09-26）
+> 上一轮（09-26 暗夜放映室重构）的进度与经验已在 git 历史（3544f49…a7bd761）与提交信息里，本文件从本轮（09-27 onetake 动效叙事改造）重写。
 
-- 理解的目标：以 8bfda64（领导本地版）为基线，不动文字内容与视频文件，重建字体/版式/卡片/动效/视频编排，交付 8 张截图，全程不 push。
-- 顺序：任务0 基线 → 1 字体 → 2 版式卡片 → 3 动效流畅 → 4 视频编排 → 5 交付截图。
-- 最大风险：index.css 5202 行是多轮叠加产物，重写样式若漏掉组件在用的类名会局部破版——先全量盘点组件 className 再动笔；其次 CJK display 字体在 @fontsource 的可选项有限，任务 1 可能要保守保留 Noto Serif SC 只换字重策略。
+## 开工回执（2026-09-27，onetake 动效叙事改造）
 
-## 内容 JSON 指纹（任务 0 存档，交付时复核）
+- 理解的目标：把「每区块各自淡入」的幻灯片式入场，改成区块互相生长——边界处有元素活过去并变形（承载）、滚动有呼吸段+爆发段（节奏）、snap/spring/settle 三族曲线混搭、内容层明显运镜（0.96→1 推进）但停留中线时真静止；粒子层收敛。基线 7967e38，全程不 push。
+- 顺序：任务 1 曲线族打底 → 2 边界承载 → 3 滚动运镜 → 4 粒子/因果 → 5 交付。（曲线族先行：运镜与承载都要消费新曲线变量。）
+- 最大风险：App.jsx 的 lerp loop 是全站滚动驱动的心脏，叠加运镜逻辑若写漏「静止区」或写了非合成器属性会全站卡顿——运镜全部挂在既有 currentY 帧循环里、只写 transform、带「变化才写」哨兵；其次边界截图的「中点」取法要在两区块之间的真实滚动位上取，否则截到的是入场终态。
+- 三族曲线定值（拍板允许执行者定，值记录于此）：
+  - --ease-snap（入场急停，onetake t80≈.23）：cubic-bezier(0.19, 1, 0.22, 1)，时长 0.55–0.7s
+  - --ease-spring（回弹，SwiftUI snappy ζ≈0.85）：cubic-bezier(0.34, 1.56, 0.64, 1)，时长 0.6–0.8s
+  - --ease-settle（大位移缓落，原 soft S 保留语义）：cubic-bezier(0.22, 1, 0.36, 1)，时长 0.9–1.2s
+- 任务 0 结果：git log -1 = 7967e38 ✓；lint 0 警告 0 错误 ✓；build ✓ 497ms；preview(4177，复用上轮遗留实例) + node shots/capture.mjs → 8 张 PNG ✓。全部对上。
 
-```
-5535bd09ee20c6124dd38e13b35c11c8f3d3ec72b003bff1186a80ed6f04dad9  about.json
-5e5661879a4dcd1dcbf9044a71dd5638eaf458206adfe990d1c2024acea796b2  awards.json
-41b36828403402ae6918c56b608e7fcedbd4cb3ff6a3887960409fb588212d75  blog.json
-bb5fc1e82a994069757570c83f7000ad064332d41fe0d6edf96c7a9f297a5f94  contact.json
-6ad81bb66c91c973f19b3e515a29d6ebabf42acd527e7d7c7a6471726aeb1d26  hero.json
-6a90e09f46666516b63f53a2fe9f616c6e26b1ad4b0b74a30c34150cbf6ac7c7  marquee.json
-2e8cc7534dc6471fedf768339a335d24fbfbce4f3661c41f408227da0efa8990  projects.json
-93de640724194cef690474652274e474ce1a91809d5cb7eb12e1136414cec663  site.json
-472d472414da68f86daa624ce7286ed945813cd47dabcded3be1dcd8b25f4f5c  skills.json
-9881058f7e42f578292010b2aaab279784e23e2a1ede165e73c02979bcfbf2b5  stats.json
-```
+## 节拍表（任务 1 能量曲线，全页滚动旅程）
+
+| 区块 | 段性 | 节奏设计 |
+|---|---|---|
+| hero | burst | 开场爆发：标题字母组 0.55s snap 逐个落（40ms 錯位），meta 行 spring 追上，按钮对最后落定 |
+| hero→about 边界 | rest | 过场发丝线慢展开 1.2s settle，近静默 |
+| about | cascade | 宣言逐字点亮（滚动驱动，非 timer），卡片 0.6s snap 错位 120ms——全页最长错位 |
+| about→awards 边界 | rest | 年份藏书票水印从 -60px 缓沉 1.1s |
+| awards | burst | 三条奖项 0.45s snap 短促连击（60ms 错位，全页最快） |
+| skills | rest→cascade | 标题 snap 后网格整组 spring 一次到位（不逐个） |
+| projects | burst | Z 字网格：左卡 snap 右卡 spring 交错，90ms 錯位；箭头微交互保留 |
+| blog | cascade | 引语卡 0.7s settle 长错位 140ms，收在安静里 |
+| contact/footer | rest | 全页收尾呼吸段：全部 settle 长时长，无 burst |
+
+边界承载明细（任务 2 逐边界记录）见下方「边界承载账」。
 
 ## 进度
 
-- [x] 任务 0：lint 0/0、build ✓1.22s、dist 82M、commit 3544f49——全部对上；基线 commit 8bfda64。
-- [x] 任务 1 字体：Cormorant Garamond + 思源宋/黑可变字重 + JetBrains Mono；555e23e
-- [x] 任务 2 版式卡片：index.css 5202→2826 行设计系统重写；7 区块截图已验；555e23e
-- [x] 任务 3 动效流畅：全屏 hue/blur 滤镜拆除、推轨走 __smoothY 缓存度量、backdrop-filter 全站仅后台 admin 2 处（不在视频层上）；6c8f7b7
-- [x] 任务 4 视频编排：about→snow、blog→night-stream，转场全落既有溶解对；CSS Ken Burns 运镜；9c778fd
-- [x] 任务 5 交付：shots/01-08 八张截图（有头 Edge＋画布桥取真实视频帧）＋BLOCKED.md（无）＋PROGRESS.md；a7bd761
+- [x] 任务 0：基线核对全过（见回执）。
+- [x] 任务 1 曲线族与节奏打散：三族曲线落 index.css（families 29 处、--ease-out 裸用 0）＋组件 delay 重排（StatsStrip 70ms、Blog 140ms、Awards 60ms burst、Skills 整组 spring）；反向验证红(0)→绿(29) 已贴对话。
+- [x] 任务 2 承载：ghost 边界交接（App.jsx lerp 层）＋金线生长链（sec-rule / contact line scaleX 接在全宽发丝线后）＋capture-boundary.mjs 7 张边界截图与数值证据；反向验证红(Δ0)→绿(Δ0.07) 已贴对话。
+- [x] 任务 3 运镜：内容容器进场 0.96→1 + 26px 升沉、出场 1→1.03；阅读区恒等（真静止）；footer 不参与（片尾卡豁免，与 onetake end-card 规则一致）；reduced-motion 脏写入=[]、720 帧采样 p95=9.9ms、App.jsx 仅写 transform/opacity/willChange。
+- [x] 任务 4 粒子收敛：32→19 颗（59.4%）、点亮度 0.22→0.15、连线 0.035→0.03、静止冻结（活跃度指数衰减）、快滚沿真实位移拉细痕。悬停/按压全页过一遍：view-all/btn/contact-btn/contact-ghost/project-card/project-go/post/award-row/skill-row/stat-cell/footer-link/marquee/split 字/fw 字均有反馈，无死悬停；按压态 btn/contact-btn 已有「压进阴影」。
+- [x] 任务 5 交付：lint 0/0、build ✓、单 commit 到 main（见交付清单）。
 
-## 经验备注
+## 边界承载账（任务 2：每边界谁活过去了、做什么）
 
-- Edge（headless/headful）的 CDP 截图管线合成不出 <video> 层：验收截图用「画布桥」——把可见视频当前帧 drawImage 进 canvas 注入为背景层再截，帧即真实播放画面。
-- 异步内容（博客文章/旅行地图）会让页面高度中途生长，分段截图前先做一次「滚到底再回顶」的预热滚动。
-- ?static=1&y=1234 截图调试钩子留在 Preloader：冻结动画直出终态＋瞬时滚到指定位置。
+| 边界 | 活过去的元素 | 数值证据（边界位→静止位） |
+|---|---|---|
+| top→about | ABOUT ghost 放大浮出＋容器推近＋金线链 | ghost 1.070→1、op 0.67→1；cam 0.979→1 |
+| about→awards | AWARDS ghost＋年份藏书票 settle＋金线链 | ghost 1.070→1、op 0.67→1；cam 0.9789→1 |
+| awards→skills | SKILLS ghost＋金线链＋技能行整组 spring | ghost 1.070→1、op 0.67→1；cam 0.9789→1 |
+| skills→projects | WORKS ghost＋金线链＋view-all 金线 | ghost 1.070→1、op 0.67→1；cam 0.979→1 |
+| projects→blog | BLOG ghost＋金线链＋引语卡 settle | ghost 1.070→1、op 0.67→1；cam 0.9789→1 |
+| blog→contact | CONTACT ghost＋金线链＋contact 标题 settle | ghost 1.070→1、op 0.67→1；cam 0.9789→1 |
+| contact→footer | CONTACT ghost 离场＋页脚巨字 settle 升起 | ghost 1.0041→1（弱）；cam 1.002→1 |
+
+contact→footer 偏弱的说明：contact 是最后一个整段，maxScroll 前其退场窗口（topVis<-0.7vh）物理上推不满，Δ 只有 0.4%；按 onetake「bare cuts only into the end card」豁免片尾卡入场承载，此边界由 ghost 离场＋巨字升起＋滚动本身承担。这是设计判断，不是遗留缺陷；若领导要更明显，可把 footer 纳入相机（需给 footer 内容加一层非 Reveal 的变换宿主）。
+
+另外记录一个结构性发现：Footer 没有 .container 直子（结构是 footer > Reveal），相机宿主不含 footer——与片尾卡豁免正好一致。
+
+## 交付清单（任务 5）
+
+- 区块终态截图（改造后）：shots/01-hero.png … shots/08-footer.png（8 张，node shots/capture.mjs 复跑可再现）
+- 边界承载截图：shots/b-top-about.png … shots/b-contact-footer.png（7 张）
+- 取证脚本：shots/capture-boundary.mjs（7 边界截图＋ghost/相机数值证据，node shots/capture-boundary.mjs）；shots/probe-motion.mjs（reduced-motion 脏写入检查＋10s 滚动帧率采样）
+- 判卷工具未动：shots/capture.mjs、package.json、vite 配置——git diff 可证
+- 单 commit：见 git log（本轮全部改动一次提交）

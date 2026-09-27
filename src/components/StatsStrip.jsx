@@ -105,7 +105,7 @@ export default function StatsStrip() {
     <div className="stats-strip">
       <div className="container">
         {stats.map((s, i) => (
-          <Reveal key={s.label} delay={i * 110} variant="up">
+          <Reveal key={s.label} delay={i * 70} variant="up">
             <div className="stat-cell">
               <CountUp value={s.value} pad={s.pad} suffix={s.suffix} />
               <span className="stat-label">{s.label}</span>

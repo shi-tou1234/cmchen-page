@@ -128,7 +128,7 @@ export default function Blog() {
           )}
           {posts &&
             posts.map((post, i) => (
-              <Reveal key={post.href} delay={i * 80}>
+              <Reveal key={post.href} delay={i * 140} ease="settle">
                 <a
                   className="post"
                   href={post.href}

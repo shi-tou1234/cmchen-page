@@ -16,7 +16,7 @@ function Chars() {
     <span key={i} className="hero-repel">
       <span
         className={`hero-char${i === 2 || i === 5 ? ' hero-char--outline' : ''}`}
-        style={{ '--d': `${180 + i * 80}ms` }}
+        style={{ '--d': `${140 + i * 45}ms` }}
         aria-hidden="true"
       >
         {ch}

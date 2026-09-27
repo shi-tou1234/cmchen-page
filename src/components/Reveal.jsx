@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function Reveal({ children, delay = 0, variant = 'up' }) {
+// ease：入场曲线族（index.css 曲线三族）——snap 落地急停（默认）/
+// spring 回弹 / settle 缓落。按 PROGRESS.md 节拍表逐区块分配，别全站一个手感
+export default function Reveal({ children, delay = 0, variant = 'up', ease = 'snap' }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
 
@@ -23,11 +25,12 @@ export default function Reveal({ children, delay = 0, variant = 'up' }) {
   }, [variant])
 
   const variantCls = variant !== 'up' ? ` reveal--${variant}` : ''
+  const easeCls = ease !== 'snap' ? ` reveal-ease-${ease}` : ''
 
   return (
     <div
       ref={ref}
-      className={`reveal${variantCls}${visible ? ' is-visible' : ''}`}
+      className={`reveal${variantCls}${easeCls}${visible ? ' is-visible' : ''}`}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}
