@@ -227,7 +227,11 @@ export default function VideoBackground() {
           video.dataset.visible = visible
           state.visible = visible
         }
-        if (clip.id === lead && video.readyState >= 2) {
+        if (clip.id === lead) {
+          // play() 是「登记意图」：数据未就绪也先挂上，浏览器一到
+          // 可播状态就自动开演——线上首屏加载慢时，rAF 静止窗口
+          // （650ms）内视频往往还没下到首帧，若等 readyState 再调
+          // play()，循环停摆后就永远没人再播（线上背景不动的事故）
           if (video.playbackRate !== IDLE_PLAYBACK_RATE) {
             video.playbackRate = IDLE_PLAYBACK_RATE
           }
@@ -436,7 +440,12 @@ export default function VideoBackground() {
     const videos = backgrounds.clips
       .map((clip) => videoRefs.current[clip.id])
       .filter(Boolean)
-    videos.forEach((video) => video.addEventListener('loadedmetadata', onMetadata))
+    // canplay（首帧可用）也唤醒一次判定：慢网络下 loadedmetadata 时
+    // 还没有首帧，等数据到位要再给播放闸门一次机会
+    videos.forEach((video) => {
+      video.addEventListener('loadedmetadata', onMetadata)
+      video.addEventListener('canplay', onMetadata)
+    })
 
     const refreshLayout = () => {
       motion.lastY = null
@@ -482,7 +491,10 @@ export default function VideoBackground() {
         document.removeEventListener('visibilitychange', onVisible)
         window.removeEventListener('pointerdown', unlock)
         layoutObserver?.disconnect()
-        videos.forEach((video) => video.removeEventListener('loadedmetadata', onMetadata))
+        videos.forEach((video) => {
+          video.removeEventListener('loadedmetadata', onMetadata)
+          video.removeEventListener('canplay', onMetadata)
+        })
       }
     }
 
@@ -498,7 +510,10 @@ export default function VideoBackground() {
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('pointerdown', unlock)
       layoutObserver?.disconnect()
-      videos.forEach((video) => video.removeEventListener('loadedmetadata', onMetadata))
+      videos.forEach((video) => {
+        video.removeEventListener('loadedmetadata', onMetadata)
+        video.removeEventListener('canplay', onMetadata)
+      })
     }
   }, [])
 
