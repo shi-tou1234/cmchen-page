@@ -68,6 +68,12 @@ contact→footer 偏弱的说明：contact 是最后一个整段，maxScroll 前
 - 复验：shots/probe-intro.mjs 同一会话连续两次加载，两次 preloader 均在 DOM、加载后揭幕、sessionStorage 标记为 null ✓。
 - 本地端口清理：4177/5173/5174/5175 旧实例全部杀掉，重起单一 preview（4177，生产构建）。
 
+## 反馈轮 3（2026-09-27 领导第三项：背景轨道覆盖重排）
+
+- 领导要求：技能段的背景太短——改为覆盖技能＋项目两段；下一个视频覆盖文章＋地图；最后一个视频留给联系＋页脚。
+- 改动（backgrounds.json sections 映射，五条素材一个不废）：月夜河流(15s) skills→skills+projects（轨道行程约 670px→3900px，刮擦速度降约 5.8 倍，直接解决「太短」）；银河 skills 段让位后改覆盖 blog（文章＋旅行地图同段）；山溪收窄为 contact+footer（末段轨道自然延伸到 maxScroll）。换场点 projects→blog 复用原 moon-river→galaxy 溶解帧（条目 id 由 skills-projects 更名 projects-blog），admin 后台无 id 硬编码引用。
+- 复验：shots/probe-bg.mjs 逐段读主导视频——about/awards=snow、skills=projects=moon-river、blog 两处=galaxy、contact/footer=night-stream，各段中心 veil=0（无卡死的溶解窗）✓。
+
 ## 交付清单（任务 5）
 
 - 区块终态截图（改造后）：shots/01-hero.png … shots/08-footer.png（8 张，node shots/capture.mjs 复跑可再现）

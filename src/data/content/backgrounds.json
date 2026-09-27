@@ -42,8 +42,8 @@
     "about": "snow",
     "awards": "snow",
     "skills": "moon-river",
-    "projects": "galaxy",
-    "blog": "night-stream",
+    "projects": "moon-river",
+    "blog": "galaxy",
     "contact": "night-stream"
   },
   "transitions": [
@@ -62,7 +62,7 @@
       "in": "images/background-keyframes/03-awards-skills-in.jpg"
     },
     {
-      "id": "skills-projects",
+      "id": "projects-blog",
       "from": "moon-river",
       "to": "galaxy",
       "out": "images/background-keyframes/04-skills-projects-out.jpg",
